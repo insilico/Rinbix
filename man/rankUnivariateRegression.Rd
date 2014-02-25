@@ -1,0 +1,19 @@
+\name{rankUnivariateRegression}
+\alias{rankUnivariateRegression}
+\title{Rank genes by univariate regression}
+\usage{
+rankUnivariateRegression(regressionData)
+}
+\arguments{
+  \item{regressionData}{a data frame with gene in columns
+  and samples in rows; the last column should be labeled
+  'Class' and be 0 or 1 values}
+}
+\value{
+data frame with gene, convergence status, beta coefficient,
+p-value, standard error and standardized beta columns
+}
+\description{
+\code{rankUnivariateRegression}
+}
+

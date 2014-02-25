@@ -1,0 +1,30 @@
+\name{runInteractionEffectsTest}
+\alias{runInteractionEffectsTest}
+\title{Get the interaction effect of a pair of variables using generalized linear regression - glm}
+\usage{
+runInteractionEffectsTest(data, variableIndices, depVarName, regressionFamily,
+  numCovariates, excludeMainEffects)
+}
+\arguments{
+  \item{data}{is the data frame with genes in columns and
+  samples in rows}
+
+  \item{variableIndices}{column indices of variable pairs}
+
+  \item{depVarName}{name of the phenotype variable}
+
+  \item{regressionFamily}{glm regression family name}
+
+  \item{numCovariates}{number of covariates included}
+
+  \item{excludeMainEffects}{flag indicating whether to
+  exclude main effect terms}
+}
+\value{
+data frame with gene, convergence status, beta coefficient,
+p-value, standard error and standardized beta columns
+}
+\description{
+\code{runInteractionEffectsTest}
+}
+

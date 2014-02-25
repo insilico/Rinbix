@@ -1,0 +1,36 @@
+\name{getInteractionEffects}
+\alias{getInteractionEffects}
+\title{Get interaction effects from generalized linear model regression}
+\usage{
+getInteractionEffects(data, regressionFamily = "binomial",
+  numCovariates = 0, writeBetas = FALSE, excludeMainEffects = FALSE,
+  useBetas = FALSE, transformMethod = "", verbose = FALSE)
+}
+\arguments{
+  \item{data}{is the data frame with genes in columns and
+  samples in rows}
+
+  \item{regressionFamily}{}
+
+  \item{numCovariates}{the number of included covariates}
+
+  \item{writeBetas}{flag indicating whther to write beta
+  values to separate file}
+
+  \item{excludeMainEffects}{flag indicating whether to
+  exclude main effect terms}
+
+  \item{useBetas}{flag indicating betas rather than
+  standardized betas used}
+
+  \item{transformMethod}{is an optional transform method}
+
+  \item{verbose}{flag to send verbose messages to stdout}
+}
+\value{
+results a matrix of gene by gene regression coefficients
+}
+\description{
+\code{getInteractionEffects}
+}
+

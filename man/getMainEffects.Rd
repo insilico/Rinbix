@@ -1,0 +1,33 @@
+\name{getMainEffects}
+\alias{getMainEffects}
+\title{Get interaction effects from generalized linear model regression (parallel)}
+\usage{
+getMainEffects(data, regressionFamily = "binomial", numCovariates = 0,
+  writeBetas = FALSE, useBetas = FALSE, transformMethod = "",
+  verbose = FALSE)
+}
+\arguments{
+  \item{data}{data is the data frame with genes in columns
+  and samples in rows}
+
+  \item{regressionFamily}{glm regression family name}
+
+  \item{numCovariates}{number of included covariates}
+
+  \item{writeBetas}{flag indicating whther to write beta
+  values to separate file}
+
+  \item{useBetas}{flag indicating betas rather than
+  standardized betas used}
+
+  \item{transformMethod}{is an optional transform method}
+
+  \item{verbose}{flag to send verbose messages to stdout}
+}
+\value{
+mainEffectValues a vector of main effect values
+}
+\description{
+\code{getMainEffects}
+}
+

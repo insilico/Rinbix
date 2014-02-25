@@ -1,0 +1,18 @@
+\name{genelowvalfilter}
+\alias{genelowvalfilter}
+\title{Remove gene profiles with low absolute values}
+\usage{
+genelowvalfilter(dataMatrix)
+}
+\arguments{
+  \item{dataMatrix}{a data frame with genes in rows and
+  samples in columns}
+}
+\value{
+a list with the mask used and filtered data frame
+}
+\description{
+\code{genelowvalfilter} removes genes with values in the
+lowest 10%
+}
+

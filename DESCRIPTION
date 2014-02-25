@@ -1,0 +1,9 @@
+Package: Rinbix
+Type: Package
+Title: R Insilico Bioinformatics
+Version: 1.0
+Date: 2014-02-24
+Author: Bill C. White
+Maintainer: Bill White <bill-white@utulsa.edu>
+Description: Bioinformatics algorithms that mimic the C++ versions in inbix.
+License: GPL

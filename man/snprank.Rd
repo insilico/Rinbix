@@ -1,0 +1,20 @@
+\name{snprank}
+\alias{snprank}
+\title{Rank genes by SNPrank algorithm}
+\usage{
+snprank(G, gamma = 0.85)
+}
+\arguments{
+  \item{G}{is a genetic association network matrix}
+
+  \item{gamma}{is a parameter weighting interactions versus
+  main effects}
+}
+\value{
+sortedTable a data frame with gene, SNPrank, diagonal and
+degree columns
+}
+\description{
+\code{snprank}
+}
+
