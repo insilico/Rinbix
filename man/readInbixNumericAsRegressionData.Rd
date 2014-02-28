@@ -1,0 +1,17 @@
+\name{readInbixNumericAsRegressionData}
+\alias{readInbixNumericAsRegressionData}
+\title{Read inbix numeric data set and phenotype file; return combined data frame}
+\usage{
+readInbixNumericAsRegressionData(baseInbixName)
+}
+\arguments{
+  \item{baseInbixName}{file base name}
+}
+\value{
+data frame with numeric data in first m columns and
+phenotye in m+1 column
+}
+\description{
+\code{readInbixNumericAsRegressionData}
+}
+

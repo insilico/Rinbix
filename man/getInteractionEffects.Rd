@@ -10,7 +10,7 @@ getInteractionEffects(data, regressionFamily = "binomial",
   \item{data}{is the data frame with genes in columns and
   samples in rows}
 
-  \item{regressionFamily}{}
+  \item{regressionFamily}{glm regression family name}
 
   \item{numCovariates}{the number of included covariates}
 

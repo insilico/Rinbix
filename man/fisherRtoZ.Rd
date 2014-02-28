@@ -1,0 +1,16 @@
+\name{fisherRtoZ}
+\alias{fisherRtoZ}
+\title{Fisher correlation transformation function R to Z distribution}
+\usage{
+fisherRtoZ(x)
+}
+\arguments{
+  \item{x}{a correlation value -1 to 1}
+}
+\value{
+transformed correlation value
+}
+\description{
+\code{fiserRtoZ}
+}
+

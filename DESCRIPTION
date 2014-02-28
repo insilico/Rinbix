@@ -7,3 +7,8 @@ Author: Bill C. White
 Maintainer: Bill White <bill-white@utulsa.edu>
 Description: Bioinformatics algorithms that mimic the C++ versions in inbix.
 License: GPL
+Depends:
+    R (>= 3.0.1),
+    multicore (>= 0.1-7)
+Suggests:
+    testthat (>= 0.7.1.99)

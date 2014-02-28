@@ -5,6 +5,88 @@
 
 library(multicore)
 
+# ----------------------------------------------------------------------------
+#' Create a random regression data set with binary class
+#' 
+#' \code{createRandomRegressionDataset} 
+#' 
+#' @param numRows number of rows (samples)
+#' @param numCols number of columns (independent variables)
+#' @return data frame
+#' @export
+createRandomRegressionDataset <- function(numRows, numCols) {
+  dmatrix <- matrix(nrow=numRows, ncol=numCols, data=rnorm(numRows*numCols))
+  dpheno <- c(rep(0, numRows/2), rep(1, numRows/2))
+  dataset <- cbind(dmatrix, dpheno)
+  colnames(dataset) <- c(paste("var", 1:numCols, sep=""), "Class")
+  as.data.frame(dataset)
+}
+
+# ----------------------------------------------------------------------------
+#' Read inbix numeric data set and phenotype file; return combined data frame
+#' 
+#' \code{readInbixNumericAsRegressionData} 
+#' 
+#' @param baseInbixName file base name
+#' @return data frame with numeric data in first m columns and phenotye in m+1 column
+#' @export
+readInbixNumericAsRegressionData <- function(baseInbixName) {
+  inbixNumericFile <- paste(baseInbixName, ".num", sep="")
+  inbixNumericTable <- read.table(inbixNumericFile, header=T, sep="\t")
+  
+  inbixPhenoFile <- paste(baseInbixName, ".pheno", sep="")
+  inbixPhenoTable <- read.table(inbixPhenoFile, header=F, sep="\t")
+  
+  regressionData <- cbind(inbixNumericTable, inbixPhenoTable)
+  colnames(regressionData) <- c(colnames(inbixNumericTable), "Class")
+  regressionData
+}
+
+# ----------------------------------------------------------------------------
+#' Write data set as inbix format 
+#' 
+#' \code{writeSimulatedInbixDataset} 
+#' 
+#' @param D is a data matrix
+#' @param Dfileprefix is an output data file prefix
+#' @export
+# 
+writeSimulatedInbixDataset <- function(D, Dfileprefix) {
+  # ----------------------------------------------------------------------------
+  # write the data set in inbix format for dcGAIN + SNPRank
+  # save inbix phenotypes
+  dimN <- ncol(D)
+  n1 <- dimN / 2
+  n2 <- dimN / 2
+  subIds <- c(paste("case", 1:n1, sep=""), paste("ctrl", 1:n2, sep=""))
+  phenos <- c(rep(1, n1), rep(0, n2))
+  phenosTable <- cbind(subIds, subIds, phenos)
+  datasimInbixPhenoFile <- paste(Dfileprefix, ".pheno", sep="")
+  write.table(phenosTable, datasimInbixPhenoFile, quote=F, sep="\t", 
+              col.names=F, row.names=F)
+  # save inbix numeric file/data set
+  inbixData <- t(D)
+  dataTable <- cbind(subIds, subIds, inbixData)
+  geneNames <- paste("gene", sprintf("%04d", 1:nrow(D)), sep="")
+  colnames(dataTable) <- c("FID", "IID", geneNames)
+  datasimInbixNumFile <- paste(Dfileprefix, ".num", sep="")
+  write.table(dataTable, datasimInbixNumFile, quote=F, sep="\t", 
+              col.names=T, row.names=F)
+}
+
+# ----------------------------------------------------------------------------
+#' Fisher correlation transformation function R to Z distribution
+#' 
+#' \code{fiserRtoZ}
+#' 
+#' @param x a correlation value -1 to 1
+#' @return transformed correlation value
+#' @export
+# 
+fisherRtoZ <- function(x) { 
+  .5 * log(abs((1 + x) / (1 - x))) 
+}
+
 # -----------------------------------------------------------------------------
 #' Remove gene profiles with low absolute values
 #' 
@@ -132,7 +214,7 @@ regain <- function(regressionData) {
   }
   # diagonal main effects
   for(i in 1:numVars) {
-    regainMatrix[i, i] <- runMainEffectsTest(regressionData, colNames[i], "Class", "binomial")
+    regainMatrix[i, i] <- getMainEffect(regressionData, colNames[i], "Class", "binomial")
   }
   
   colnames(regainMatrix) <- colNames[1:(ncol(regressionData)-1)]
@@ -150,7 +232,7 @@ regain <- function(regressionData) {
 #' @param regressionFamily is the regression family name for the glm
 #' @return the regression beta coefficient 
 #' @export
-runMainEffectsTest <- function(data, geneName, depVarName, regressionFamily) {
+getMainEffect <- function(data, geneName, depVarName, regressionFamily) {
   regressionFormula <- as.formula(paste(depVarName, "~", paste("`", geneName, "`", sep=""), sep=" "))
   mainEffectModel <- glm(regressionFormula, family=regressionFamily, data=data)
   
@@ -467,7 +549,7 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
     #regainMatrix[i, i] <- mainEffectValueTransformed
     mainEffectValues[i] <- mainEffectValueTransformed
     if(writeBetas) {
-      thisBetas <- c(interceptCoeff, interceptPval, mainCoeff, mainPval)
+      thisBetas <- c(mainCoeff, mainPval)
       if(numCovariates > 0) {
         for(cn in 1:numCovariates) {
           covBeta <- summary(regressionModel)$coefficients[2+cn, "Estimate"]
@@ -480,7 +562,7 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
   }
   if(writeBetas) {
     cat("Writing betas to mebetas.tab\n") 
-    colNames <- c("Intercept", "Pval", "Main Effect", "Pval")
+    colNames <- c("Main Effect", "Pval")
     if(numCovariates > 0) {
       for(cn in 1:numCovariates) {
         colNames <- c(colNames, c(paste("COV", cn, sep=""), "Pval"))
@@ -550,7 +632,7 @@ runMainEffectsTest <- function(data, variableName, depVarName, regressionFamily,
 #' \code{getInteractionEffects} 
 #' 
 #' @param data is the data frame with genes in columns and samples in rows
-#' @param regressionFamily
+#' @param regressionFamily glm regression family name
 #' @param numCovariates the number of included covariates
 #' @param writeBetas flag indicating whther to write beta values to separate file
 #' @param excludeMainEffects flag indicating whether to exclude main effect terms
