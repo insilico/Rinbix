@@ -5,6 +5,19 @@
 
 library(multicore)
 
+#' A random dataset with 10 samples and 10 variables
+#'
+#' A dataset containing random variables var1 ... var10. 
+#' Class/phenotypes are 5 0's and 5 1's.
+#' The variables are as follows:
+#'
+#' @docType data
+#' @keywords datasets
+#' @name testdata10
+#' @usage data(testdata10)
+#' @format A data frame with 10 rows and 10 variables plus "Class" column
+NULL
+
 # ----------------------------------------------------------------------------
 #' Create a random regression data set with binary class
 #' 
@@ -33,9 +46,10 @@ createRandomRegressionDataset <- function(numRows, numCols) {
 readInbixNumericAsRegressionData <- function(baseInbixName) {
   inbixNumericFile <- paste(baseInbixName, ".num", sep="")
   inbixNumericTable <- read.table(inbixNumericFile, header=T, sep="\t")
+  inbixNumericTable <- inbixNumericTable[, 3:ncol(inbixNumericTable)]
   
   inbixPhenoFile <- paste(baseInbixName, ".pheno", sep="")
-  inbixPhenoTable <- read.table(inbixPhenoFile, header=F, sep="\t")
+  inbixPhenoTable <- read.table(inbixPhenoFile, header=F, sep="\t")[, 3]
   
   regressionData <- cbind(inbixNumericTable, inbixPhenoTable)
   colnames(regressionData) <- c(colnames(inbixNumericTable), "Class")
@@ -43,11 +57,40 @@ readInbixNumericAsRegressionData <- function(baseInbixName) {
 }
 
 # ----------------------------------------------------------------------------
-#' Write data set as inbix format 
+#' Write regression data frame as  inbix numeric data set and phenotype file
+#' 
+#' \code{writeRegressionDataAsInbixNumeric} 
+#' 
+#' @param regressionData is a data frame with sample rows, gene columns 
+#' plus phenotype column
+#' @param baseInbixName file base name
+#' @export
+writeRegressionDataAsInbixNumeric <- function(regressionData, baseInbixName) {
+  numSamples <- nrow(regressionData)
+  numGenes <- ncol(regressionData)-1
+
+  phenoCol <- ncol(regressionData)
+  phenos <- regressionData[, phenoCol]
+  subIds <- c(paste("subj", 1:numSamples, sep=""))
+  phenosTable <- cbind(subIds, subIds, phenos)
+  inbixPhenoFile <- paste(baseInbixName, ".pheno", sep="")
+  write.table(phenosTable, inbixPhenoFile, quote=F, sep="\t", 
+              col.names=F, row.names=F)
+  
+  inbixNumericData <- regressionData[, 1:numGenes]
+  inbixNumericTable <- cbind(subIds, subIds, inbixNumericData)
+  colnames(inbixNumericTable) <- c("FID", "IID", colnames(inbixNumericData))
+  inbixNumericFile <- paste(baseInbixName, ".num", sep="")
+  write.table(inbixNumericTable, inbixNumericFile, quote=F, sep="\t", 
+              col.names=T, row.names=F)
+}
+
+# ----------------------------------------------------------------------------
+#' Write simulated differential expression data matrix as inbix format
 #' 
 #' \code{writeSimulatedInbixDataset} 
 #' 
-#' @param D is a data matrix
+#' @param D is a simulated differential coexpression data matrix
 #' @param Dfileprefix is an output data file prefix
 #' @export
 # 
@@ -171,57 +214,6 @@ rankUnivariateRegression <- function(regressionData) {
 }
 
 # -----------------------------------------------------------------------------
-#' Regression genetic association network
-#' 
-#' \code{regain} 
-#' 
-#' @param regressionData a data frame with gene in columns and samples in rows;
-#' the last column should be labeled 'Class' and be 0 or 1 values
-#' @return regainMatrix a matrix of gene by gene regression coefficients
-#' @export
-regain <- function(regressionData) {
-  # calculate the logistic regression coefficient for each pair of variables in 
-  # regressionData versus the "Class" column (last column)
-  # output is a regression genetic interaction (reGAIN) network
-  colNames <- colnames(regressionData)
-  numVars <- length(colNames) - 1
-  results <- NULL
-  lc1 <- ncol(regressionData) - 2
-  lc2 <- ncol(regressionData) - 1
-  regainMatrix <- matrix(nrow=numVars, ncol=numVars, c(0))
-  # off diagonal interactions
-  for(i in 1:lc1) {
-    for(j in (i+1):lc2) {
-      glmFormula <- paste("Class ~ ", paste(colNames[i], colNames[j], sep=" * "), sep="")
-      #print(glmFormula)
-      interactionModel <- glm(as.formula(glmFormula), 
-                              family="binomial", data=regressionData)
-      #print(summary(interactionModel))
-      #stop("DEBUG END")
-      glmConverged <- interactionModel$converged
-      intCoef <- summary(interactionModel)$coefficients[4, "Estimate"]
-      intStdErr <- summary(interactionModel)$coefficients[4, "Std. Error"]
-      intPval <- summary(interactionModel)$coefficients[4, "Pr(>|z|)"]
-      regainMatrix[i, j] <- round(intCoef / intStdErr, 6)
-      regainMatrix[j, i] <- round(intCoef / intStdErr, 6)
-      results <- rbind(results, 
-                       cbind(colNames[i], colNames[j], glmConverged, 
-                             round(intCoef, 6), 
-                             round(intPval, 6), 
-                             round(intStdErr, 6), 
-                             round(intCoef / intStdErr, 6)))
-    }
-  }
-  # diagonal main effects
-  for(i in 1:numVars) {
-    regainMatrix[i, i] <- getMainEffect(regressionData, colNames[i], "Class", "binomial")
-  }
-  
-  colnames(regainMatrix) <- colNames[1:(ncol(regressionData)-1)]
-  regainMatrix
-}
-
-# -----------------------------------------------------------------------------
 #' Get the main effect of a variable using generalized linear regression - glm
 #' 
 #' \code{runMainEffectsTest} 
@@ -246,233 +238,24 @@ getMainEffect <- function(data, geneName, depVarName, regressionFamily) {
 #' 
 #' @param regressionData a data frame with gene in columns and samples in rows;
 #' the last column should be labeled 'Class' and be 0 or 1 values
+#' @param stdBetas flag to use standardized beta coefficients
+#' @param absBetas flag to use absolute value of beta coefficients
 #' @return regainMatrix a matrix of gene by gene regression coefficients
 #' @export
-regainParallel <- function(regressionData) {
-  mainEffects <- getMainEffects(regressionData)
-  regainMatrix <- getInteractionEffects(regressionData)
+regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE) {
+  transform <- ifelse(absBetas, "abs", "")
+  rawBetas <- ifelse(stdBetas, FALSE, TRUE)
+  mainEffects <- getMainEffects(regressionData, 
+                                useBetas=rawBetas,
+                                transformMethod=transform)
+  regainMatrix <- getInteractionEffects(regressionData, 
+                                        useBetas=rawBetas,
+                                        transformMethod=transform)
   diag(regainMatrix) <- mainEffects
   colnames(regainMatrix) <- colnames(regressionData)[1:(ncol(regressionData)-1)]
+  # replace NAs with zero
+  regainMatrix[is.na(regainMatrix)] <- 0
   regainMatrix
-}
-
-# -----------------------------------------------------------------------------
-#' Differential coexpression genetic association network algorithm
-#' 
-#' \code{dcgain} 
-#' 
-#' @param inbixData is a data frame with samples in rows, genes in columns
-#' and phenotype in the last column
-#' @return results a matrix of gene by gene differential coexpression values
-#' @export
-dcgain <- function(inbixData) {
-  phenos <- inbixData[, ncol(inbixData)] + 1
-  exprBySubj <- inbixData[, 1:(ncol(inbixData)-1)]
-  exprByGene <- t(exprBySubj)
-  varNames <- colnames(inbixData)[1:ncol(exprBySubj)]
-  n1 <- nrow(exprBySubj) / 2
-  n2 <- nrow(exprBySubj) / 2
-  nVars <- ncol(exprBySubj)
-  
-  results <- matrix(nrow=nVars, ncol=nVars)
-  for(i in 1:nrow(exprByGene)) {
-    g1_data <- exprByGene[i, phenos == 1]
-    g2_data <- exprByGene[i, phenos == 2]
-    t_result <- t.test(g1_data, g2_data)
-    results[i, i] <- t_result$statistic
-  }
-  
-  # ----------------------------------------------------------------------------
-  # interactions
-  cor_table_g1 <- cor(t(exprByGene[,phenos==1]))
-  cor_table_g2 <- cor(t(exprByGene[,phenos==2]))
-  for(i in 1:nVars) {
-    for(j in 1:nVars) {
-      if(j <= i) {
-        next
-      }
-      r_ij_1 <- cor_table_g1[i, j]
-      r_ij_2 <- cor_table_g2[i, j]
-      z_ij_1 <- 0.5 * log((abs((1 + r_ij_1) / (1 - r_ij_1))))
-      z_ij_2 <- 0.5 * log((abs((1 + r_ij_2) / (1 - r_ij_2))))
-      Z_ij <- abs(z_ij_1 - z_ij_2) / sqrt((1/(n1 - 3) + 1 / (n2 - 3)))
-      pval <- 2 * pnorm(-abs(Z_ij))
-      results[i, j] <- Z_ij
-      results[j, i] <- Z_ij
-    }
-  }
-  colnames(results) <- varNames
-  results
-}
-
-# -----------------------------------------------------------------------------
-#' Rank genes by SNPrank algorithm
-#' 
-#' \code{snprank}
-#' 
-#' @param G is a genetic association network matrix
-#' @param gamma is a parameter weighting interactions versus main effects
-#' @return sortedTable a data frame with gene, SNPrank, diagonal and degree columns
-#' @export
-snprank <- function(G, gamma=0.85) {
-  n <- nrow(G);
-  geneNames <- colnames(G)
-  Gdiag <- diag(G)
-  Gtrace <- sum(Gdiag)
-  colsum <- colSums(G);
-  diag(G) <- 0
-  Gtrace <- Gtrace * n;
-  colsumG <- colSums(G)
-  rowSumG <- rowSums(G)
-  rowsum_denom <- matrix(0, n, 1);
-  for(i in 1:n) {
-    localSum <- 0;
-    for(j in 1:n) {
-      factor <- ifelse(G[i, j] != 0, 1, 0);
-      localSum <- localSum + (factor * colsumG[j]);
-    }
-    rowsum_denom[i] <- localSum;
-  }
-  gamma_vec <- rep(gamma, n);
-  gamma_matrix <- matrix(nrow=n, ncol=n, data=rep(gamma_vec, n))
-  if(Gtrace) {
-    b <- ((1.0 - gamma_vec) / n) + (Gdiag / Gtrace)  
-  } else {
-    b <- ((1.0 - gamma_vec) / n)
-  }
-  D <- matrix(nrow=n, ncol=n, data=c(0))
-  diag(D) <- 1 / colsumG
-  I <- diag(n)
-  temp <- I - gamma_matrix * G %*% D
-  r <- solve(temp, b)
-  snpranks <- r / sum(r)
-  saveTable <- data.frame(gene=geneNames, snprank=snpranks)
-  sortedTable <- saveTable[order(saveTable$snprank, decreasing=TRUE),]  
-}
-
-# -----------------------------------------------------------------------------
-#' Detect modular structure in a network
-#' 
-#' \code{modularity}
-#' 
-#' @param G an adjacency matrix
-#' @return a data frame of genes name and module assignment columns
-#' @export
-modularity <- function(G) {
-  MODULARITY_THRESHOLD <- 0.000001
-  n <- nrow(G);
-  geneNames <- colnames(G)
-  
-  # create adjacency matrix by thresholding and/or conversion to binary
-  A <- G
-  # create real symmetric modularity matrix B
-  k <- colSums(G)
-  m <- 0.5 * sum(k)
-  B <- A - k %*% t(k) / (2.0 * m);
-  
-  # column indices
-  firstModule <- seq(from=1, to=n)
-  # stack for recursive subdivision of modules
-  processStack <- list(firstModule)
-  # list of vectors of column indices
-  modules <- NULL
-  # Q is a measure of "goodness" of the module decomposition
-  Q <- 0
-  
-  # "recursive" loop to find submodules
-  iteration <- 0
-  while(length(processStack) > 0) {
-    iteration <- iteration + 1
-    # pop the stack for a list of column indices
-    thisModule <- unlist(processStack[[length(processStack)]])
-    #cat("this module:", thisModule, "\n")
-    processStack[length(processStack)] <- NULL
-    # create Bg, a submatrix of B based on current module indices
-    newDim <- length(thisModule)
-    Bg <- matrix(ncol=newDim, nrow=newDim, data=c(0))
-    for(l1 in 1:newDim) {
-      for(l2 in 1:newDim) {
-        Bg[l1, l2] = B[thisModule[l1], thisModule[l2]];
-      }
-    }
-    # adjust the diagonal
-    rowsums <-rowSums(Bg)
-    for(i in 1:length(rowsums)) {
-      Bg[i, i] = Bg[i, i] - rowsums[i]
-    }
-    # get the best split of the modules based on eigenvector decomposition
-    sub_modules <- modularityBestSplit(Bg, m)
-    deltaQ <- sub_modules$Q
-    s <- sub_modules$s_out
-    # assign indices based on two groups
-    s1 <- thisModule[s==-1]
-    s2 <- thisModule[s==1]
-    if((length(s1) == 0) || (length(s2) == 0)) {
-      # stopping criteria for recursive splits
-      modules[[length(modules)+1]] <- thisModule
-      if(iteration == 1) {
-        Q <- deltaQ
-      }
-    }
-    else {
-      if(deltaQ <= MODULARITY_THRESHOLD) {
-        # stopping criteria for recursive splits
-        modules[[length(modules)+1]] <- thisModule
-      } else {
-        # "recursive step": push the two groups onto the stack and repeat
-        processStack[[length(processStack)+1]] <- s1
-        processStack[[length(processStack)+1]] <- s2
-        # update cummulative Q
-        Q <- Q + deltaQ
-      }
-    }
-  }
-  
-  # ----------------------------------------------------------------------------
-  # output modules
-  # ----------------------------------------------------------------------------
-  #cat("Q:", Q, "\n")
-  #cat("Number of modules:", length(modules), "\n")
-  groupAssignments <- NULL
-  for(i in 1:length(modules)) {
-    modIdx <- modules[[i]]
-    modNum <- length(modIdx)
-    modGenes <- geneNames[modIdx]
-    #cat("Module", i, ":", modGenes, "\n")
-    modGroup <- rep(i, modNum)
-    thisGroup <- cbind(modGenes, modGroup)
-    groupAssignments <- rbind(groupAssignments, thisGroup)
-  }
-  colnames(groupAssignments) <- c("Gene", "Group")  
-}
-
-# -----------------------------------------------------------------------------
-#' Find the best split of a modularity matrix using eigenvector decomposition
-#' 
-#' \code{modularityBestSplit} 
-#' 
-#' @param B modularity matrix
-#' @param m m
-#' @return list with modularity value Q and best split vector
-#' @export
-modularityBestSplit <- function(B, m) {
-  # function to split columns of matrix into two groups
-  # get the maximum eigenvector
-  eigResult <- eigen(B);
-  eigval <- eigResult$values;
-  eigvec <- eigResult$vectors
-  # in R, this is the first vector
-  maxeig_val <- eigval[1];
-  maxeig_vec <- eigvec[,1];
-  # use the sign of the eigenvector values to assign group status +/-1
-  s_out <- ifelse(maxeig_vec > 0, 1, -1)
-  # calculate Q for this split
-  Q_mat <- t(s_out) %*% B %*% s_out
-  Q <- Q_mat[1,1]
-  Q <- Q * (1.0 / (m * 4.0))
-  
-  # return Q and list assignments
-  list(Q=Q, s_out=s_out)
 }
 
 # -----------------------------------------------------------------------------
@@ -529,11 +312,6 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
         mainEffectValue <- mainCoeff
       }
       else {
-        mainEffectValue <- mainStat
-      }
-    }
-    else {
-      if(!useBetas) {
         mainEffectValue <- mainStat
       }
     }
@@ -607,7 +385,8 @@ runMainEffectsTest <- function(data, variableName, depVarName, regressionFamily,
                                           paste("`", variableName, "`", sep=""), sep=" "))
   }
   regressionModel <- glm(regressionFormula, family=regressionFamily, data=data)
-
+  #print(regressionModel)
+  
   #interceptCoeff <- summary(regressionModel)$coefficients[1, "Estimate"]
   mainCoeff <- summary(regressionModel)$coefficients[2, "Estimate"]
   mainStdErr <- summary(regressionModel)$coefficients[2, "Std. Error"]
@@ -709,11 +488,6 @@ getInteractionEffects <- function(data, regressionFamily="binomial", numCovariat
         interactionValue <- interactionCoeff
       }
       else {
-        interactionValue <- interactionStat
-      }
-    }
-    else {
-      if(!useBetas) {
         interactionValue <- interactionStat
       }
     }
@@ -850,4 +624,320 @@ runInteractionEffectsTest <- function(data, variableIndices, depVarName,
   
   data.frame(converged=regressionModel$converged, coef=interactionCoeff, 
              stderr=interactionStdErr, pval=interactionPval, stdbeta=interactionStat)
+}
+
+# -----------------------------------------------------------------------------
+#' Differential coexpression genetic association network algorithm
+#' 
+#' \code{dcgain} 
+#' 
+#' @param inbixData is a data frame with samples in rows, genes in columns
+#' and phenotype in the last column
+#' @return results a matrix of gene by gene differential coexpression values
+#' @export
+dcgain <- function(inbixData) {
+  phenos <- inbixData[, ncol(inbixData)] + 1
+  exprBySubj <- inbixData[, 1:(ncol(inbixData)-1)]
+  exprByGene <- t(exprBySubj)
+  varNames <- colnames(inbixData)[1:ncol(exprBySubj)]
+  n1 <- nrow(exprBySubj) / 2
+  n2 <- nrow(exprBySubj) / 2
+  nVars <- ncol(exprBySubj)
+
+  # determine group correlations
+  cor_table_g1 <- cor(t(exprByGene[,phenos==1]))
+  cor_table_g2 <- cor(t(exprByGene[,phenos==2]))
+    
+  # main effect diagonal
+  results <- matrix(nrow=nVars, ncol=nVars)
+  pvalues <- matrix(nrow=nVars, ncol=nVars)
+  for(i in 1:nrow(exprByGene)) {
+    g1_data <- exprByGene[i, phenos == 1]
+    g2_data <- exprByGene[i, phenos == 2]
+    g1_mean <- mean(g1_data)
+    g2_mean <- mean(g2_data)
+    # z-test
+    z_i_1 <- 0.5 * log((abs((1 + g1_mean) / (1 - g1_mean))))
+    z_i_2 <- 0.5 * log((abs((1 + g2_mean) / (1 - g2_mean))))
+    Z_i <- abs(z_i_1 - z_i_2) / sqrt((1/(n1 - 3) + 1 / (n2 - 3)))
+    #Z_i <- abs(g1_mean - g2_mean) / sqrt((1/(n1 - 3) + 1 / (n2 - 3)))
+    results[i, i] <- Z_i
+    pvalues[i, i] <- 1
+    # t-test
+#     t_result <- t.test(g1_data, g2_data)
+#     t_i <- abs(t_result$statistic)
+#     results[i, i] <- t_i
+#     pvalues[i, i] <- t_result$p.value
+    
+    #cat(Z_i, t_i, "\n")
+  }
+  
+  # ----------------------------------------------------------------------------
+  # interactions
+  for(i in 1:nVars) {
+    for(j in 1:nVars) {
+      if(j <= i) {
+        next
+      }
+      r_ij_1 <- cor_table_g1[i, j]
+      r_ij_2 <- cor_table_g2[i, j]
+      z_ij_1 <- 0.5 * log((abs((1 + r_ij_1) / (1 - r_ij_1))))
+      z_ij_2 <- 0.5 * log((abs((1 + r_ij_2) / (1 - r_ij_2))))
+      Z_ij <- abs(z_ij_1 - z_ij_2) / sqrt((1/(n1 - 3) + 1 / (n2 - 3)))
+      pval <- 2 * pnorm(-abs(Z_ij))
+      results[i, j] <- Z_ij
+      results[j, i] <- Z_ij
+      pvalues[i, j] <- pval
+      pvalues[j, i] <- pval
+    }
+  }
+  colnames(results) <- varNames
+  colnames(pvalues) <- varNames
+  
+  list(scores=results, pvals=pvalues)
+}
+
+# -----------------------------------------------------------------------------
+#' Differential modularity genetic association network algorithm
+#' 
+#' \code{dmgain} 
+#' 
+#' @param inbixData is a data frame with samples in rows, genes in columns
+#' and phenotype in the last column
+#' @return results a matrix of gene by gene differential modularity values
+#' @export
+dmgain <- function(inbixData) {
+  phenos <- inbixData[, ncol(inbixData)] + 1
+  exprBySubj <- inbixData[, 1:(ncol(inbixData)-1)]
+  exprByGene <- t(exprBySubj)
+  varNames <- colnames(inbixData)[1:ncol(exprBySubj)]
+  n1 <- nrow(exprBySubj) / 2
+  n2 <- nrow(exprBySubj) / 2
+  nVars <- ncol(exprBySubj)
+  
+  # determine group correlations
+  cor_table_g1 <- cor(t(exprByGene[,phenos == 1]))
+  cor_table_g2 <- cor(t(exprByGene[,phenos == 2]))
+  
+  # main effect diagonal
+  results <- matrix(nrow=nVars, ncol=nVars)
+  pvalues <- matrix(nrow=nVars, ncol=nVars)
+  for(i in 1:nrow(exprByGene)) {
+    g1_data <- exprByGene[i, phenos == 1]
+    g2_data <- exprByGene[i, phenos == 2]
+    # z-test
+    g1_mean <- mean(g1_data)
+    g2_mean <- mean(g2_data)
+    z_i_1 <- 0.5 * log((abs((1 + g1_mean) / (1 - g1_mean))))
+    z_i_2 <- 0.5 * log((abs((1 + g2_mean) / (1 - g2_mean))))
+    Z_i <- abs(z_i_1 - z_i_2) / sqrt((1/(n1 - 3) + 1 / (n2 - 3)))
+    results[i, i] <- Z_i
+    pvalues[i, i] <- 1
+    # t-test
+#     t_result <- t.test(g1_data, g2_data)
+#     t_i <- abs(t_result$statistic)
+#     results[i, i] <- t_i
+#     pvalues[i, i] <- t_result$p.value
+  }
+  
+  # ----------------------------------------------------------------------------
+  # interactions
+  # added from bam by bcw 7/29/14
+  k_1 <- rowSums(cor_table_g1)
+  two_m_1 <- sum(k_1)
+  k_2 <- rowSums(cor_table_g2)
+  two_m_2 <- sum(k_2)
+  for(i in 1:nVars) {
+    for(j in 1:nVars) {
+      if(j <= i) {
+        next
+      }
+      r_ij_1 <- cor_table_g1[i, j]
+      r_ij_2 <- cor_table_g2[i, j]
+      # added from bam by bcw 7/29/14
+      z_ij_1 <- cor_table_g1[i, j] - k_1[i] * k_1[j] / two_m_1
+      z_ij_2 <- cor_table_g2[i, j] - k_2[i] * k_2[j] / two_m_2
+      Z_ij <- abs(z_ij_1 - z_ij_2) / sqrt((1/(n1 - 3) + 1 / (n2 - 3)))
+      pval <- 2 * pnorm(-abs(Z_ij))
+      results[i, j] <- Z_ij
+      results[j, i] <- Z_ij
+      pvalues[i, j] <- pval
+      pvalues[j, i] <- pval
+    }
+  }
+  colnames(results) <- varNames
+  colnames(pvalues) <- varNames
+  
+  list(scores=results, pvals=pvalues)
+}
+
+# -----------------------------------------------------------------------------
+#' Rank genes by SNPrank algorithm
+#' 
+#' \code{snprank}
+#' 
+#' @param G is a genetic association network matrix
+#' @param gamma is a parameter weighting interactions versus main effects
+#' @return sortedTable a data frame with gene, SNPrank, diagonal and degree columns
+#' @export
+snprank <- function(G, gamma=0.85) {
+  n <- nrow(G);
+  geneNames <- colnames(G)
+  Gdiag <- diag(G)
+  Gtrace <- sum(Gdiag)
+  colsum <- colSums(G);
+  diag(G) <- 0
+  Gtrace <- Gtrace * n;
+  colsumG <- colSums(G)
+  rowSumG <- rowSums(G)
+  rowsum_denom <- matrix(0, n, 1);
+  for(i in 1:n) {
+    localSum <- 0;
+    for(j in 1:n) {
+      factor <- ifelse(G[i, j] != 0, 1, 0);
+      localSum <- localSum + (factor * colsumG[j]);
+    }
+    rowsum_denom[i] <- localSum;
+  }
+  gamma_vec <- rep(gamma, n);
+  gamma_matrix <- matrix(nrow=n, ncol=n, data=rep(gamma_vec, n))
+  if(Gtrace) {
+    b <- ((1.0 - gamma_vec) / n) + (Gdiag / Gtrace)  
+  } else {
+    b <- ((1.0 - gamma_vec) / n)
+  }
+  D <- matrix(nrow=n, ncol=n, data=c(0))
+  diag(D) <- 1 / colsumG
+  I <- diag(n)
+  temp <- I - gamma_matrix * G %*% D
+  r <- solve(temp, b)
+  snpranks <- r / sum(r)
+  saveTable <- data.frame(gene=geneNames, snprank=snpranks)
+  sortedTable <- saveTable[order(saveTable$snprank, decreasing=TRUE),]  
+}
+
+# -----------------------------------------------------------------------------
+#' Detect modular structure in a network
+#' 
+#' \code{modularity}
+#' 
+#' @param G an adjacency matrix
+#' @return a data frame of genes name and module assignment columns
+#' @export
+modularity <- function(G) {
+  MODULARITY_THRESHOLD <- 0.000001
+  n <- nrow(G);
+  geneNames <- colnames(G)
+  
+  # create adjacency matrix by thresholding and/or conversion to binary
+  A <- G
+  # create real symmetric modularity matrix B
+  k <- colSums(G)
+  m <- 0.5 * sum(k)
+  B <- A - k %*% t(k) / (2.0 * m);
+  
+  # column indices
+  firstModule <- seq(from=1, to=n)
+  # stack for recursive subdivision of modules
+  processStack <- list(firstModule)
+  # list of vectors of column indices
+  modules <- NULL
+  # Q is a measure of "goodness" of the module decomposition
+  Q <- 0
+  
+  # "recursive" loop to find submodules
+  iteration <- 0
+  while(length(processStack) > 0) {
+    iteration <- iteration + 1
+    # pop the stack for a list of column indices
+    thisModule <- unlist(processStack[[length(processStack)]])
+    #cat("this module:", thisModule, "\n")
+    processStack[length(processStack)] <- NULL
+    # create Bg, a submatrix of B based on current module indices
+    newDim <- length(thisModule)
+    Bg <- matrix(ncol=newDim, nrow=newDim, data=c(0))
+    for(l1 in 1:newDim) {
+      for(l2 in 1:newDim) {
+        Bg[l1, l2] = B[thisModule[l1], thisModule[l2]];
+      }
+    }
+    # adjust the diagonal
+    rowsums <-rowSums(Bg)
+    for(i in 1:length(rowsums)) {
+      Bg[i, i] = Bg[i, i] - rowsums[i]
+    }
+    # get the best split of the modules based on eigenvector decomposition
+    sub_modules <- modularityBestSplit(Bg, m)
+    deltaQ <- sub_modules$Q
+    s <- sub_modules$s_out
+    # assign indices based on two groups
+    s1 <- thisModule[s==-1]
+    s2 <- thisModule[s==1]
+    if((length(s1) == 0) || (length(s2) == 0)) {
+      # stopping criteria for recursive splits
+      modules[[length(modules)+1]] <- thisModule
+      if(iteration == 1) {
+        Q <- deltaQ
+      }
+    }
+    else {
+      if(deltaQ <= MODULARITY_THRESHOLD) {
+        # stopping criteria for recursive splits
+        modules[[length(modules)+1]] <- thisModule
+      } else {
+        # "recursive step": push the two groups onto the stack and repeat
+        processStack[[length(processStack)+1]] <- s1
+        processStack[[length(processStack)+1]] <- s2
+        # update cummulative Q
+        Q <- Q + deltaQ
+      }
+    }
+  }
+  
+  # ----------------------------------------------------------------------------
+  # output modules
+  # ----------------------------------------------------------------------------
+  cat("Q:", Q, "\n")
+  cat("Number of modules:", length(modules), "\n")
+  groupAssignments <- NULL
+  for(i in 1:length(modules)) {
+    modIdx <- modules[[i]]
+    modNum <- length(modIdx)
+    modGenes <- geneNames[modIdx]
+    #cat("Module", i, ":", modGenes, "\n")
+    modGroup <- rep(i, modNum)
+    thisGroup <- cbind(modGenes, modGroup)
+    groupAssignments <- rbind(groupAssignments, thisGroup)
+  }
+  colnames(groupAssignments) <- c("Gene", "Group")
+  groupAssignments
+}
+
+# -----------------------------------------------------------------------------
+#' Find the best split of a modularity matrix using eigenvector decomposition
+#' 
+#' \code{modularityBestSplit} 
+#' 
+#' @param B modularity matrix
+#' @param m m
+#' @return list with modularity value Q and best split vector
+#' @export
+modularityBestSplit <- function(B, m) {
+  # function to split columns of matrix into two groups
+  # get the maximum eigenvector
+  eigResult <- eigen(B);
+  eigval <- eigResult$values;
+  eigvec <- eigResult$vectors
+  # in R, this is the first vector
+  maxeig_val <- eigval[1];
+  maxeig_vec <- eigvec[,1];
+  # use the sign of the eigenvector values to assign group status +/-1
+  s_out <- ifelse(maxeig_vec > 0, 1, -1)
+  # calculate Q for this split
+  Q_mat <- t(s_out) %*% B %*% s_out
+  Q <- Q_mat[1,1]
+  Q <- Q * (1.0 / (m * 4.0))
+  
+  # return Q and list assignments
+  list(Q=Q, s_out=s_out)
 }
