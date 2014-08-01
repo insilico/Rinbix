@@ -830,11 +830,12 @@ modularity <- function(G) {
   geneNames <- colnames(G)
   
   # create adjacency matrix by thresholding and/or conversion to binary
-  A <- G
+  # zero the diagonal
+  diag(G) <- 0
   # create real symmetric modularity matrix B
   k <- colSums(G)
   m <- 0.5 * sum(k)
-  B <- A - k %*% t(k) / (2.0 * m);
+  B <- G - k %*% t(k) / (2.0 * m);
   
   # column indices
   firstModule <- seq(from=1, to=n)
@@ -932,7 +933,7 @@ modularityBestSplit <- function(B, m) {
   maxeig_val <- eigval[1];
   maxeig_vec <- eigvec[,1];
   # use the sign of the eigenvector values to assign group status +/-1
-  s_out <- ifelse(maxeig_vec > 0, 1, -1)
+  s_out <- ifelse(maxeig_vec < 0, -1, 1)
   # calculate Q for this split
   Q_mat <- t(s_out) %*% B %*% s_out
   Q <- Q_mat[1,1]
