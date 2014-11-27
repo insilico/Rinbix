@@ -3,7 +3,7 @@
 # An R library that mimics many functions found in the Insilico 
 # Bioinformatics (inbix) C++ library.
 
-library(multicore)
+library(parallel)
 
 #' A random dataset with 10 samples and 10 variables
 #'
@@ -216,7 +216,7 @@ rankUnivariateRegression <- function(regressionData) {
 # -----------------------------------------------------------------------------
 #' Get the main effect of a variable using generalized linear regression - glm
 #' 
-#' \code{runMainEffectsTest} 
+#' \code{getMainEffect} 
 #' 
 #' @param data is the data frame with genes in columns and samples in rows
 #' @param geneName is the column name of the gene used in the regression formula
@@ -259,7 +259,7 @@ regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE) {
 }
 
 # -----------------------------------------------------------------------------
-#' Get interaction effects from generalized linear model regression (parallel)
+#' Get main effects from generalized linear model regression (parallel)
 #' 
 #' \code{getMainEffects} 
 #' 
