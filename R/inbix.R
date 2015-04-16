@@ -315,6 +315,18 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
         mainEffectValue <- mainStat
       }
     }
+    else {
+      mainEffectValue <- 0
+    }
+    if(mainPval > 0.99) {
+      cat("WARNING: Main effect p-value > 0.99", variableNames[i], "\n")
+      mainEffectValue <- 0
+    }
+    if(mainPval < 2e-16) {
+      cat("WARNING: Main effect p-value < 2e-16", variableNames[i], "\n")
+      mainEffectValue <- 0
+    }
+    
     mainEffectValueTransformed <- mainEffectValue
     if(!is.na(mainEffectValue)) {
       if(transformMethod == "abs") {
@@ -490,7 +502,18 @@ getInteractionEffects <- function(data, regressionFamily="binomial", numCovariat
       else {
         interactionValue <- interactionStat
       }
+    } else {
+      interactionValue <- 0
     }
+    if(interactionPval > 0.99) {
+      cat("WARNING: Interaction effect p-value > 0.99", interactionName, "\n")
+      interactionValue <- 0
+    }
+    if(interactionPval < 2e-16) {
+      cat("WARNING: Interaction effect p-value < 2e-16", interactionName, "\n")
+      interactionValue <- 0
+    }
+    
     interactionValueTransformed <- interactionValue
     if(!is.na(interactionValue)) {
       if(transformMethod == "abs") {
@@ -640,13 +663,20 @@ dcgain <- function(inbixData) {
   exprBySubj <- inbixData[, 1:(ncol(inbixData)-1)]
   exprByGene <- t(exprBySubj)
   varNames <- colnames(inbixData)[1:ncol(exprBySubj)]
-  n1 <- nrow(exprBySubj) / 2
-  n2 <- nrow(exprBySubj) / 2
+  n1 <- length(which(phenos == 1))
+  n2 <- length(which(phenos == 2))
+  print(dim(inbixData))
+  cat("Group 1:", n1, "Group 2:", n2, "\n")
   nVars <- ncol(exprBySubj)
 
   # determine group correlations
-  cor_table_g1 <- cor(t(exprByGene[,phenos==1]))
-  cor_table_g2 <- cor(t(exprByGene[,phenos==2]))
+  expr_g1 <- exprByGene[, phenos == 1]
+  expr_g2 <- exprByGene[, phenos == 2]
+#   cat("DEBUG Rinbix package\n")
+#   print(expr_g1[1:5, 1:5])
+#   print(expr_g2[1:5, 1:5])
+  cor_table_g1 <- cor(t(expr_g1))
+  cor_table_g2 <- cor(t(expr_g2))
     
   # main effect diagonal
   results <- matrix(nrow=nVars, ncol=nVars)
@@ -911,7 +941,8 @@ modularity <- function(G) {
     groupAssignments <- rbind(groupAssignments, thisGroup)
   }
   colnames(groupAssignments) <- c("Gene", "Group")
-  groupAssignments
+  
+  list(groups=groupAssignments, q=Q, modules=modules)
 }
 
 # -----------------------------------------------------------------------------

@@ -36,10 +36,9 @@ readInbixNumericPheno <- function(inbixNumericFilename, inbixPhenoFilename) {
 writeRegressionInbixDataset <- function(regDs, filePrefix) {
   numGenes <- ncol(regDs) - 1
   numSubjs <- nrow(regDs)
-  numG1 <- numSubjs / 2
-  numG2 <- numG1
   phenos <- regDs[, numGenes + 1]
-  subIds <- c(paste("case", 1:numG1, sep=""), paste("ctrl", 1:numG2, sep=""))
+  phenoCats <- ifelse(phenos == 0, "control", "case")
+  subIds <- paste(phenoCats, 1:numSubjs, sep="")
   
   phenosTable <- cbind(subIds, subIds, phenos)
   datasimInbixPhenoFile <- paste(filePrefix, ".pheno", sep="")
