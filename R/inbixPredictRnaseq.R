@@ -7,6 +7,11 @@
 #   * filterGenes
 #   * classify
 
+library(caret)
+library(edgeR)
+library(DESeq2)
+library(CORElearn)
+
 # ----------------------------------------------------------------------------
 #' Predict a response based on RNASeq gene expression
 #' 
@@ -39,7 +44,8 @@ predictRnaseq <- function(rnaseqCountsTrain, groupLabelsTrain,
   cat("Genes before:", ncol(preprocessResult$train), "after:", ncol(filterResult$train), "\n")
   
   cat("\tCalling classify(", classifyMethod, ")\n")
-  classifyStats <- classify(classifyMethod, filterResult$train, filterResult$test)
+  classifyStats <- classify(classifyMethod, filterResult$train, groupLabelsTrain,
+                            filterResult$test, groupLabelsTest)
   
   list(stats=classifyStats)
 }
@@ -96,7 +102,6 @@ preprocess <- function(method="none", countsTrain, countsTest) {
 #' @export
 filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, labelsTest, nTopGenes) {
   if(method == "edger") {
-    require(edgeR)
     cat("\t\tedgeR\n")
     y <- DGEList(counts=t(dataTrain), group=labelsTrain)
     y <- estimateCommonDisp(y)
@@ -104,7 +109,6 @@ filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, labelsT
     topGenes <- rownames(dgeResult$table[order(dgeResult$table$PValue), ])[1:nTopGenes]
   }
   if(method == "deseq2") {
-    require(DESeq2)
     cat("\t\tDESeq2\n")
     dds <- DESeqDataSetFromMatrix(countData=t(predictorsTrain),
                                   colData=data.frame(response=factor(responseTrain)),
@@ -114,7 +118,6 @@ filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, labelsT
     topGenes <- rownames(res[order(res$pvalue), ])[1:nTopGenes]
   }
   if(method == "relieff") {
-    require(CORElearn)
     cat("\t\tRelief-F\n")
     classData <- as.data.frame(cbind(dataTrain, labelsTrain))
     colnames(classData) <- c(colnames(dataTrain), "Class")
@@ -122,7 +125,6 @@ filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, labelsT
     topGenes <- names(sort(relieff, decreasing=T))[1:nTopGenes]
   }
   if(method == "randomforests") {
-    require(CORElearn)
     cat("\t\tRandom Forests\n")
     classData <- as.data.frame(cbind(dataTrain, labelsTrain))
     colnames(classData) <- c(colnames(dataTrain), "Class")
@@ -147,6 +149,77 @@ filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, labelsT
 #' @return list with classifier stats for method
 #' @export
 classify <- function(method="none", dataTrain, labelsTrain, dataTest, labelsTest) {
-  list()
+  if(method == "svm") {
+    cat("\t\tSVM - Linear\n")
+    yTrain <- factor(ifelse(labelsTrain == 1, -1, 1))
+    yTest <- factor(ifelse(labelsTest == 1, -1, 1))
+    fitControl <- trainControl(method="cv", number=5)
+    fit <- train(dataTrain, yTrain, method="svmLinear", 
+                 verbose=TRUE, trControl=fitControl, metric="Accuracy")
+    predictionsTrain <- predict(fit, newdata=dataTrain)
+    classStatsTrain <- getClassificationStats(yTrain, predictionsTrain, 
+                                              class_levels=c(-1, 1))
+    predictionsTest <- predict(fit, newdata=dataTest)
+    classStatsTest <- getClassificationStats(yTest, predictionsTest, 
+                                             class_levels=c(-1, 1))
+  }
+  cat("\t\tCV10 ", 
+      "Train", 
+      "SENS:", classStatsTrain$TPR, 
+      "SPEC:", classStatsTrain$SPC, 
+      "ACC:", classStatsTrain$ACC, 
+      "Test:", 
+      "SENS:", classStatsTest$TPR, 
+      "SPEC:", classStatsTest$SPC, 
+      "ACC:", classStatsTest$ACC, 
+      "\n")
+  list(statsTrain=classStatsTrain, statsTest=classStatsTest)
 }
 
+# -----------------------------------------------------------------------------
+#' compute all sorts of classification stats from true and proposed (predicted) 
+#' binary states
+#'
+#' \code{getClassificationStats} 
+#' 
+#' @param true_classification
+#' @param proposed_classification
+#' @param class_levels
+#' @return data frame of classification stats
+#' @export
+getClassificationStats <- function(true_classification, 
+                                   proposed_classification,
+                                   class_levels=c(0,1)) {
+  # compute confusion matrix
+  confusion_matrix <- table(factor(proposed_classification, levels=class_levels),
+                            factor(true_classification, levels=class_levels))
+#   print(true_classification)
+#   print(proposed_classification)
+#   print(confusion_matrix)
+  
+  TP <- confusion_matrix[1, 1]
+  FP <- confusion_matrix[1, 2]
+  FN <- confusion_matrix[2, 1]
+  TN <- confusion_matrix[2, 2]
+  
+  # calculate classification metrics from contingency table
+  TPR <- TP / (TP + FN) # TPR/recall/hit rate/sensitivity
+  SPC <- TN / (TN + FP) # TNR/specificity/SPC
+  PPV <- TP / (TP + FP) # precision/PPV
+  NPV <- TN / (TN + FN) # negative predictive value/NPV
+  FPR <- FP / (FP + TN) # fall-out/FPR/false positive rate
+  FDR <- FP / (FP + TP) # false discovery rate/FDR
+  FNR <- FN / (FN + TP) # false negative rate/FNR/miss rate
+  
+  # accuracy of the model
+  ACC <- (TP + TN) / (TP + FP + TN + FN)
+  BAC <- (TPR + SPC) / 2
+  F1 <- (2 * TP) / (2 * TP + FP + FN)
+  MCC <-
+    ((TP * TN) - (FP * FN)) /
+    sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN))
+  
+  # package and return all the computed results
+  data.frame(TP=TP, FP=FP, TN=TN, FN=FN, TPR=TPR, SPC=SPC, PPV=PPV, NPV=NPV, 
+             FPR=FPR, FDR=FDR, FNR=FNR, ACC=ACC, BAC=BAC, F1=F1, MCC=MCC)
+}
