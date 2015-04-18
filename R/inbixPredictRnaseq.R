@@ -6,46 +6,49 @@
 #   * preprocess
 #   * filterGenes
 #   * classify
-
-library(caret)
-library(edgeR)
-library(DESeq2)
-library(CORElearn)
+#   * getClassificationStats
 
 # ----------------------------------------------------------------------------
-#' Predict a response based on RNASeq gene expression
+#' Predict a response based on RNASeq gene expression.
 #' 
 #' \code{predictRnaseq} 
 #' 
-#' @param rnaseqCountsTrain, RNASeq counts matrix for training
-#' @param groupLabelsTrain, group labels corresponding to the columns in rnaseqCountsTrain
-#' @param rnaseqCountsTest, RNASeq counts matrix for testing
-#' @param groupLabelsTest, group labels corresponding to the columns in rnaseqCountsTest
-#' @param preprocessMethod, pre-processing method: none, scale, log2, log2scale
-#' @param filterMethod, filtering method to reduce the dimensions for classification
-#' @param topN, top number of genes to keep in the filter step
-#' @param classifierMethod, classifier used to build a model and predict new data
-#' @return list with ranked genes, classification metrics
+#' @param rnaseqCountsTrain RNASeq counts matrix for training.
+#' @param groupLabelsTrain Group labels corresponding to the columns in rnaseqCountsTrain.
+#' @param rnaseqCountsTest RNASeq counts matrix for testing.
+#' @param groupLabelsTest Group labels corresponding to the columns in rnaseqCountsTest.
+#' @param preprocessMethod Pre-processing method: none, scale, log2, log2scale.
+#' @param filterMethod Filtering method to reduce the dimensions for classification.
+#' @param topN Top number of genes to keep in the filter step.
+#' @param classifierMethod Classifier used to build a model and predict new data.
+#' @param verbose Verbose flag for more output set TRUE
+#' @return List with ranked genes, classification metrics.
 #' @export
 predictRnaseq <- function(rnaseqCountsTrain, groupLabelsTrain,
                           rnaseqCountsTest, groupLabelsTest,
                           preprocessMethod="none", filterMethod="none", 
-                          topN=10, classifyMethod="none") {
-  cat("\tCalling preprocess(", preprocessMethod, ")\n")
-  preprocessResult <- preprocess(preprocessMethod, rnaseqCountsTrain, rnaseqCountsTest)
-  cat("Before preprocessing:\n")
-  print(rnaseqCountsTrain[1:5, 1:5])
-  cat("After preprocessing:\n")
-  print(preprocessResult$train[1:5, 1:5])
-  
-  cat("\tCalling filter(", filterMethod, topN, ")\n")
+                          topN=10, classifierMethod="none", verbose=FALSE) {
+  if(verbose) { cat("\tCalling preprocess(", preprocessMethod, ")\n") }
+  preprocessResult <- preprocess(preprocessMethod, rnaseqCountsTrain, 
+                                 rnaseqCountsTest, verbose)
+  if(verbose) {
+    cat("Before preprocessing:\n")
+    print(rnaseqCountsTrain[1:5, 1:5])
+    cat("After preprocessing:\n")
+    print(preprocessResult$train[1:5, 1:5])
+    
+    cat("\tCalling filter(", filterMethod, topN, ")\n")
+  }
   filterResult <- filterGenes(filterMethod, preprocessResult$train, groupLabelsTrain,
-                              preprocessResult$test, groupLabelsTest, topN)
-  cat("Genes before:", ncol(preprocessResult$train), "after:", ncol(filterResult$train), "\n")
+                              preprocessResult$test, groupLabelsTest, topN, verbose)
+  if(verbose) { 
+    cat("Genes before filtering:", ncol(preprocessResult$train), 
+        "after:", ncol(filterResult$train), "\n")
+  }
   
-  cat("\tCalling classify(", classifyMethod, ")\n")
-  classifyStats <- classify(classifyMethod, filterResult$train, groupLabelsTrain,
-                            filterResult$test, groupLabelsTest)
+  if(verbose) { cat("\tCalling classify(", classifierMethod, ")\n") }
+  classifyStats <- classify(classifierMethod, filterResult$train, groupLabelsTrain,
+                            filterResult$test, groupLabelsTest, verbose)
   
   list(stats=classifyStats)
 }
@@ -55,32 +58,33 @@ predictRnaseq <- function(rnaseqCountsTrain, groupLabelsTrain,
 #' 
 #' \code{preprocess} 
 #' 
-#' @param method, pre-processing method: none, scale, log2, log2scale
-#' @param countsTrain, RNASeq counts matrix for training
-#' @param countsTest, RNASeq counts matrix for testing
-#' @return list with preprocessed training and testing matrices
+#' @param method Pre-processing method: none, scale, log2, log2scale.
+#' @param countsTrain RNASeq counts matrix for training.
+#' @param countsTest RNASeq counts matrix for testing.
+#' @param verbose Verbose flag for more output set TRUE
+#' @return List with preprocessed training and testing matrices.
 #' @export
-preprocess <- function(method="none", countsTrain, countsTest) {
+preprocess <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
   returnTrain <- countsTrain
   returnTest <- countsTest
   if(method == "scale") {
-    cat("\t\tscale\n")
+    if(verbose) { cat("\t\tscale\n") }
     returnTrain <- scale(countsTrain, center=F)
     returnTest <- scale(countsTest, center=F)
   }
   if(method == "log2") {
-    cat("\t\tlog2\n")
+    if(verbose) { cat("\t\tlog2\n") }
     returnTrain <- log2(countsTrain)
     returnTest <- log2(countsTest)
   }
   if(method == "log2scale") {
-    cat("\t\tlog2scale\n")
+    if(verbose) { cat("\t\tlog2scale\n") }
     returnTrain <- log2(countsTrain)
     returnTest <- log2(countsTest)
     returnTrain <- scale(returnTrain)
     returnTest <- scale(returnTest)
   }
-  # make return data integer counts
+  # make return values integer (counts)
   returnTrain <- apply(returnTrain, c(1, 2), function(x) { (as.integer(x)) })
   returnTest <- apply(returnTest, c(1, 2), function(x) { (as.integer(x)) })
   
@@ -90,51 +94,56 @@ preprocess <- function(method="none", countsTrain, countsTest) {
 # ----------------------------------------------------------------------------
 #' Filtering step of the predictRnaseq function.
 #' 
-#' \code{filter} 
+#' \code{filterGenes} 
 #' 
-#' @param method, filtering method: none, relieff, edger, deseq2, randomforests
-#' @param dataTrain, RNASeq counts matrix for training
-#' @param labelsTrain, group labels for training
-#' @param dataTest, RNASeq counts matrix for testing
-#' @param labelsTest, group labels for testing
-#' @param nTopGenes, number of top genes to remain after filtering
-#' @return list with filtered training and testing data sets
+#' @param method Filtering method: none, relieff, edger, deseq2, randomforests.
+#' @param dataTrain RNASeq counts matrix for training.
+#' @param labelsTrain Group labels for training.
+#' @param dataTest RNASeq counts matrix for testing.
+#' @param labelsTest Group labels for testing.
+#' @param nTopGenes Number of top genes to remain after filtering.
+#' @param verbose Verbose flag for more output set TRUE
+#' @return List with filtered training and testing data sets.
 #' @export
-filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, labelsTest, nTopGenes) {
+filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, 
+                        labelsTest, nTopGenes, verbose=FALSE) {
   if(method == "edger") {
-    cat("\t\tedgeR\n")
-    y <- DGEList(counts=t(dataTrain), group=labelsTrain)
-    y <- estimateCommonDisp(y)
-    dgeResult <- exactTest(y)
+    if(verbose) { cat("\t\tedgeR\n") }
+    y <- edgeR::DGEList(counts=t(dataTrain), group=factor(labelsTrain))
+    y <- edgeR::estimateCommonDisp(y)
+    dgeResult <- edgeR::exactTest(y)
     topGenes <- rownames(dgeResult$table[order(dgeResult$table$PValue), ])[1:nTopGenes]
   }
   if(method == "deseq2") {
-    cat("\t\tDESeq2\n")
-    dds <- DESeqDataSetFromMatrix(countData=t(predictorsTrain),
-                                  colData=data.frame(response=factor(responseTrain)),
-                                  design=~response)
-    dds <- DESeq(dds)
+    if(verbose) { cat("\t\tDESeq2\n") }
+    dds <- DESeq2::DESeqDataSetFromMatrix(countData=t(dataTrain),
+                                          colData=data.frame(response=factor(labelsTrain)),
+                                          design=~response)
+    dds <- DESeq2::DESeq(dds)
     res <- results(dds)
     topGenes <- rownames(res[order(res$pvalue), ])[1:nTopGenes]
   }
   if(method == "relieff") {
-    cat("\t\tRelief-F\n")
+    if(verbose) { cat("\t\tRelief-F\n") }
     classData <- as.data.frame(cbind(dataTrain, labelsTrain))
     colnames(classData) <- c(colnames(dataTrain), "Class")
-    relieff <- attrEval(Class ~ ., classData, estimator="Relief")
+    classData$Class <- factor(classData$Class)
+    relieff <- CORElearn::attrEval(Class ~ ., classData, estimator="Relief")
     topGenes <- names(sort(relieff, decreasing=T))[1:nTopGenes]
   }
   if(method == "randomforests") {
-    cat("\t\tRandom Forests\n")
+    if(verbose) { cat("\t\tRandom Forests\n") }
     classData <- as.data.frame(cbind(dataTrain, labelsTrain))
     colnames(classData) <- c(colnames(dataTrain), "Class")
-    modelRF <- CoreModel(Class ~ ., classData, model="rf",
-                         selectionEstimator="MDL", minNodeWeightRF=5,
-                         rfNoTrees=100, maxThreads=1)
-    rf <- rfAttrEval(modelRF)
+    classData$Class <- factor(classData$Class)
+    modelRF <- CORElearn::CoreModel(Class ~ ., classData, model="rf")
+    rf <- CORElearn::rfAttrEval(modelRF)
     topGenes <- names(sort(rf, decreasing=T))[1:nTopGenes]
   }
-  print(topGenes)
+  if(verbose) {
+    print("Top genes from filter:")
+    print(topGenes)
+  }
   list(train=dataTrain[, topGenes], test=dataTest[, topGenes])
 }
 
@@ -143,64 +152,69 @@ filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, labelsT
 #' 
 #' \code{classify} 
 #' 
-#' @param method, classifier method: none, knn, svm, logreg
-#' @param dataTrain, RNASeq counts matrix for training
-#' @param dataTest, RNASeq counts matrix for testing
-#' @return list with classifier stats for method
+#' @param method Classifier method: none, knn, svm, logreg.
+#' @param dataTrain RNASeq counts matrix for training.
+#' @param labelsTrain Group labels for training.
+#' @param dataTest RNASeq counts matrix for testing.
+#' @param labelsTest Group labels for testing.
+#' @param verbose Verbose flag for more output set TRUE
+#' @return List with classifier stats for method.
 #' @export
-classify <- function(method="none", dataTrain, labelsTrain, dataTest, labelsTest) {
+classify <- function(method="none", dataTrain, labelsTrain, dataTest, 
+                     labelsTest, verbose=FALSE) {
   if(method == "svm") {
-    cat("\t\tSVM - Linear\n")
+    if(verbose) { cat("\t\tSVM - Linear\n") }
     yTrain <- factor(ifelse(labelsTrain == 1, -1, 1))
     yTest <- factor(ifelse(labelsTest == 1, -1, 1))
-    fitControl <- trainControl(method="cv", number=5)
-    fit <- train(dataTrain, yTrain, method="svmLinear", 
-                 verbose=TRUE, trControl=fitControl, metric="Accuracy")
+    fitControl <- caret::trainControl(method="cv", number=5)
+    fit <- caret::train(dataTrain, yTrain, method="svmLinear", 
+                        verbose=TRUE, trControl=fitControl, metric="Accuracy")
     predictionsTrain <- predict(fit, newdata=dataTrain)
     classStatsTrain <- getClassificationStats(yTrain, predictionsTrain, 
-                                              class_levels=c(-1, 1))
+                                              classLevels=c(-1, 1))
     predictionsTest <- predict(fit, newdata=dataTest)
     classStatsTest <- getClassificationStats(yTest, predictionsTest, 
-                                             class_levels=c(-1, 1))
+                                             classLevels=c(-1, 1))
   }
-  cat("\t\tCV10 ", 
-      "Train", 
-      "SENS:", classStatsTrain$TPR, 
-      "SPEC:", classStatsTrain$SPC, 
-      "ACC:", classStatsTrain$ACC, 
-      "Test:", 
-      "SENS:", classStatsTest$TPR, 
-      "SPEC:", classStatsTest$SPC, 
-      "ACC:", classStatsTest$ACC, 
-      "\n")
+  if(verbose) { 
+    cat("\t\tCV10 ", 
+        "Train", 
+        "SENS:", classStatsTrain$TPR, 
+        "SPEC:", classStatsTrain$SPC, 
+        "ACC:", classStatsTrain$ACC, 
+        "Test:", 
+        "SENS:", classStatsTest$TPR, 
+        "SPEC:", classStatsTest$SPC, 
+        "ACC:", classStatsTest$ACC, 
+        "\n")
+  }
   list(statsTrain=classStatsTrain, statsTest=classStatsTest)
 }
 
 # -----------------------------------------------------------------------------
-#' compute all sorts of classification stats from true and proposed (predicted) 
-#' binary states
+#' Compute classification stats from true and predicted binary states.
 #'
 #' \code{getClassificationStats} 
 #' 
-#' @param true_classification
-#' @param proposed_classification
-#' @param class_levels
-#' @return data frame of classification stats
+#' @param trueClassification Vector of true class labels.
+#' @param predictedClassification Vector of predicted class labels.
+#' @param classLevels Levels of the binary class.
+#' @return Data frame of classification stats.
 #' @export
-getClassificationStats <- function(true_classification, 
-                                   proposed_classification,
-                                   class_levels=c(0,1)) {
+getClassificationStats <- function(trueClassification, 
+                                   predictedClassification,
+                                   classLevels=c(0,1)) {
   # compute confusion matrix
-  confusion_matrix <- table(factor(proposed_classification, levels=class_levels),
-                            factor(true_classification, levels=class_levels))
-#   print(true_classification)
-#   print(proposed_classification)
-#   print(confusion_matrix)
+  confusionMatrix <- table(factor(predictedClassification, levels=classLevels),
+                           factor(trueClassification, levels=classLevels))
+#   print(trueClassification)
+#   print(predictedClassification)
+#   print(confusionMatrix)
   
-  TP <- confusion_matrix[1, 1]
-  FP <- confusion_matrix[1, 2]
-  FN <- confusion_matrix[2, 1]
-  TN <- confusion_matrix[2, 2]
+  TP <- confusionMatrix[1, 1]
+  FP <- confusionMatrix[1, 2]
+  FN <- confusionMatrix[2, 1]
+  TN <- confusionMatrix[2, 2]
   
   # calculate classification metrics from contingency table
   TPR <- TP / (TP + FN) # TPR/recall/hit rate/sensitivity

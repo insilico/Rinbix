@@ -10,13 +10,13 @@
 #   -modularityInbix
 
 # ----------------------------------------------------------------------------
-#' Read inbix numeric data set and phenotypes
+#' Read inbix numeric data set and phenotypes.
 #' 
 #' \code{readInbixNumericPheno} 
 #' 
-#' @param inbixNumericFilename, inbix numeric filename
-#' @param inbixPhenoFilename, inbix phenotype filename
-#' @return list with numeric matrix and phenotypes
+#' @param inbixNumericFilename inbix numeric filename.
+#' @param inbixPhenoFilename inbix phenotype filename.
+#' @return List with numeric matrix and phenotypes.
 #' @export
 readInbixNumericPheno <- function(inbixNumericFilename, inbixPhenoFilename) {
   inbixNumericTable <- read.table(inbixNumericFilename, header=T, sep="\t")
@@ -29,9 +29,9 @@ readInbixNumericPheno <- function(inbixNumericFilename, inbixPhenoFilename) {
 #' 
 #' \code{writeRegressionInbixDataset}
 #' 
-#' @param regDs is a data frame with sample rows, gene columns 
-#' plus phenotype column
-#' @param filePrefix, filename prefix for numeric and phenotype files
+#' @param regDs Data frame with sample rows, gene columns 
+#' plus phenotype column.
+#' @param filePrefix Filename prefix for numeric and phenotype files.
 #' @export
 writeRegressionInbixDataset <- function(regDs, filePrefix) {
   numGenes <- ncol(regDs) - 1
@@ -59,14 +59,14 @@ writeRegressionInbixDataset <- function(regDs, filePrefix) {
 #' 
 #' \code{permuteGainInbix} 
 #' 
-#' @param regressionData is a data frame with sample rows, gene columns 
-#' plus phenotype column
-#' @param method, regain or dcgain
-#' @param numPerms, number of permutation runs
-#' @param pThresh, p-value threshold for GAIN method
-#' @param threshold, permute GAIN threshold
-#' @param outPrefix, file output prefix
-#' @return list of gene thresholds
+#' @param regressionData Data frame with sample rows, gene columns
+#' plus phenotype column.
+#' @param method, regain or dcgain.
+#' @param numPerms Number of permutation runs.
+#' @param pThresh p-value threshold for GAIN method.
+#' @param threshold Permute GAIN threshold.
+#' @param outPrefix File output prefix.
+#' @return List of gene thresholds.
 #' @export
 permuteGainInbix <- function(regressionData, method="regain", numPerms=100, 
   pThresh=1, threshold=0.05, outPrefix="Rinbix") {
@@ -110,14 +110,14 @@ permuteGainInbix <- function(regressionData, method="regain", numPerms=100,
 }
 
 # ----------------------------------------------------------------------------
-#' Differential co-expression genetic association network - dcGAIN
+#' Differential co-expression genetic association network - dcGAIN.
 #' 
 #' \code{dcgainInbix} 
 #' 
-#' @param regressionData is a data frame with sample rows, gene columns 
-#' plus phenotype column
-#' @param outPrefix, file output prefix
-#' @return list of gene scores and associated p-values
+#' @param regressionData Data frame with sample rows, gene columns 
+#' plus phenotype column.
+#' @param outPrefix File output prefix.
+#' @return List of gene scores and associated p-values.
 #' @export
 dcgainInbix <- function(regressionData, outPrefix="Rinbix") {
   # write regressionData data frame to inbix files
@@ -144,13 +144,13 @@ dcgainInbix <- function(regressionData, outPrefix="Rinbix") {
 #' 
 #' \code{regainInbix} 
 #' 
-#' @param regressionData is a data frame with sample rows, gene columns 
-#' plus phenotype column
-#' @param stdBetas, use standardized beta coefficients
-#' @param absBetas, take absolute value of beta coefficients
-#' @param outPrefix, file output prefix
-#' @param pThreshold, p-value threshold for GAIN method
-#' @return list of gene scores and associated p-values
+#' @param regressionData Data frame with sample rows, gene columns 
+#' plus phenotype column.
+#' @param stdBetas Use standardized beta coefficients.
+#' @param absBetas Take absolute value of beta coefficients.
+#' @param outPrefix File output prefix.
+#' @param pThreshold p-value threshold for GAIN method.
+#' @return List of gene scores and associated p-values.
 #' @export
 regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE, 
                         outPrefix="Rinbix", pThreshold=1) {
@@ -205,10 +205,10 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
 #' 
 #' \code{snprankInbix} 
 #' 
-#' @param gainMatrix, GAIN matrix
-#' @param outPrefix, file output prefix
-#' @param gamma, gamma parameter (see paper)
-#' @return data frame of gene snpranks
+#' @param gainMatrix GAIN matrix.
+#' @param outPrefix File output prefix.
+#' @param gamma Gamma damping parameter (see paper).
+#' @return Data frame of gene snpranks.
 #' @export
 snprankInbix <- function(gainMatrix, outPrefix="Rinbix", gamma=0.85) {
   # write gainMatrix to inbix-compatible file
@@ -238,9 +238,9 @@ snprankInbix <- function(gainMatrix, outPrefix="Rinbix", gamma=0.85) {
 #' 
 #' \code{modularityInbix} 
 #' 
-#' @param gainMatrix, GAIN matrix
-#' @param outPrefix, file output prefix
-#' @return list of gene module assignments
+#' @param gainMatrix GAIN matrix.
+#' @param outPrefix File output prefix.
+#' @return List of gene module assignments.
 #' @export
 modularityInbix <- function(gainMatrix, outPrefix="Rinbix") {
   # write gainMatrix to inbix-compatible file

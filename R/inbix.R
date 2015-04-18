@@ -1,31 +1,47 @@
 # inbix.R - Bill White - 1/30/14
-#
-# An R library that mimics many functions found in the Insilico 
-# Bioinformatics (inbix) C++ library.
 
-library(parallel)
+#' Rinbix: An R library that mimics many functions found in the Insilico 
+#  Bioinformatics (inbix) C++ library.
+#'
+#' The Rinbix package provides two categories of important functions:
+#' inbix function both in native R and through calls to C++ using system().
+#' 
+#' @docType package
+#' @name Rinbix
+NULL
 
-#' A random dataset with 10 samples and 10 variables
+#' A random dataset with 10 samples and 10 variables.
 #'
 #' A dataset containing random variables var1 ... var10. 
 #' Class/phenotypes are 5 0's and 5 1's.
-#' The variables are as follows:
 #'
 #' @docType data
 #' @keywords datasets
 #' @name testdata10
 #' @usage data(testdata10)
-#' @format A data frame with 10 rows and 10 variables plus "Class" column
+#' @format Data frame with 10 rows and 10 variables plus "Class" column.
+NULL
+
+#' Simulated RNASeq data set with 40 subjects and 100 genes.
+#'
+#' A dataset containing  with 40 subjects (20 cases, 20 controls), 100 genes, 
+#' 10 differentially expressed. Training and testing data with 40 responses.
+#'
+#' @docType data
+#' @keywords datasets
+#' @name simrnaseq
+#' @usage data(simrnaseq)
+#' @format Two data frames with 40 rows and 100 columns. Two vectors of 40 responses.
 NULL
 
 # ----------------------------------------------------------------------------
-#' Create a random regression data set with binary class
+#' Create a random regression data set with binary class.
 #' 
 #' \code{createRandomRegressionDataset} 
 #' 
-#' @param numRows number of rows (samples)
-#' @param numCols number of columns (independent variables)
-#' @return data frame
+#' @param numRows Number of rows (samples).
+#' @param numCols Number of columns (independent variables),
+#' @return Data frame with class column.
 #' @export
 createRandomRegressionDataset <- function(numRows, numCols) {
   dmatrix <- matrix(nrow=numRows, ncol=numCols, data=rnorm(numRows*numCols))
@@ -36,12 +52,12 @@ createRandomRegressionDataset <- function(numRows, numCols) {
 }
 
 # ----------------------------------------------------------------------------
-#' Read inbix numeric data set and phenotype file; return combined data frame
+#' Read inbix numeric data set and phenotype file; return combined data frame.
 #' 
 #' \code{readInbixNumericAsRegressionData} 
 #' 
-#' @param baseInbixName file base name
-#' @return data frame with numeric data in first m columns and phenotye in m+1 column
+#' @param baseInbixName Base filename.
+#' @return Data frame with numeric data in first m columns and phenotye in m+1 column.
 #' @export
 readInbixNumericAsRegressionData <- function(baseInbixName) {
   inbixNumericFile <- paste(baseInbixName, ".num", sep="")
@@ -57,13 +73,13 @@ readInbixNumericAsRegressionData <- function(baseInbixName) {
 }
 
 # ----------------------------------------------------------------------------
-#' Write regression data frame as  inbix numeric data set and phenotype file
+#' Write regression data frame as  inbix numeric data set and phenotype file.
 #' 
 #' \code{writeRegressionDataAsInbixNumeric} 
 #' 
-#' @param regressionData is a data frame with sample rows, gene columns 
-#' plus phenotype column
-#' @param baseInbixName file base name
+#' @param regressionData Data frame with sample rows, gene columns 
+#' plus phenotype column.
+#' @param baseInbixName Base filename to write.
 #' @export
 writeRegressionDataAsInbixNumeric <- function(regressionData, baseInbixName) {
   numSamples <- nrow(regressionData)
@@ -86,12 +102,12 @@ writeRegressionDataAsInbixNumeric <- function(regressionData, baseInbixName) {
 }
 
 # ----------------------------------------------------------------------------
-#' Write simulated differential expression data matrix as inbix format
+#' Write simulated differential expression data matrix as inbix format.
 #' 
 #' \code{writeSimulatedInbixDataset} 
 #' 
-#' @param D is a simulated differential coexpression data matrix
-#' @param Dfileprefix is an output data file prefix
+#' @param D Simulated differential coexpression data matrix.
+#' @param Dfileprefix Output data file prefix.
 #' @export
 # 
 writeSimulatedInbixDataset <- function(D, Dfileprefix) {
@@ -118,12 +134,12 @@ writeSimulatedInbixDataset <- function(D, Dfileprefix) {
 }
 
 # ----------------------------------------------------------------------------
-#' Fisher correlation transformation function R to Z distribution
+#' Fisher correlation transformation function R to Z distribution.
 #' 
-#' \code{fiserRtoZ}
+#' \code{fisherRtoZ}
 #' 
-#' @param x a correlation value -1 to 1
-#' @return transformed correlation value
+#' @param x Correlation value -1 to 1.
+#' @return Transformed correlation value.
 #' @export
 # 
 fisherRtoZ <- function(x) { 
@@ -131,12 +147,12 @@ fisherRtoZ <- function(x) {
 }
 
 # -----------------------------------------------------------------------------
-#' Remove gene profiles with low absolute values
+#' Remove genes with low absolute values.
 #' 
-#' \code{genelowvalfilter} removes genes with values in the lowest 10%
+#' \code{genelowvalfilter} removes genes with values in the lowest 10%.
 #' 
-#' @param dataMatrix a data frame with genes in rows and samples in columns
-#' @return a list with the mask used and filtered data frame
+#' @param dataMatrix Data frame with genes in rows and samples in columns.
+#' @return List with the mask used and filtered data frame.
 #' @export
 genelowvalfilter <- function(dataMatrix) {
   # Remove gene profiles with low absolute values in dataMatrix. Returns:
@@ -152,21 +168,22 @@ genelowvalfilter <- function(dataMatrix) {
 }
 
 # -----------------------------------------------------------------------------
-#' Remove gene profiles with low expression variance
+#' Remove genes with low expression variance.
 #' 
 #' \code{genelowvarfilter} removes genes with variance below a 
-#' variance percentile threshold
+#' variance percentile threshold.
 #' 
-#' @param dataMatrix a data frame with genes in rows and samples in columns
-#' @param percentile variance threshold below which genes will be removed
-#' @return a list with the mask used and filtered data frame
+#' MATLAB: ... calculates the variance for each gene expression profile, 
+#' which identifies the gene expression profiles with a variance less than the 10th 
+#' percentile. Mask is a logical vector with one element for each row in Data. 
+#' The elements of Mask corresponding to rows with a variance greater than the threshold 
+#' have a value of 1, and those with a variance less than the threshold are 0.
+#'
+#' @param dataMatrix Data frame with genes in rows and samples in columns.
+#' @param percentile Variance threshold below which genes will be removed.
+#' @return List with the mask used and filtered data frame
 #' @export
 genevarfilter <- function(dataMatrix, percentile) {
-  # calculates the variance for each gene expression profile in Data and returns Mask, 
-  # which identifies the gene expression profiles with a variance less than the 10th 
-  # percentile. Mask is a logical vector with one element for each row in Data. 
-  # The elements of Mask corresponding to rows with a variance greater than the threshold 
-  # have a value of 1, and those with a variance less than the threshold are 0.
   probeVariances <- apply(dataMatrix, 1, var)
   threshold <- quantile(probeVariances, c(percentile))
   mask <- apply(dataMatrix, 1, function(x) var(x) > threshold)
@@ -177,14 +194,14 @@ genevarfilter <- function(dataMatrix, percentile) {
 }
 
 # -----------------------------------------------------------------------------
-#' Rank genes by univariate regression
+#' Rank genes by univariate regression.
 #' 
 #' \code{rankUnivariateRegression}
 #' 
-#' @param regressionData a data frame with gene in columns and samples in rows;
-#' the last column should be labeled 'Class' and be 0 or 1 values
-#' @return data frame with gene, convergence status, beta coefficient, 
-#' p-value, standard error and standardized beta columns
+#' @param regressionData Data frame with gene in columns and samples in rows;
+#' the last column should be labeled 'Class' and be 0 or 1 values.
+#' @return Data frame with gene, convergence status, beta coefficient, 
+#' p-value, standard error and standardized beta columns.
 #' @export
 rankUnivariateRegression <- function(regressionData) {
   # calculate the logistic regression coefficient for each variable in 
@@ -232,15 +249,15 @@ getMainEffect <- function(data, geneName, depVarName, regressionFamily) {
 }
 
 # -----------------------------------------------------------------------------
-#' Parallel execution of the regression genetic association network algorithm
+#' Parallel execution of the regression genetic association network algorithm.
 #' 
 #' \code{regainParallel}
 #' 
-#' @param regressionData a data frame with gene in columns and samples in rows;
-#' the last column should be labeled 'Class' and be 0 or 1 values
-#' @param stdBetas flag to use standardized beta coefficients
-#' @param absBetas flag to use absolute value of beta coefficients
-#' @return regainMatrix a matrix of gene by gene regression coefficients
+#' @param regressionData Data frame with gene in columns and samples in rows;
+#' the last column should be labeled 'Class' and be 0 or 1 values.
+#' @param stdBetas Flag to use standardized beta coefficients.
+#' @param absBetas Flag to use absolute value of beta coefficients.
+#' @return regainMatrix Matrix of gene by gene regression coefficients.
 #' @export
 regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE) {
   transform <- ifelse(absBetas, "abs", "")
@@ -259,18 +276,18 @@ regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE) {
 }
 
 # -----------------------------------------------------------------------------
-#' Get main effects from generalized linear model regression (parallel)
+#' Get main effects from generalized linear model regression (parallel).
 #' 
 #' \code{getMainEffects} 
 #' 
-#' @param data data is the data frame with genes in columns and samples in rows
-#' @param regressionFamily glm regression family name
-#' @param numCovariates number of included covariates
-#' @param writeBetas flag indicating whther to write beta values to separate file
-#' @param useBetas flag indicating betas rather than standardized betas used
-#' @param transformMethod is an optional transform method
-#' @param verbose flag to send verbose messages to stdout
-#' @return mainEffectValues a vector of main effect values
+#' @param data Data frame with genes in columns and samples in rows.
+#' @param regressionFamily glm regression family name.
+#' @param numCovariates Number of included covariates.
+#' @param writeBetas Flag indicating whther to write beta values to separate file.
+#' @param useBetas Flag indicating betas rather than standardized betas used.
+#' @param transformMethod Pptional transform method.
+#' @param verbose Flag to send verbose messages to stdout.
+#' @return mainEffectValues Vector of main effect values.
 #' @export
 # -----------------------------------------------------------------------------
 getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0, 
@@ -371,17 +388,17 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
 }
 
 # -----------------------------------------------------------------------------
-#' Get the main effect of a variable using generalized linear regression - glm
+#' Get the main effect of a variable using generalized linear regression - glm.
 #' 
 #' \code{runMainEffectsTest}
 #' 
-#' @param data data frame with genes in columns and samples in rows
-#' @param variableName name of the variable to consider
-#' @param depVarName name of the phenotype variable
-#' @param regressionFamily glm regression family name
-#' @param numCovariates number of included covariates
-#' @return data frame with gene, convergence status, beta coefficient, 
-#' p-value, standard error and standardized beta columns
+#' @param data Data frame with genes in columns and samples in rows.
+#' @param variableName Name of the variable to consider.
+#' @param depVarName name of the phenotype variable.
+#' @param regressionFamily glm regression family name.
+#' @param numCovariates Number of included covariates.
+#' @return Data frame with gene, convergence status, beta coefficient, 
+#' p-value, standard error and standardized beta columns.
 #' @export
 runMainEffectsTest <- function(data, variableName, depVarName, regressionFamily, numCovariates) {
   if(numCovariates > 0) {
@@ -418,19 +435,19 @@ runMainEffectsTest <- function(data, variableName, depVarName, regressionFamily,
 }
 
 # -----------------------------------------------------------------------------
-#' Get interaction effects from generalized linear model regression
+#' Get interaction effects from generalized linear model regression.
 #' 
 #' \code{getInteractionEffects} 
 #' 
-#' @param data is the data frame with genes in columns and samples in rows
-#' @param regressionFamily glm regression family name
-#' @param numCovariates the number of included covariates
-#' @param writeBetas flag indicating whther to write beta values to separate file
-#' @param excludeMainEffects flag indicating whether to exclude main effect terms
-#' @param useBetas flag indicating betas rather than standardized betas used
-#' @param transformMethod is an optional transform method
-#' @param verbose flag to send verbose messages to stdout
-#' @return results a matrix of gene by gene regression coefficients
+#' @param data Data frame with genes in columns and samples in rows.
+#' @param regressionFamily glm regression family name.
+#' @param numCovariates Number of included covariates.
+#' @param writeBetas Flag indicating whether to write beta values to separate file.
+#' @param excludeMainEffects Flag indicating whether to exclude main effect terms.
+#' @param useBetas Flag indicating betas rather than standardized betas used.
+#' @param transformMethod Optional transform method.
+#' @param verbose Flag to send verbose messages to stdout.
+#' @return results Matrix of gene by gene regression coefficients.
 #' @export
 getInteractionEffects <- function(data, regressionFamily="binomial", numCovariates=0,
                                   writeBetas=FALSE, excludeMainEffects=FALSE, useBetas=FALSE, 
@@ -577,18 +594,18 @@ getInteractionEffects <- function(data, regressionFamily="binomial", numCovariat
 }
 
 # -----------------------------------------------------------------------------
-#' Get the interaction effect of a pair of variables using generalized linear regression - glm
+#' Get the interaction effect of a pair of variables using generalized linear regression - glm.
 #' 
 #' \code{runInteractionEffectsTest} 
 #' 
-#' @param data is the data frame with genes in columns and samples in rows
-#' @param variableIndices column indices of variable pairs
-#' @param depVarName name of the phenotype variable
-#' @param regressionFamily glm regression family name
-#' @param numCovariates number of covariates included
-#' @param excludeMainEffects flag indicating whether to exclude main effect terms
-#' @return data frame with gene, convergence status, beta coefficient, 
-#' p-value, standard error and standardized beta columns
+#' @param data Data frame with genes in columns and samples in rows.
+#' @param variableIndices Column indices of variable pairs.
+#' @param depVarName Name of the phenotype variable.
+#' @param regressionFamily glm regression family name.
+#' @param numCovariates Number of covariates included.
+#' @param excludeMainEffects Flag indicating whether to exclude main effect terms.
+#' @return Data frame with gene, convergence status, beta coefficient, .
+#' p-value, standard error and standardized beta columns.
 #' @export
 runInteractionEffectsTest <- function(data, variableIndices, depVarName, 
                                       regressionFamily, numCovariates, excludeMainEffects) {
@@ -650,13 +667,13 @@ runInteractionEffectsTest <- function(data, variableIndices, depVarName,
 }
 
 # -----------------------------------------------------------------------------
-#' Differential coexpression genetic association network algorithm
+#' Differential coexpression genetic association network algorithm,
 #' 
 #' \code{dcgain} 
 #' 
-#' @param inbixData is a data frame with samples in rows, genes in columns
-#' and phenotype in the last column
-#' @return results a matrix of gene by gene differential coexpression values
+#' @param inbixData Data frame with samples in rows, genes in columns
+#' and phenotype in the last column.
+#' @return results Matrix of gene by gene differential coexpression values.
 #' @export
 dcgain <- function(inbixData) {
   phenos <- inbixData[, ncol(inbixData)] + 1
@@ -728,13 +745,13 @@ dcgain <- function(inbixData) {
 }
 
 # -----------------------------------------------------------------------------
-#' Differential modularity genetic association network algorithm
+#' Differential modularity genetic association network algorithm.
 #' 
 #' \code{dmgain} 
 #' 
-#' @param inbixData is a data frame with samples in rows, genes in columns
-#' and phenotype in the last column
-#' @return results a matrix of gene by gene differential modularity values
+#' @param inbixData Data frame with samples in rows, genes in columns
+#' and phenotype in the last column.
+#' @return results Matrix of gene by gene differential modularity values.
 #' @export
 dmgain <- function(inbixData) {
   phenos <- inbixData[, ncol(inbixData)] + 1
@@ -802,13 +819,13 @@ dmgain <- function(inbixData) {
 }
 
 # -----------------------------------------------------------------------------
-#' Rank genes by SNPrank algorithm
+#' Rank genes by SNPrank algorithm.
 #' 
 #' \code{snprank}
 #' 
-#' @param G is a genetic association network matrix
-#' @param gamma is a parameter weighting interactions versus main effects
-#' @return sortedTable a data frame with gene, SNPrank, diagonal and degree columns
+#' @param G Genetic association network matrix.
+#' @param gamma Parameter weighting interactions versus main effects.
+#' @return sortedTable Data frame with gene, SNPrank, diagonal and degree columns.
 #' @export
 snprank <- function(G, gamma=0.85) {
   n <- nrow(G);
@@ -847,12 +864,12 @@ snprank <- function(G, gamma=0.85) {
 }
 
 # -----------------------------------------------------------------------------
-#' Detect modular structure in a network
+#' Detect modular structure in a network.
 #' 
 #' \code{modularity}
 #' 
-#' @param G an adjacency matrix
-#' @return a data frame of genes name and module assignment columns
+#' @param G Adjacency matrix.
+#' @return a Data frame of genes name and module assignment columns.
 #' @export
 modularity <- function(G) {
   MODULARITY_THRESHOLD <- 0.000001
@@ -946,13 +963,13 @@ modularity <- function(G) {
 }
 
 # -----------------------------------------------------------------------------
-#' Find the best split of a modularity matrix using eigenvector decomposition
+#' Find the best split of a modularity matrix using eigenvector decomposition.
 #' 
 #' \code{modularityBestSplit} 
 #' 
-#' @param B modularity matrix
-#' @param m m
-#' @return list with modularity value Q and best split vector
+#' @param B Modularity matrix.
+#' @param m m (average degree?)
+#' @return List with modularity value Q and best split vector.
 #' @export
 modularityBestSplit <- function(B, m) {
   # function to split columns of matrix into two groups
