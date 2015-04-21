@@ -1,0 +1,64 @@
+---
+title: "Insilico Bioinformatics Predict RNASeq Pipeline"
+author: "Bill C. White"
+date: '`r Sys.Date()`'
+output: pdf_document
+vignette: |
+  %\VignetteIndexEntry{Insilico Bioinformatics Predict RNASeq Pipeline} %\VignetteEngine{knitr::rmarkdown} \usepackage[utf8]{inputenc}
+---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+The [Insilico Research Group](http://insilico.utulsa.edu) RNASeq analysis pipelines commonly follow a similar path of sequential algotihmic processing. Algorithm choices at steps along this path are typically among a small set of possibilities. The `predictRnaseq` function in the Rinbix package abstracts this path which better facilitates the comparison and replicability of common algorithm and parameter choice combinations. The package source code is written and organized with the idea of easy addition of new steps and algorithms in mind.
+
+## Analysis Steps
+
+The anaysis steps are, in order:
+
+  1. Data pre-processing
+  1. Gene filtering
+  1. Classification
+
+### Data Pre-processing
+
+Pre-processing takes place on the entire counts matrix by gene. The options are:
+
+  * scale - center and scale
+  * log2 - log base 2 transform
+  * log2scale - log base 2 and scale
+
+### Gene Filtering
+
+Gene filtering is done by ranking algorithms. The top number of genes are selected
+and a new data set is created. The new data set is passed on to the classification 
+step. Gene filtering options include:
+
+  * edger - edgeR
+  * deseq2 - DESeq2
+  * relieff- Relief-F
+  * randomforests - Random Forests
+
+### Classification
+
+Classification is done by building a model and then testing that model's predictive value on training and testing sets. Classifiers include:
+
+  * svm - support vector machine
+
+## Analysis Example with Simulated Data
+
+The following example uses a simulated data set with 40 subject, 20 cases and 20 controls, with 100 genes, 10 of which are differentially expressed, The top 10 filtered genes are used from the Random Forests ranking algorithm, These genes are used to build new training and testing data sets with just the filtered genes. Finally, an SVM classifier is called to build a classifier model and test its predictive capabilities. NOTE: all commands are echoed to show how the `predictRnaseq` function is called and results retrieved.
+
+
+```{r, echo=TRUE}
+  library(Rinbix)
+  data(simrnaseq)  
+  predictResult <- Rinbix::predictRnaseq(predictorsTrain, responseTrain, 
+                                         predictorsTest, responseTest, 
+                                         "none", "randomforests", 10, "svm")
+  print("Training Classification")
+  knitr::kable(predictResult$stats$statsTrain)
+  print("Testing Classification")
+  knitr::kable(predictResult$stats$statsTest)
+```
