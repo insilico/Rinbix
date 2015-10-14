@@ -16,6 +16,22 @@ Suggests:
 Imports: 
     caret,
     edgeR,
+    DESeq,
     DESeq2,
-    CORElearn
+    CORElearn,
+    ggplot2,
+    glmnet,
+    glinternet,
+    samr,
+    limma,
+    tools,
+    Interact,
+    randomForest,
+    DMwR,
+    kernlab,
+    RWeka,
+    pROC,
+    igraph,
+    poweRlaw,
+    mclust
 VignetteBuilder: knitr

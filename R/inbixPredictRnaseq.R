@@ -120,7 +120,7 @@ filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest,
                                           colData=data.frame(response=factor(labelsTrain)),
                                           design=~response)
     dds <- DESeq2::DESeq(dds)
-    res <- results(dds)
+    res <- DESeq2::results(dds)
     topGenes <- rownames(res[order(res$pvalue), ])[1:nTopGenes]
   }
   if(method == "relieff") {
