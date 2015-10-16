@@ -7,10 +7,10 @@
 modularity(G)
 }
 \arguments{
-\item{G}{Adjacency matrix.}
+\item{G}{Matrix Adjacency matrix.}
 }
 \value{
-a Data frame of genes name and module assignment columns.
+list of groups, Q and module assignments.
 }
 \description{
 \code{modularity}

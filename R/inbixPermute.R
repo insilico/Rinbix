@@ -4,6 +4,25 @@
 # Rinbix package permutation functions.
 
 # ----------------------------------------------------------------------------
+#' Permute SNPrank gene scores and determine classification accuracy.
+#'
+#' \code{permuteSnpranks}
+#' 
+#' @param ds Data frame data set.
+#' @param genesHit Vector gene indices of simulated genes.
+#' @param snprankResults Data frame genes and their SNPrank scores.
+#' @param M Numeric number of genes.
+#' @param N Numeric number of subjects.
+#' @param rankNull Flag rank as null.
+#' @param qqPlot Flag plot QQ.
+#' @param qqPlotFilename String QQ plot filename.
+#' @param numPerms Numeric number of permutation.
+#' @param threshold Numeric p-value significance threshold.
+#' @param method String method to permute.
+#' @param gamma Numeric SNPrank gamma.
+#' @param pTh Numeric p-value threshold for method.
+#' @return data frame of classification statistics.
+#' @export
 permuteSnpranks <- function(ds, genesHit, snprankResults, M, N, rankNull=FALSE,
   qqPlot=FALSE, qqPlotFilename="foo.png", numPerms=10, threshold=0.05, 
   method="regain", gamma=0.85, pTh=1) {
@@ -95,6 +114,20 @@ permuteSnpranks <- function(ds, genesHit, snprankResults, M, N, rankNull=FALSE,
 }
 
 # ----------------------------------------------------------------------------
+#' Permute SNPrank gene scores and determine classification accuracy using inbix.
+#'
+#' \code{permuteSnpranksInbix}
+#' 
+#' @param ds Data frame data set.
+#' @param genesHit Vector gene indices of simulated genes.
+#' @param snprankResults Data frame genes and their SNPrank scores.
+#' @param numPerms Numeric number of permutation.
+#' @param threshold Numeric p-value significance threshold.
+#' @param method String method to permute.
+#' @param pTh Numeric p-value threshold for method.
+#' @param rankNull Flag rank as null.
+#' @return data frame of classification statistics.
+#' @export
 permuteSnpranksInbix <- function(ds, genesHit, snprankResults, numPerms=10, 
   threshold=0.05, method="regain", pTh=1, rankNull=FALSE) {
 
@@ -134,6 +167,16 @@ permuteSnpranksInbix <- function(ds, genesHit, snprankResults, numPerms=10,
 }
 
 # ----------------------------------------------------------------------------
+#' Permute SNPrank gene scores and determine classification accuracy - Simple.
+#'
+#' \code{permuteSnpranksSimple}
+#' 
+#' @param ds Data frame data set.
+#' @param method String method to permute.
+#' @param numPerms Numeric number of permutation.
+#' @param threshold Numeric p-value significance threshold.
+#' @return data frame gene and empirical thresholds.
+#' @export
 permuteSnpranksSimple <- function(ds, method, numPerms, threshold) {
   ranksByGene <- snprankResults[order(snprankResults$gene), ]
   

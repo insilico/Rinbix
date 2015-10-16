@@ -1,3 +1,4 @@
+# ----------------------------------------------------------------------------
 # inbixPredictRnaseq.R - Bill White - 4/10/15
 #
 # Functions to support Insilico Bioinformatics (inbix) RNASeq 
@@ -13,15 +14,15 @@
 #' 
 #' \code{predictRnaseq} 
 #' 
-#' @param rnaseqCountsTrain RNASeq counts matrix for training.
-#' @param groupLabelsTrain Group labels corresponding to the columns in rnaseqCountsTrain.
-#' @param rnaseqCountsTest RNASeq counts matrix for testing.
-#' @param groupLabelsTest Group labels corresponding to the columns in rnaseqCountsTest.
-#' @param preprocessMethod Pre-processing method: none, scale, log2, log2scale.
-#' @param filterMethod Filtering method to reduce the dimensions for classification.
-#' @param topN Top number of genes to keep in the filter step.
-#' @param classifierMethod Classifier used to build a model and predict new data.
-#' @param verbose Verbose flag for more output set TRUE
+#' @param rnaseqCountsTrain Matrix RNASeq counts.
+#' @param groupLabelsTrain Vector group labels.
+#' @param rnaseqCountsTest Matrix RNASeq counts.
+#' @param groupLabelsTest Vector group labels.
+#' @param preprocessMethod String pre-processing method: none, scale, log2, log2scale.
+#' @param filterMethod String filtering method to reduce the dimensions for classification.
+#' @param topN Numeric top number of genes to keep in the filter step.
+#' @param classifierMethod String classifier used to build a model and predict new data.
+#' @param verbose Flag verbose for more output set TRUE
 #' @return List with ranked genes, classification metrics.
 #' @export
 predictRnaseq <- function(rnaseqCountsTrain, groupLabelsTrain,
@@ -96,13 +97,13 @@ preprocess <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
 #' 
 #' \code{filterGenes} 
 #' 
-#' @param method Filtering method: none, relieff, edger, deseq2, randomforests.
-#' @param dataTrain RNASeq counts matrix for training.
-#' @param labelsTrain Group labels for training.
-#' @param dataTest RNASeq counts matrix for testing.
-#' @param labelsTest Group labels for testing.
-#' @param nTopGenes Number of top genes to remain after filtering.
-#' @param verbose Verbose flag for more output set TRUE
+#' @param method String filtering method: none, relieff, edger, deseq2, randomforests.
+#' @param dataTrain Matrix RNASeq counts.
+#' @param labelsTrain Vector group labels.
+#' @param dataTest Matrix RNASeq counts.
+#' @param labelsTest Vector group labels.
+#' @param nTopGenes Numeric number of top genes to remain after filtering.
+#' @param verbose Flag verbose for more output set TRUE.
 #' @return List with filtered training and testing data sets.
 #' @export
 filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, 
@@ -152,12 +153,12 @@ filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest,
 #' 
 #' \code{classify} 
 #' 
-#' @param method Classifier method: none, knn, svm, logreg.
-#' @param dataTrain RNASeq counts matrix for training.
-#' @param labelsTrain Group labels for training.
-#' @param dataTest RNASeq counts matrix for testing.
-#' @param labelsTest Group labels for testing.
-#' @param verbose Verbose flag for more output set TRUE
+#' @param method String filtering method: none, relieff, edger, deseq2, randomforests.
+#' @param dataTrain Matrix RNASeq counts.
+#' @param labelsTrain Vector group labels.
+#' @param dataTest Matrix RNASeq counts.
+#' @param labelsTest Vector group labels.
+#' @param verbose Flag verbose for more output set TRUE.
 #' @return List with classifier stats for method.
 #' @export
 classify <- function(method="none", dataTrain, labelsTrain, dataTest, 
@@ -189,51 +190,4 @@ classify <- function(method="none", dataTrain, labelsTrain, dataTest,
         "\n")
   }
   list(statsTrain=classStatsTrain, statsTest=classStatsTest)
-}
-
-# -----------------------------------------------------------------------------
-#' Compute classification stats from true and predicted binary states.
-#'
-#' \code{getClassificationStats} 
-#' 
-#' @param trueClassification Vector of true class labels.
-#' @param predictedClassification Vector of predicted class labels.
-#' @param classLevels Levels of the binary class.
-#' @return Data frame of classification stats.
-#' @export
-getClassificationStats <- function(trueClassification, 
-                                   predictedClassification,
-                                   classLevels=c(0,1)) {
-  # compute confusion matrix
-  confusionMatrix <- table(factor(predictedClassification, levels=classLevels),
-                           factor(trueClassification, levels=classLevels))
-#   print(trueClassification)
-#   print(predictedClassification)
-#   print(confusionMatrix)
-  
-  TP <- confusionMatrix[1, 1]
-  FP <- confusionMatrix[1, 2]
-  FN <- confusionMatrix[2, 1]
-  TN <- confusionMatrix[2, 2]
-  
-  # calculate classification metrics from contingency table
-  TPR <- TP / (TP + FN) # TPR/recall/hit rate/sensitivity
-  SPC <- TN / (TN + FP) # TNR/specificity/SPC
-  PPV <- TP / (TP + FP) # precision/PPV
-  NPV <- TN / (TN + FN) # negative predictive value/NPV
-  FPR <- FP / (FP + TN) # fall-out/FPR/false positive rate
-  FDR <- FP / (FP + TP) # false discovery rate/FDR
-  FNR <- FN / (FN + TP) # false negative rate/FNR/miss rate
-  
-  # accuracy of the model
-  ACC <- (TP + TN) / (TP + FP + TN + FN)
-  BAC <- (TPR + SPC) / 2
-  F1 <- (2 * TP) / (2 * TP + FP + FN)
-  MCC <-
-    ((TP * TN) - (FP * FN)) /
-    sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN))
-  
-  # package and return all the computed results
-  data.frame(TP=TP, FP=FP, TN=TN, FN=FN, TPR=TPR, SPC=SPC, PPV=PPV, NPV=NPV, 
-             FPR=FPR, FDR=FDR, FNR=FNR, ACC=ACC, BAC=BAC, F1=F1, MCC=MCC)
 }

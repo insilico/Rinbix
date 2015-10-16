@@ -7,9 +7,9 @@
 writeSimulatedInbixDataset(D, Dfileprefix)
 }
 \arguments{
-\item{D}{Simulated differential coexpression data matrix.}
+\item{D}{Data frame simulated differential coexpression.}
 
-\item{Dfileprefix}{Output data file prefix.}
+\item{Dfileprefix}{String output data file prefix.}
 }
 \description{
 \code{writeSimulatedInbixDataset}

@@ -11,7 +11,7 @@ getInteractionEffects(data, regressionFamily = "binomial",
 \arguments{
 \item{data}{Data frame with genes in columns and samples in rows.}
 
-\item{regressionFamily}{glm regression family name.}
+\item{regressionFamily}{String glm regression family name.}
 
 \item{numCovariates}{Number of included covariates.}
 
@@ -21,11 +21,11 @@ getInteractionEffects(data, regressionFamily = "binomial",
 
 \item{useBetas}{Flag indicating betas rather than standardized betas used.}
 
-\item{transformMethod}{Optional transform method.}
+\item{transformMethod}{String optional transform method.}
 
 \item{verbose}{Flag to send verbose messages to stdout.}
 
-\item{numCores}{number of processor cores to use in mclapply}
+\item{numCores}{Number of processor cores to use in mclapply}
 }
 \value{
 results Matrix of gene by gene regression coefficients.

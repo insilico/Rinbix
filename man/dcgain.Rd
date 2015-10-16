@@ -2,7 +2,7 @@
 % Please edit documentation in R/inbixGAIN.R
 \name{dcgain}
 \alias{dcgain}
-\title{Differential coexpression genetic association network algorithm,}
+\title{Differential coexpression genetic association interaction network algorithm,}
 \usage{
 dcgain(inbixData)
 }
@@ -15,5 +15,8 @@ results Matrix of gene by gene differential coexpression values.
 }
 \description{
 \code{dcgain}
+}
+\seealso{
+\code{\link{dmgain}} for differential modularity.
 }
 

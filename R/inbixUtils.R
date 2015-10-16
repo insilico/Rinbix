@@ -22,6 +22,7 @@ fisherRtoZ <- function(x) {
 #' \code{geneLowValueFilter} removes genes with values in the lowest percentile.
 #' 
 #' @param dataMatrix Data frame with genes in rows and samples in columns.
+#' @param percentile Numeric percentile threshold below which genes will be removed.
 #' @return List with the mask used and filtered data frame.
 #' @export
 geneLowValueFilter <- function(dataMatrix, percentile=0.1) {
@@ -50,7 +51,7 @@ geneLowValueFilter <- function(dataMatrix, percentile=0.1) {
 #' have a value of 1, and those with a variance less than the threshold are 0.
 #'
 #' @param dataMatrix Data frame with genes in rows and samples in columns.
-#' @param percentile Variance threshold below which genes will be removed.
+#' @param percentile Numeric variance percentile threshold below which genes will be removed.
 #' @return List with the mask used and filtered data frame
 #' @export
 geneLowVarianceFilter <- function(dataMatrix, percentile=0.1) {
@@ -71,13 +72,13 @@ geneLowVarianceFilter <- function(dataMatrix, percentile=0.1) {
 #' Ported from Javascript found here: 
 #' http://www.pixelwit.com/blog/2008/05/how-to-draw-logarithmic-spiral/
 #'
-#' @param centerX X origin of the spiral.
-#' @param centerY Y origin of the spiral.
-#' @param radius Distance from origin to outer arm.
-#' @param sides Number of points or sides along the spiral's arm.
-#' @param coils Number of coils or full rotations. (Positive numbers spin clockwise, negative numbers spin counter-clockwise)
-#' @param rotation Overall rotation of the spiral. ('0'=no rotation, '1'=360 degrees, '180/360'=180 degrees)
-#' @return matrix of x-y coordinates 'sides' rows and two columns
+#' @param centerX Numeric X origin of the spiral.
+#' @param centerY Numeric Y origin of the spiral.
+#' @param radius Numeric distance from origin to outer arm.
+#' @param sides Numeric points or sides along the spiral's arm.
+#' @param coils Numeric coils or full rotations. (Positive numbers spin clockwise, negative numbers spin counter-clockwise)
+#' @param rotation Numeric overall rotation of the spiral. ('0'=no rotation, '1'=360 degrees, '180/360'=180 degrees)
+#' @return matrix of x-y coordinates 'sides' rows and two columns.
 logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
   # Start at the center.
   #moveTo(centerX, centerY);
@@ -108,10 +109,10 @@ logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
 #' 
 #' \code{scaleAB}
 #' 
-#' @param v numeric vector
-#' @param a minimum value in range
-#' @param b maximum value in range
-#' @return v scaled to range (a, b)
+#' @param v Numeric vector.
+#' @param a Minimum value in range.
+#' @param b Maximum value in range.
+#' @return v scaled to range (a, b).
 #' @export
 scaleAB <- function(v, a, b) {
   v <- v - min(v)
@@ -125,9 +126,9 @@ scaleAB <- function(v, a, b) {
 #' 
 #' \code{sumOfPowers} 
 #' 
-#' @param A Adjacency matrix.
-#' @param n Power to raise adjacencyMatrix^n
-#' @return A^n
+#' @param A Matrix adjacency.
+#' @param n Numeric power to raise adjacencyMatrix^n.
+#' @return A^n.
 #' @export
 sumOfPowers <- function(A, n, verbose=FALSE) {
   # g = A + A^2 + A^3 + ... A^n
@@ -156,4 +157,3 @@ sumOfPowers <- function(A, n, verbose=FALSE) {
   }
   g
 }
-

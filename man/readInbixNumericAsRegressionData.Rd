@@ -7,10 +7,10 @@
 readInbixNumericAsRegressionData(baseInbixName)
 }
 \arguments{
-\item{baseInbixName}{Base filename.}
+\item{baseInbixName}{String base filename.}
 }
 \value{
-Data frame with numeric data in first m columns and phenotye in m+1 column.
+data frame with numeric data in first m columns and phenotye in m+1 column.
 }
 \description{
 \code{readInbixNumericAsRegressionData}

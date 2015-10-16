@@ -7,12 +7,12 @@
 createRandomRegressionDataset(numRows, numCols)
 }
 \arguments{
-\item{numRows}{Number of rows (samples).}
+\item{numRows}{Numeric number of rows (samples).}
 
-\item{numCols}{Number of columns (independent variables),}
+\item{numCols}{Numeric number of columns (independent variables),}
 }
 \value{
-Data frame with class column.
+data frame with class column.
 }
 \description{
 \code{createRandomRegressionDataset}

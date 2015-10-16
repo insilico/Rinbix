@@ -8,8 +8,8 @@
 #' 
 #' \code{classifierStats} 
 #' 
-#' @param confusionMatrix matrix of classification counts
-#' @return data frame of classifier stats
+#' @param confusionMatrix Matrix of classification counts.
+#' @return data frame of classifier stats.
 #' @export
 classifierStats <- function(confusionMatrix) {
   TN <- confusionMatrix[1, 1]
@@ -40,9 +40,17 @@ classifierStats <- function(confusionMatrix) {
 }
 
 # -----------------------------------------------------------------------------
-# Classify one variable using Weka Logistic
-classifyOneVarWeka <- function(var_name, trainData, testData) {
-  fit_formula <- paste("Class ~", var_name)
+#' Classify one variable using Weka Logistic
+#' 
+#' \code{classifyOneVarWeka} 
+#' 
+#' @param varName String variable name.
+#' @param trainData Data frame with class column.
+#' @param testData Data frame with class column.
+#' @return list of classifier stats.
+#' @export
+classifyOneVarWeka <- function(varName, trainData, testData) {
+  fit_formula <- paste("Class ~", varName)
   weka_model <- Logistic(as.formula(fit_formula), data=trainData)
   weka_model_acc <- summary(weka_model)$details["pctCorrect"]
   weka_model_eval <- evaluate_Weka_classifier(weka_model, newdata=testData, 
@@ -53,10 +61,19 @@ classifyOneVarWeka <- function(var_name, trainData, testData) {
 }
 
 # -----------------------------------------------------------------------------
-# Classify one variable using Weka Logistic
-classifyPairWeka <- function(var1_name, var2_name, trainData, testData) {
-  fit_formula <- paste("Class ~", var1_name, "+" , var2_name, 
-                       "+", var1_name, "*", var2_name)
+#' Classify a pair variable using Weka Logistic.
+#' 
+#' \code{classifyPairWeka} 
+#' 
+#' @param var1Name String variable name.
+#' @param var2Name String variable name.
+#' @param trainData Data frame with class column.
+#' @param testData Data frame with class column.
+#' @return list of classifier stats.
+#' @export
+classifyPairWeka <- function(var1Name, var2Name, trainData, testData) {
+  fit_formula <- paste("Class ~", var1Name, "+" , var2Name, 
+                       "+", var1Name, "*", var2Name)
   weka_model <- Logistic(as.formula(fit_formula), data=trainData)
   weka_model_acc <- summary(weka_model)$details["pctCorrect"]
   weka_model_eval <- evaluate_Weka_classifier(weka_model, newdata=testData, 
@@ -68,8 +85,20 @@ classifyPairWeka <- function(var1_name, var2_name, trainData, testData) {
 }
 
 # ------------------------------------------------------------------------------------
-# classify and predict a train and test data set pair for a cross validation fold
-classifyPredictFold <- function(fold_idx, trainData, testData, 
+#' Classify and predict a train and test data set pair for a cross validation fold.
+#' 
+#' \code{classifyPredictFold} 
+#' 
+#' @param foldIdx Numeric fold index.
+#' @param trainData Data frame with class column.
+#' @param testData Data frame with class column.
+#' @param my_seed Numeric random generator seed.
+#' @param samp_method String over, under or none sampling.
+#' @param wrapper String feature slection algorithm.
+#' @param top_n Numeric top n features to select.
+#' @return data frame of classification and prediction statistics.
+#' @export
+classifyPredictFold <- function(foldIdx, trainData, testData, 
                                   my_seed=5627, samp_method="orig",
                                   wrapper="none", top_n=ncol(trainData)-1) {
   grp_table_trn <- table(trainData$Class)
@@ -134,7 +163,7 @@ classifyPredictFold <- function(fold_idx, trainData, testData,
     } else {
       top_vars <- names(sort(ranked_vars, decreasing=T)[1:top_n])
     }
-#     cat("Fold:", fold_idx, "\t", wrapper, " classifier selected top", top_n, 
+#     cat("Fold:", foldIdx, "\t", wrapper, " classifier selected top", top_n, 
 #         "variables: ", top_vars, "\n")
     # Weka J48, C4.5-like decision tree
     # training
@@ -165,7 +194,7 @@ classifyPredictFold <- function(fold_idx, trainData, testData,
   }
   # return summary info
   total_subjects <- grp_table_trn[1] + grp_table_trn[2]
-  cat(fold_idx, 
+  cat(foldIdx, 
       samp_method, 
       grp_table_trn[1], round(grp_table_trn[1] / total_subjects, 6),
       grp_table_trn[2], round(grp_table_trn[2] / total_subjects, 6),
@@ -177,7 +206,7 @@ classifyPredictFold <- function(fold_idx, trainData, testData,
       round(fold_test_acc, 6),
       paste(top_vars, collapse=", "),
       "\n", sep="\t")
-  data.frame(fold=fold_idx,
+  data.frame(fold=foldIdx,
              method=samp_method,
              trn0=grp_table_trn[1],
              trn1=grp_table_trn[2],
@@ -196,9 +225,10 @@ classifyPredictFold <- function(fold_idx, trainData, testData,
 #' 
 #' \code{computeFeatureMetrics} 
 #' 
-#' @param someClassification vector of predicted values
-#' @param trueClassification vector of true values
-#' @return data frame of classifier stats
+#' @param someClassification Vector of predicted values.
+#' @param trueClassification Vector of true values.
+#' @param classLevels Vector of class levels.
+#' @return data frame of classifier stats.
 #' @export
 computeFeatureMetrics <- function(someClassification, 
                                   trueClassification,
@@ -209,23 +239,35 @@ computeFeatureMetrics <- function(someClassification,
 }
 
 # ------------------------------------------------------------------------------------
-# ccross validation classify and predict
-crossValidate <- function(class_data, k_folds=10, repeat_cv=1, my_seed=5627, 
-  samp_method="orig", wrapper="none", top_n=ncol(class_data)-1) {
+#' Cross validated classify and predict outer loop.
+#' 
+#' \code{crossValidate} 
+#' 
+#' @param classData Data frame of subject by variable plus 'Class' column.
+#' @param k_folds Numeric number of cross validation folds.
+#' @param repeat_cv Numeric number of times to repeat k-folds cross validation.
+#' @param my_seed Numeric random number generator seed.
+#' @param samp_method String over, under or none sampling.
+#' @param wrapper String feature slection algorithm.
+#' @param top_n Numeric top n features to select.
+#' @return list of all results and averaged results.
+#' @export
+crossValidate <- function(classData, k_folds=10, repeat_cv=1, my_seed=5627, 
+  samp_method="orig", wrapper="none", top_n=ncol(classData)-1) {
   results <- NULL
   # repeated CV
   for(repeat_idx in 1:repeat_cv) {
     cat("Repeat:", repeat_idx, "\n")
     # k-fold cross validation with feature selection CV wrapper and various down/up sampling 
     cat("Creating ", k_folds, " folds for cross validation\n", sep="")
-    split_idx <- createFolds(class_data$Class, k=k_folds, list=TRUE, returnTrain=FALSE)
+    split_idx <- createFolds(classData$Class, k=k_folds, list=TRUE, returnTrain=FALSE)
     # CV split loops
     cat("---------------------------------------------------------------------------\n")
     cat("Fold\tRSmpl\ttrn0\ttrn1\ttrn0%\ttrn1%\ttst0\ttst1\ttst0%\ttst1%\tWrapper\tTop N\tTrain Acc\tTest Acc\tTop Vars\n")
     for(fold_idx in 1:length(split_idx)) {
       fold_instance_idx <- split_idx[[fold_idx]]
-      imbal_train <- class_data[-fold_instance_idx, ]
-      imbal_test  <- class_data[fold_instance_idx, ]
+      imbal_train <- classData[-fold_instance_idx, ]
+      imbal_test  <- classData[fold_instance_idx, ]
       this_result <- classifyPredictFold(fold_idx, imbal_train, imbal_test, 
                                            my_seed, samp_method, wrapper, top_n=top_n)
       results <- rbind(results, this_result)
@@ -242,10 +284,17 @@ crossValidate <- function(class_data, k_folds=10, repeat_cv=1, my_seed=5627,
 }
 
 # -----------------------------------------------------------------------------
-# compute main effect glm on 'data' data frame with var A
-# returns a data frame of model results
-glmMainEffect <- function(varA_name, trainData, testData) {
-  regression_formula <- paste("Class ~", varA_name, sep="")
+#' Compute main effect GLM main effect for a variable name.
+#' 
+#' \code{glmMainEffect} 
+#' 
+#' @param varName String variable name.
+#' @param trainData Data frame with class column.
+#' @param testData Data frame with class column.
+#' @return data frame of model fit information.
+#' @export
+glmMainEffect <- function(varName, trainData, testData) {
+  regression_formula <- paste("Class ~", varName, sep="")
   fit <- glm(as.formula(regression_formula), data=trainData, family="binomial")
   fit_ys <- predict(fit, newdata=testData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
@@ -258,7 +307,7 @@ glmMainEffect <- function(varA_name, trainData, testData) {
   maineffect_stdcoeff <- summary(fit)$coefficients[maineffect_term_idx, "z value"]
   maineffect_stderr <- summary(fit)$coefficients[maineffect_term_idx, "Std. Error"]
   maineffect_pval <- summary(fit)$coefficients[maineffect_term_idx, "Pr(>|z|)"]
-  data.frame(vara=varA_name, 
+  data.frame(vara=varName, 
              converged=fit$converged, 
              coef=maineffect_coeff, 
              stdcoef=maineffect_stdcoeff,
@@ -268,12 +317,19 @@ glmMainEffect <- function(varA_name, trainData, testData) {
 }
 
 # -----------------------------------------------------------------------------
-# compute glm on 'data' data frame with variable indices
-# returns a data frame of model results
-glmVarList <- function(var_idx, trainData, testData) {
+#' Compute glm on variable indices.
+#' 
+#' \code{glmVarList} 
+#' 
+#' @param varIdx String variable name.
+#' @param trainData Data frame with class column.
+#' @param testData Data frame with class column.
+#' @return data frame of classification results.
+#' @export
+glmVarList <- function(varIdx, trainData, testData) {
   var_names <- colnames(trainData[, 1:(ncol(trainData)-1)])
 
-  regression_formula <- paste("Class ~", paste(var_names[var_idx], sep="+"), sep="")
+  regression_formula <- paste("Class ~", paste(var_names[varIdx], sep="+"), sep="")
   fit <- glm(as.formula(regression_formula), data=trainData, family="binomial")
 
   fit_ys <- predict(fit, newdata=trainData, type="response")
@@ -292,12 +348,19 @@ glmVarList <- function(var_idx, trainData, testData) {
 }
 
 # -----------------------------------------------------------------------------
-# compute glm on 'data' data frame with var A and var B
-# the regression model includes interaction
-# returns a data frame of model results
-glmWithInteractionTerm <- function(varA_name, varB_name, trainData, testData) {
-  regression_formula <- paste("Class ~", varA_name, " + ", varB_name, " + ",
-                              varA_name, "*", varB_name, sep="")
+#' Compute glm with a pair of variables including their interaction.
+#' 
+#' \code{glmWithInteractionTerm} 
+#' 
+#' @param var1Name String variable name.
+#' @param var2Name String variable name.
+#' @param trainData Data frame with class column.
+#' @param testData Data frame with class column.
+#' @return data frame of classification results.
+#' @export
+glmWithInteractionTerm <- function(var1Name, var2Name, trainData, testData) {
+  regression_formula <- paste("Class ~", var1Name, " + ", var2Name, " + ",
+                              var1Name, "*", var2Name, sep="")
   fit <- glm(as.formula(regression_formula), data=trainData, family="binomial")
   fit_ys <- predict(fit, newdata=trainData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
@@ -318,8 +381,8 @@ glmWithInteractionTerm <- function(varA_name, varB_name, trainData, testData) {
   interaction_stdcoeff <- summary(fit)$coefficients[int_term_idx, "z value"]
   interaction_stderr <- summary(fit)$coefficients[int_term_idx, "Std. Error"]
   interaction_pval <- summary(fit)$coefficients[int_term_idx, "Pr(>|z|)"]
-  data.frame(vara=varA_name, 
-             varb=varB_name,
+  data.frame(vara=var1Name, 
+             varb=var2Name,
              converged=fit$converged, 
              coef=interaction_coeff, 
              stdcoef=interaction_stdcoeff,
@@ -331,14 +394,21 @@ glmWithInteractionTerm <- function(varA_name, varB_name, trainData, testData) {
 }
 
 # -----------------------------------------------------------------------------
-# compute glm on 'data' data frame with var A and var B
-# the regression model includes interaction and squared terms
-# returns a data frame of model results
-glmWithSquaredTerms <- function(varA_name, varB_name, trainData, testData) {
-  regression_formula <- paste("Class ~", varA_name, " + ", varB_name, " + ",
-                              varA_name, "*", varB_name, 
-                              " + I(",  varA_name, "^2)",
-                              " + I(",  varB_name, "^2)", sep="")
+#' Compute glm with a pair of variables including their interaction and squared interaction.
+#' 
+#' \code{glmWithSquaredTerms} 
+#' 
+#' @param var1Name String variable name.
+#' @param var2Name String variable name.
+#' @param trainData Data frame with class column.
+#' @param testData Data frame with class column.
+#' @return data frame of classification results.
+#' @export
+glmWithSquaredTerms <- function(var1Name, var2Name, trainData, testData) {
+  regression_formula <- paste("Class ~", var1Name, " + ", var2Name, " + ",
+                              var1Name, "*", var2Name, 
+                              " + I(",  var1Name, "^2)",
+                              " + I(",  var2Name, "^2)", sep="")
   fit <- glm(as.formula(regression_formula), data=trainData, family="binomial")
   fit_ys <- predict(fit, newdata=trainData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
@@ -359,8 +429,8 @@ glmWithSquaredTerms <- function(varA_name, varB_name, trainData, testData) {
   interaction_stdcoeff <- summary(fit)$coefficients[int_term_idx, "z value"]
   interaction_stderr <- summary(fit)$coefficients[int_term_idx, "Std. Error"]
   interaction_pval <- summary(fit)$coefficients[int_term_idx, "Pr(>|z|)"]
-  data.frame(vara=varA_name, 
-             varb=varB_name,
+  data.frame(vara=var1Name, 
+             varb=var2Name,
              converged=fit$converged, 
              coef=interaction_coeff, 
              stdcoef=interaction_stdcoeff,

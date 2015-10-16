@@ -10,18 +10,18 @@ runInteractionEffectsTest(data, variableIndices, depVarName, regressionFamily,
 \arguments{
 \item{data}{Data frame with genes in columns and samples in rows.}
 
-\item{variableIndices}{Column indices of variable pairs.}
+\item{variableIndices}{Vector of column indices of variable pairs.}
 
-\item{depVarName}{Name of the phenotype variable.}
+\item{depVarName}{String name of the phenotype variable.}
 
-\item{regressionFamily}{glm regression family name.}
+\item{regressionFamily}{String glm regression family name.}
 
 \item{numCovariates}{Number of covariates included.}
 
 \item{excludeMainEffects}{Flag indicating whether to exclude main effect terms.}
 }
 \value{
-Data frame with gene, convergence status, beta coefficient, .
+Data frame with gene, convergence status, beta coefficient,
 p-value, standard error and standardized beta columns.
 }
 \description{

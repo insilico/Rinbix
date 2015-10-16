@@ -4,7 +4,13 @@
 # Rinbix package network/graph functions.
 
 # ----------------------------------------------------------------------------
-# 11/30/13 - get stats about the IGraph g
+#' Get stats about the IGraph g.
+#' 
+#' \code{getIGraphStats}
+#' 
+#' @param g IGraph graph object.
+#' @return data frame of graph statistics.
+#' @export
 getIGraphStats <- function(g) {
   return(
     data.frame(
@@ -21,7 +27,12 @@ getIGraphStats <- function(g) {
 }
 
 # ----------------------------------------------------------------------------
-# 11/24/13 - print stats about the IGraph g
+#' Print stats about the IGraph g.
+#' 
+#' \code{printIGraphStats}
+#' 
+#' @param g IGraph graph object.
+#' @export
 printIGraphStats <- function(g) {
   cat("Number of nodes:", vcount(g), "\n")
   cat("Maximum degree: ", max(degree(g)), "\n")
@@ -38,8 +49,22 @@ printIGraphStats <- function(g) {
 }
 
 # ----------------------------------------------------------------------------
-# 11/19/13 - random network simulation 
-# from Brett's Matlab function of the same name
+#' Random network simulation.
+#'
+#' From Brett's Matlab function of the same name.
+#' 
+#' \code{randomNetworkSim}
+#' 
+#' @param n Numeric number of nodes.
+#' @param p Numeric probability of attachment.
+#' @param doFitPlot Flag plot sclae-free fit.
+#' @param doNetworkPlot Flag plot the network.
+#' @param doHistPlot Flag plot histogram of node degree.
+#' @param useIGraph Flag use the IGraph library to generate the graph.
+#' @param numBins Numeric number of bins to use in the degree histogram.
+#' @param filePrefix String file prefix for output files.
+#' @return network adjacency matrix.
+#' @export
 randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistPlot=F, 
                                useIgraph=F, numBins=10, filePrefix="random_network_sim") {
   # Erdos-Renyi
@@ -92,7 +117,7 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
   # viz with lower triangle removed.
   if(doNetworkPlot) {
     g <- graph.adjacency(A)
-    V(g)$size <- scale_a_b(degrees, 10, 20)
+    V(g)$size <- scaleAB(degrees, 10, 20)
     png(paste(filePrefix, "_er_network.png", sep=""), width=1024, height=768)
     plot(g, layout=layout.fruchterman.reingold, edge.arrow.mode=0)
     dev.off()
@@ -102,8 +127,20 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
 }
 
 # ----------------------------------------------------------------------------
-# 11/13/13 - scale free network simulation 
-# from Brett's Matlab function of the same name
+#' Scale free network simulation.
+#' 
+#' From Brett's Matlab function of the same name.
+#' 
+#' \code{scaleFreeSim}
+#' 
+#' @param n Numeric number of nodes.
+#' @param doFitPlot Flag plot sclae-free fit.
+#' @param doNetworkPlot Flag plot the network.
+#' @param useIGraph Flag use the IGraph library to generate the graph.
+#' @param numBins Numeric number of bins to use in the degree histogram.
+#' @param filePrefix String file prefix for output files.
+#' @return network adjacency matrix.
+#' @export
 scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F, 
                            numBins=10, filePrefix="scale_free_sim") {
   
@@ -172,7 +209,7 @@ scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F,
   #A[upper.tri(A)] <- 0
   if(doNetworkPlot) {
     g <- graph.adjacency(A)
-    V(g)$size <- scale_a_b(degrees, 10, 20)
+    V(g)$size <- scaleAB(degrees, 10, 20)
     png(paste(filePrefix, "_ba_network.png", sep=""), width=1024, height=768)
     plot(g, layout=layout.fruchterman.reingold, edge.arrow.mode=0)
     dev.off()
@@ -180,4 +217,3 @@ scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F,
   
   return(A)
 }
-

@@ -8,11 +8,11 @@
 #' 
 #' \code{getMainEffect} 
 #' 
-#' @param data is the data frame with genes in columns and samples in rows
-#' @param geneName is the column name of the gene used in the regression formula
-#' @param depVarName is the phenotype column name used in the regression formula
-#' @param regressionFamily is the regression family name for the glm
-#' @return the regression beta coefficient 
+#' @param data Data frame with genes in columns and samples in rows.
+#' @param geneName String column name of the gene used in the regression formula.
+#' @param depVarName String phenotype column name used in the regression formula.
+#' @param regressionFamily Stringregression family name for the glm.
+#' @return regression beta coefficient.
 #' @export
 getMainEffect <- function(data, geneName, depVarName, regressionFamily) {
   regressionFormula <- as.formula(paste(depVarName, "~", paste("`", geneName, "`", sep=""), sep=" "))
@@ -26,10 +26,10 @@ getMainEffect <- function(data, geneName, depVarName, regressionFamily) {
 #' 
 #' \code{runGlms} 
 #' 
-#' @param geneA vector of gene expression levels
-#' @param geneB vector of gene expression levels
-#' @param pheno vector of casee-control phenotypes 0/1
-#' @return data frame of main effect and interaction coefficients
+#' @param geneA Vector of gene expression levels.
+#' @param geneB Vector of gene expression levels.
+#' @param pheno Vector of casee-control phenotypes 0/1.
+#' @return Data frame of main effect and interaction coefficients.
 #' @export
 runGlms <- function(geneA, geneB, pheno) {
   # linear fits: binomial logit link function by default

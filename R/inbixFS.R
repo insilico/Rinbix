@@ -11,11 +11,11 @@
 #' 
 #' \code{geneRank} 
 #' 
-#' @param X n rows of genes by m columns of subjects
-#' @param a
-#' @param eps tolerance
-#' @param maxit maximum nuber of iterations
-#' @return anked list of genes
+#' @param X Matrix n rows of genes by m columns of subjects.
+#' @param a Numeric probability?.
+#' @param eps Numeric tolerance.
+#' @param maxit Numeric maximum nuber of iterations.
+#' @return ranked list of genes.
 #' @export
 geneRank <- function(X, a=0.9, eps=0.0001, maxit=10, verbose=FALSE) {
   n <- nrow(X)
@@ -35,9 +35,20 @@ geneRank <- function(X, a=0.9, eps=0.0001, maxit=10, verbose=FALSE) {
 
 # -----------------------------------------------------------------------------
 # From the paper Appendix - Computation of the left maximum eigenvector
-# 1. Using R's built in eigen() function
-# NOTE: I had to adapt this code for matrix operations from the copy-and-pasted
-# version from the PDF. Looks like it was orginally Matlab "converted" to R syntax?
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+#' 1. Using R's built in eigen() function
+#'
+#' NOTE: I had to adapt this code for matrix operations from the copy-and-pasted
+#' version from the PDF. Looks like it was orginally Matlab "converted" to R syntax?
+#'
+#' \code{leftMaxEigen2} 
+#'
+#' @param X Matrix n rows of genes by m columns of subjects.
+#' @param a Numeric probability?.
+#' @return left maximum eigenvector.
+#' @keywords internal
 leftMaxEigen1 <- function(X, a=0.9) {
   n <- nrow(X)
   R2 <- cor(t(X))^2
@@ -49,9 +60,19 @@ leftMaxEigen1 <- function(X, a=0.9) {
 }
 
 # -----------------------------------------------------------------------------
-# 2. The power method for moderate 5000 < n < 10000
-# NOTE: I had to adapt this code for matrix operations from the copy-and-pasted
-# version from the PDF. Looks like it was orginally Matlab "converted" to R syntax?
+#' 2. The power method for moderate 5000 < n < 10000.
+#'
+#' NOTE: I had to adapt this code for matrix operations from the copy-and-pasted
+#' version from the PDF. Looks like it was orginally Matlab "converted" to R syntax?
+#'
+#' \code{leftMaxEigen2} 
+#' 
+#' @param X Matrix n rows of genes by m columns of subjects.
+#' @param a Numeric probability?.
+#' @param eps Numeric epsilon tolerance stopping criteria.
+#' @param maxit Numeric maximum number of iterations.
+#' @return left maximum eigenvector.
+#' @keywords internal
 leftMaxEigen2 <- function(X, a=0.9, eps=0.0001, maxit=10) {
   m <- ncol(X)
   n <- nrow(X)
@@ -73,8 +94,18 @@ leftMaxEigen2 <- function(X, a=0.9, eps=0.0001, maxit=10) {
 }
 
 # -----------------------------------------------------------------------------
-# 3. for large n > 10000
-# NOTE: This code worked directly from cut-and-paste from the PDF file.
+#' 3. for large n > 10000.
+#'
+#' NOTE: This code worked directly from cut-and-paste from the PDF file.
+#'
+#' \code{leftMaxEigen3} 
+#' 
+#' @param X Matrix n rows of genes by m columns of subjects.
+#' @param a Numeric probability?.
+#' @param eps Numeric epsilon tolerance stopping criteria.
+#' @param maxit Numeric maximum number of iterations.
+#' @return left maximum eigenvector.
+#' @keywords internal
 leftMaxEigen3 <- function(X, a=0.9, eps=0.0001, maxit=10) {
   m <- ncol(X)
   n <- nrow(X)
@@ -117,15 +148,15 @@ leftMaxEigen3 <- function(X, a=0.9, eps=0.0001, maxit=10) {
 #' 
 #' \code{r2VIMorig} 
 #' 
-#' @param predictors independent variable matrix
-#' @param response response vector, case-control
-#' @param numRfRuns number of randomForest runs
-#' @param thresholdVIM threshold importance
-#' @param thresholdMedianRIS threshold importance RIS score
-#' @param thresholdProb threshold probability seen in top 10
-#' @param verbose write verbose messages to console/stdout
+#' @param predictors Matrix independent variables.
+#' @param response Vector response vector, case-control.
+#' @param numRfRuns Numeric of randomForest runs.
+#' @param thresholdVIM Numeric threshold importance.
+#' @param thresholdMedianRIS Numeric threshold importance RIS score.
+#' @param thresholdProb Numeric threshold probability seen in top 10.
+#' @param verbose Flag write verbose messages to console/stdout.
 #' @return list with: run statistics, votes matrix, network matrix, 
-#' importance distribution, importance distribution RIS
+#' importance distribution, importance distribution RIS.
 #' @export
 r2VIMorig <- function(predictors=NULL, 
                       response=NULL, 
@@ -202,8 +233,8 @@ r2VIMorig <- function(predictors=NULL,
 #' 
 #' \code{rankDcgain} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with gene and p-value, ordered by p-value
+#' @param regressionData Data frame of predictors and final class column.
+#' @return data frame with gene and p-value, ordered by p-value.
 #' @export
 rankDcgain <- function(regressionData) {
   # run Rinbix version of dcGAIN
@@ -220,8 +251,8 @@ rankDcgain <- function(regressionData) {
 #' 
 #' \code{rankDcgainSnprank} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with SNPrank results: gene, SNPrank, degree
+#' @param regressionData Data frame of predictors and final class column.
+#' @return data frame with SNPrank results: gene, SNPrank, degree.
 #' @export
 rankDcgainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE) {
   numPredictors <- ncol(regressionData) - 1
@@ -254,8 +285,8 @@ rankDcgainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE) {
 #' 
 #' \code{rankGeneRank} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with gene and gene rank score, ordered by score
+#' @param regressionData Data frame of predictors and final class column.
+#' @return data frame with gene and gene rank score, ordered by score.
 #' @export
 rankGeneRank <- function(regressionData) {
   numPredictors <- nrow(regressionData)
@@ -271,9 +302,9 @@ rankGeneRank <- function(regressionData) {
 #' 
 #' \code{rankGlmnet} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @param verbose send verbose messages to stdout
-#' @return data frame with gene indices, gene names and coefficients
+#' @param regressionData Data frame of predictors and final class column,
+#' @param verbose Flag send verbose messages to stdout.
+#' @return data frame with gene indices, gene names and coefficients.
 #' @export
 rankGlmnet <- function(regressionData, verbose=FALSE) {
   predictors <- regressionData[, -ncol(regressionData)]
@@ -305,8 +336,8 @@ rankGlmnet <- function(regressionData, verbose=FALSE) {
 #' 
 #' \code{rankInteract} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with gene and gene and q-value, ordered by q-value
+#' @param regressionData Data frame of predictors and final class column.
+#' @return data frame with gene and gene and q-value, ordered by q-value.
 #' @export
 rankInteract <- function(regressionData) {
   numPredictors <- ncol(regressionData) - 1
@@ -337,8 +368,8 @@ rankInteract <- function(regressionData) {
 #' 
 #' \code{rankInteract} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with gene and non-zero coefficients, ordered by coefficient
+#' @param regressionData Data frame of predictors and final class column.
+#' @return data frame with gene and non-zero coefficients, ordered by coefficient.
 #' @export
 rankLasso <- function(regressionData) {
   numPredictors <- ncol(regressionData) - 1
@@ -367,8 +398,8 @@ rankLasso <- function(regressionData) {
 #' 
 #' \code{rankLassoInteract} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with gene and non-zero coefficients, ordered by coefficient
+#' @param regressionData Data frame of predictors and final class column.
+#' @return data frame with gene and non-zero coefficients, ordered by coefficient.
 #' @export
 rankLassoInteract <- function(regressionData) {
   numPredictors <- ncol(regressionData) - 1
@@ -394,8 +425,8 @@ rankLassoInteract <- function(regressionData) {
 #' 
 #' \code{rankLimma} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with gene and p-value, ordered by p-value
+#' @param regressionData Data frame of predictors and final class column,
+#' @return data frame with gene and p-value, ordered by p-value,
 #' @export
 rankLimma <- function(regressionData) {
   numPredictors <- ncol(regressionData) - 1
@@ -417,8 +448,8 @@ rankLimma <- function(regressionData) {
 #' 
 #' \code{rankRandomForest} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with gene and importance score, ordered by importance
+#' @param regressionData Data frame of predictors and final class column.
+#' @return data frame with gene and importance score, ordered by importance.
 #' @export
 rankRandomForest <- function(regressionData) {
   numPredictors <- ncol(regressionData) - 1
@@ -438,8 +469,8 @@ rankRandomForest <- function(regressionData) {
 #' 
 #' \code{rankRegainSnprank} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with SNPrank results: gene, SNPrank, degree
+#' @param regressionData Data frame of predictors and final class column,
+#' @return data frame with SNPrank results: gene, SNPrank, degree,
 #' @export
 rankRegainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE,  pThresh=1) {
   numPredictors <- ncol(regressionData) - 1
@@ -465,10 +496,10 @@ rankRegainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE,  pTh
 #' 
 #' \code{rankReliefSeq} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @param outPrefix output file prefix for temporary files
-#' @param k k-nearest neighbors in the Relief-F algorithm
-#' @return data frame with ReliefSeq results: gene, score
+#' @param regressionData Data frame of predictors and final class column.
+#' @param outPrefix String output file prefix for temporary files.
+#' @param k Numeric k-nearest neighbors in the Relief-F algorithm.
+#' @return data frame with ReliefSeq results: gene, score.
 #' @export
 rankReliefSeq <- function(regressionData, outPrefix="Rinbix", k=10) {
   # write regressionData data frame to inbix files
@@ -487,8 +518,8 @@ rankReliefSeq <- function(regressionData, outPrefix="Rinbix", k=10) {
 #' 
 #' \code{rankReliefSeq} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with t-test results: gene, p-value
+#' @param regressionData Data frame of predictors and final class column,
+#' @return data frame with t-test results: gene, p-value.
 #' @export
 # ----------------------------------------------------------------------------
 rankTTest <- function(regressionData) {
@@ -552,8 +583,8 @@ rankUnivariateRegression <- function(regressionData) {
 #' 
 #' \code{rankSam} 
 #' 
-#' @param regressionData data frame of predictors and final class column
-#' @return data frame with gene and p-value, ordered by p-value
+#' @param regressionData Data frame of predictors and final class column.
+#' @return data frame with gene and p-value, ordered by p-value.
 #' @export
 rankSam <- function(regressionData, simGeneIdx, threshold=0.05, rankNull=FALSE) {
   numPredictors <- ncol(regressionData) - 1
@@ -573,8 +604,8 @@ rankSam <- function(regressionData, simGeneIdx, threshold=0.05, rankNull=FALSE) 
 #' 
 #' \code{snprank}
 #' 
-#' @param G Genetic association network matrix.
-#' @param gamma Parameter weighting interactions versus main effects.
+#' @param G Matrix genetic association network.
+#' @param gamma Numeric weighting interactions versus main effects.
 #' @return sortedTable Data frame with gene, SNPrank, diagonal and degree columns.
 #' @export
 snprank <- function(G, gamma=0.85) {

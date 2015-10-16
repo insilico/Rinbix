@@ -10,11 +10,11 @@ runMainEffectsTest(data, variableName, depVarName, regressionFamily,
 \arguments{
 \item{data}{Data frame with genes in columns and samples in rows.}
 
-\item{variableName}{Name of the variable to consider.}
+\item{variableName}{String name of the variable to consider.}
 
-\item{depVarName}{name of the phenotype variable.}
+\item{depVarName}{String name of the phenotype variable.}
 
-\item{regressionFamily}{glm regression family name.}
+\item{regressionFamily}{String glm regression family name.}
 
 \item{numCovariates}{Number of included covariates.}
 }

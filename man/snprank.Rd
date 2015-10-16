@@ -7,9 +7,9 @@
 snprank(G, gamma = 0.85)
 }
 \arguments{
-\item{G}{Genetic association network matrix.}
+\item{G}{Matrix genetic association network.}
 
-\item{gamma}{Parameter weighting interactions versus main effects.}
+\item{gamma}{Numeric weighting interactions versus main effects.}
 }
 \value{
 sortedTable Data frame with gene, SNPrank, diagonal and degree columns.

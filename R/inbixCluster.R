@@ -4,6 +4,22 @@
 # Rinbix package cluster/modularity functions.
 
 # ----------------------------------------------------------------------------
+#' Cluster SNPrank gene scores and determine classification accuracy.
+#'
+#' Gaussian finite mixture model fitted by EM algorithm.
+#'
+#' \code{clusterSnpranks}
+#' 
+#' @param genesHit Vector gene indices of simulated genes.
+#' @param snprankResults Data frame genes and their SNPrank scores.
+#' @param M Numeric number of genes.
+#' @param rankNull Flag rank as null.
+#' @param qqPlot Flag plot QQ.
+#' @param qqPlotFilename Flag QQ plot filename.
+#' @param densityPlot Flag plot density.
+#' @param densityPlotFilename String density plot filename.
+#' @return data frame of classification statistics.
+#' @export
 clusterSnpranks <- function(genesHit, snprankResults, M, rankNull=FALSE,
   qqPlot=FALSE, qqPlotFilename="foo.png", 
   densityPlot=FALSE, densityPlotFilename="bar.png") {
@@ -102,6 +118,18 @@ clusterSnpranks <- function(genesHit, snprankResults, M, rankNull=FALSE,
 }
 
 # ----------------------------------------------------------------------------
+#' Cluster SNPrank gene scores and determine classification accuracy.
+#'
+#' Gaussian finite mixture model fitted by EM algorithm.
+#'
+#' \code{clusterSnpranks}
+#' 
+#' @param genesHitIntr Vector gene indices of simulated interaction genes.
+#' @param genesHitMain Vector gene indices of simulated main effects genes.
+#' @param snprankResults Data frame genes and their SNPrank scores.
+#' @param M Numeric number of genes.
+#' @return list with cluster statistics and correct clustering by type.
+#' @export
 clusterSnpranksByType <- function(genesHitIntr, genesHitMain, snprankResults, M) {
   ranksByGene <- snprankResults[order(snprankResults$gene), ]
   genesHit <- c(genesHitIntr, genesHitMain)
@@ -129,6 +157,19 @@ clusterSnpranksByType <- function(genesHitIntr, genesHitMain, snprankResults, M)
 }
 
 # ----------------------------------------------------------------------------
+#' Cluster SNPrank gene scores and determine classification accuracy.
+#'
+#' Gaussian finite mixture model fitted by EM algorithm.
+#'
+#' \code{clusterSnpranksSimple}
+#' 
+#' @param snprankResults Data frame genes and their SNPrank scores.
+#' @param qqPlot Flag plot QQ.
+#' @param qqPlotFilename Flag QQ plot filename.
+#' @param densityPlot Flag plot density.
+#' @param densityPlotFilename String density plot filename.
+#' @return Mclust fit object.
+#' @export
 clusterSnpranksSimple <- function(snprankResults, 
   qqPlot=FALSE, qqPlotFilename="foo.png", 
   densityPlot=FALSE, densityPlotFilename="bar.png") {
@@ -161,8 +202,8 @@ clusterSnpranksSimple <- function(snprankResults,
 #' 
 #' \code{loadRipmResultsFromRdata} 
 #' 
-#' @param rdata_filename filename of saved module object
-#' @return ripM module object
+#' @param rdata_filename String filename of saved module object.
+#' @return ripM module object.
 #' @export
 loadRipmResultsFromRdata <- function(rdata_filename) {
   # save modules to separate files
@@ -175,14 +216,14 @@ loadRipmResultsFromRdata <- function(rdata_filename) {
 #' 
 #' \code{mergeSumPowers} 
 #' 
-#' @param Aadj Adjacency matrix
-#' @param startOrder starting order for merging
-#' @param maxOrder maximum order for merging
-#' @param minModuleSize minimum allowed size of module
-#' @param maxModuleSize maximum allowed size of module
-#' @param verbose send verbose messages to standard out 
-#' @param indentLevel tab indent level (recursion level)
-#' @return list with list of modules (lists of variable names) and number of iterations
+#' @param Aadj Matrix adjacency matrix.
+#' @param startOrder Numeric starting order for merging.
+#' @param maxOrder Numeric maximum order for merging.
+#' @param minModuleSize Numeric minimum allowed size of module.
+#' @param maxModuleSize Numeric maximum allowed size of module.
+#' @param verbose Flag send verbose messages to standard out.
+#' @param indentLevel Numeric tab indent level (recursion level).
+#' @return list with list of modules (lists of variable names) and number of iterations.
 mergeSumPowers <- function(Aadj, startOrder=2, maxOrder=4, 
                            minModuleSize=30, maxModuleSize=200, 
                            verbose=FALSE, indentLevel=1) {
@@ -271,8 +312,8 @@ mergeSumPowers <- function(Aadj, startOrder=2, maxOrder=4,
 #' 
 #' \code{modularity}
 #' 
-#' @param G Adjacency matrix.
-#' @return a Data frame of genes name and module assignment columns.
+#' @param G Matrix Adjacency matrix.
+#' @return list of groups, Q and module assignments.
 #' @export
 modularity <- function(G) {
   MODULARITY_THRESHOLD <- 0.000001
@@ -399,20 +440,20 @@ modularityBestSplit <- function(B, m) {
 #' 
 #' \code{ripM} 
 #' 
-#' @param Acorr Correlation matrix
-#' @param thresholdType threshold type: "hard" or "soft"
-#' @param thresholdValue hard threshold correlation value or soft threshold power
-#' @param startMergeOrder Power n to raise adjacencyMatrix^n in first merge attempt
-#' @param maxMergeOrder Power n to raise adjacencyMatrix^n in final merge attempt
-#' @param maxModuleSize maximum allowed size of module
-#' @param minModuleSize minimum allowed size of module
-#' @param useAbs take absolute value of the correlation matrix
-#' @param useWeighted use weighted adjacency matrix versus binary
-#' @param hubSelection how to choose the hub for each module (weighted, posthresh)
-#' @param simpleModularity perform simple modularity without split/merge
-#' @param verbose send verbose messages to standard out 
+#' @param Acorr Matrix correlation matrix.
+#' @param thresholdType String threshold type: "hard" or "soft".
+#' @param thresholdValue Numeric hard threshold correlation value or soft threshold power.
+#' @param startMergeOrder Numeric power n to raise adjacencyMatrix^n in first merge attempt.
+#' @param maxMergeOrder Numeric power n to raise adjacencyMatrix^n in final merge attempt.
+#' @param maxModuleSize Numeric maximum allowed size of module.
+#' @param minModuleSize Numeric minimum allowed size of module.
+#' @param useAbs Flag take absolute value of the correlation matrix.
+#' @param useWeighted Flag use weighted adjacency matrix versus binary.
+#' @param hubSelection String how to choose the hub for each module (weighted, posthresh).
+#' @param simpleModularity Flag perform simple modularity without split/merge.
+#' @param verbose Flag send verbose messages to standard out .
 #' @return list with: list of modules (list of lists of variable names), list of hubs, 
-#' list of node degrees
+#' list of node degrees.
 #' @export
 ripM <- function(Acorr, thresholdType="hard", thresholdValue=0.8, 
                  startMergeOrder=2, maxMergeOrder=4,
@@ -511,14 +552,14 @@ ripM <- function(Acorr, thresholdType="hard", thresholdValue=0.8,
 #' 
 #' \code{ripMKernelStack} 
 #' 
-#' @param Aadj Adjacency matrix
-#' @param startOrder starting order for merging
-#' @param maxOrder maximum order for merging
-#' @param minModuleSize minimum allowed size of module
-#' @param maxModuleSize maximum allowed size of module
-#' @param verbose send verbose messages to standard out 
-#' @param indentLevel tab indent level (recursion level)
-#' @return list with list of modules (lists of variable names) and number of iterations
+#' @param Aadj Matrix adjacency matrix.
+#' @param startOrder Numeric starting order for merging.
+#' @param maxOrder Numeric maximum order for merging.
+#' @param minModuleSize Numeric minimum allowed size of module.
+#' @param maxModuleSize Numeric maximum allowed size of module.
+#' @param verbose Flag send verbose messages to standard out .
+#' @param indentLevel Flag tab indent level (recursion level).
+#' @return list with list of modules (lists of variable names) and number of iterations.
 ripMKernelStack <- function(Aadj, startOrder=2, maxOrder=4, 
                             minModuleSize=30, maxModuleSize=200, 
                             verbose=FALSE, indentLevel=1) {
@@ -695,8 +736,8 @@ ripMKernelStack <- function(Aadj, startOrder=2, maxOrder=4,
 #' 
 #' \code{ripmVariableModuleAssignments} 
 #' 
-#' @param ripm_result rip-M result object
-#' @return data frame with two columns: var(iable) and module (integer)
+#' @param ripm_result Rip-M result object.
+#' @return data frame with two columns: var(iable) and module (integer).
 #' @export
 ripmVariableModuleAssignments <- function(ripm_result) {
   variable_assignments <- NULL
@@ -719,8 +760,8 @@ ripmVariableModuleAssignments <- function(ripm_result) {
 #' 
 #' \code{saveModuleListGmt} 
 #' 
-#' @param module_obj module object from ripM call
-#' @param output_prefix filename prefix for output GMT file
+#' @param module_obj Module object from ripM call.
+#' @param output_prefix String filename prefix for output GMT file.
 #' @export
 saveModuleListGmt <- function(module_obj, output_prefix) {
   # save modules to gmt
@@ -748,8 +789,8 @@ saveModuleListGmt <- function(module_obj, output_prefix) {
 #' 
 #' \code{saveRipmResultsToRdata} 
 #' 
-#' @param module_obj module object from ripM call
-#' @param output_prefix filename prefix for module output files
+#' @param Module_obj module object from ripM call.
+#' @param output_prefix String filename prefix for module output files.
 #' @export
 saveRipmResultsToRdata <- function(results_list, output_prefix) {
   # save modules to separate files
@@ -764,8 +805,8 @@ saveRipmResultsToRdata <- function(results_list, output_prefix) {
 #' 
 #' \code{saveRipmModules} 
 #' 
-#' @param module_obj module object from ripM call
-#' @param output_prefix filename prefix for module output files
+#' @param module_obj Module object from ripM call.
+#' @param output_prefix String filename prefix for module output files.
 #' @export
 saveRipmModules <- function(module_obj, output_prefix) {
   # save modules to separate files
@@ -785,8 +826,8 @@ saveRipmModules <- function(module_obj, output_prefix) {
 #' 
 #' \code{wgcnaVariableModuleAssignments} 
 #' 
-#' @param wgcna_result rip-M result object
-#' @return data frame with two columns: var(iable) and module (integer)
+#' @param wgcna_result WGCNA result object.
+#' @return data frame with two columns: var(iable) and module (integer).
 #' @export
 wgcnaVariableModuleAssignments <- function(wgcna_result) {
   variable_assignments <- NULL

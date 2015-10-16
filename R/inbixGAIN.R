@@ -4,17 +4,19 @@
 # Rinbix package genetic association network (GAIN) functions.
 
 # -----------------------------------------------------------------------------
-#' Differential coexpression genetic association network algorithm,
+#' Differential coexpression genetic association interaction network algorithm,
 #' 
 #' \code{dcgain} 
 #' 
 #' @param inbixData Data frame with samples in rows, genes in columns
 #' and phenotype in the last column.
 #' @return results Matrix of gene by gene differential coexpression values.
+#' @family Genetic Association Interaction Network functions
+#' @seealso \code{\link{dmgain}} for differential modularity.
 #' @export
 dcgain <- function(inbixData) {
   phenos <- inbixData[, ncol(inbixData)] + 1
-  exprBySubj <- inbixData[, 1:(ncol(inbixData)-1)]
+  exprBySubj <- inbixData[, -ncol(inbixData)]
   exprByGene <- t(exprBySubj)
   varNames <- colnames(inbixData)[1:ncol(exprBySubj)]
   n1 <- length(which(phenos == 1))
@@ -161,14 +163,14 @@ dmgain <- function(inbixData) {
 #' \code{getInteractionEffects} 
 #' 
 #' @param data Data frame with genes in columns and samples in rows.
-#' @param regressionFamily glm regression family name.
+#' @param regressionFamily String glm regression family name.
 #' @param numCovariates Number of included covariates.
 #' @param writeBetas Flag indicating whether to write beta values to separate file.
 #' @param excludeMainEffects Flag indicating whether to exclude main effect terms.
 #' @param useBetas Flag indicating betas rather than standardized betas used.
-#' @param transformMethod Optional transform method.
+#' @param transformMethod String optional transform method.
 #' @param verbose Flag to send verbose messages to stdout.
-#' @param numCores number of processor cores to use in mclapply
+#' @param numCores Number of processor cores to use in mclapply
 #' @return results Matrix of gene by gene regression coefficients.
 #' @export
 getInteractionEffects <- function(data, regressionFamily="binomial", numCovariates=0,
@@ -192,7 +194,7 @@ getInteractionEffects <- function(data, regressionFamily="binomial", numCovariat
 #  lastIdx <- length(idxCombList)
 #  numSplits <- 10
 #  splitSize <- as.integer(lastIdx / numSplits) + 1
-  #results <- NULL
+  results <- NULL
   # for(i in 1:numSplits) {
   #   startIdx <- (i - 1) * splitSize + 1
   #   endIdx <- i *  splitSize
@@ -331,13 +333,13 @@ getInteractionEffects <- function(data, regressionFamily="binomial", numCovariat
 #' \code{getMainEffects} 
 #' 
 #' @param data Data frame with genes in columns and samples in rows.
-#' @param regressionFamily glm regression family name.
+#' @param regressionFamily String glm regression family name.
 #' @param numCovariates Number of included covariates.
 #' @param writeBetas Flag indicating whther to write beta values to separate file.
 #' @param useBetas Flag indicating betas rather than standardized betas used.
-#' @param transformMethod Pptional transform method.
+#' @param transformMethod String optional transform method.
 #' @param verbose Flag to send verbose messages to stdout.
-#' @param numCores number of processor cores to use in mclapply
+#' @param numCores Number of processor cores to use in mclapply.
 #' @return mainEffectValues Vector of main effect values.
 #' @export
 # -----------------------------------------------------------------------------
@@ -484,12 +486,12 @@ regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE) {
 #' \code{runInteractionEffectsTest} 
 #' 
 #' @param data Data frame with genes in columns and samples in rows.
-#' @param variableIndices Column indices of variable pairs.
-#' @param depVarName Name of the phenotype variable.
-#' @param regressionFamily glm regression family name.
+#' @param variableIndices Vector of column indices of variable pairs.
+#' @param depVarName String name of the phenotype variable.
+#' @param regressionFamily String glm regression family name.
 #' @param numCovariates Number of covariates included.
 #' @param excludeMainEffects Flag indicating whether to exclude main effect terms.
-#' @return Data frame with gene, convergence status, beta coefficient, .
+#' @return Data frame with gene, convergence status, beta coefficient,
 #' p-value, standard error and standardized beta columns.
 #' @export
 runInteractionEffectsTest <- function(data, variableIndices, depVarName, 
@@ -557,9 +559,9 @@ runInteractionEffectsTest <- function(data, variableIndices, depVarName,
 #' \code{runMainEffectsTest}
 #' 
 #' @param data Data frame with genes in columns and samples in rows.
-#' @param variableName Name of the variable to consider.
-#' @param depVarName name of the phenotype variable.
-#' @param regressionFamily glm regression family name.
+#' @param variableName String name of the variable to consider.
+#' @param depVarName String name of the phenotype variable.
+#' @param regressionFamily String glm regression family name.
 #' @param numCovariates Number of included covariates.
 #' @return Data frame with gene, convergence status, beta coefficient, 
 #' p-value, standard error and standardized beta columns.

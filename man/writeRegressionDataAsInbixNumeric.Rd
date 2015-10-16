@@ -10,7 +10,7 @@ writeRegressionDataAsInbixNumeric(regressionData, baseInbixName)
 \item{regressionData}{Data frame with sample rows, gene columns
 plus phenotype column.}
 
-\item{baseInbixName}{Base filename to write.}
+\item{baseInbixName}{String base filename to write.}
 }
 \description{
 \code{writeRegressionDataAsInbixNumeric}
