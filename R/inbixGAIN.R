@@ -10,11 +10,12 @@
 #' 
 #' @param inbixData Data frame with samples in rows, genes in columns
 #' and phenotype in the last column.
+#' $param verbose Falg to send messages to stdout.
 #' @return results Matrix of gene by gene differential coexpression values.
 #' @family Genetic Association Interaction Network functions
 #' @seealso \code{\link{dmgain}} for differential modularity.
 #' @export
-dcgain <- function(inbixData) {
+dcgain <- function(inbixData, verbose=FALSE) {
   phenos <- inbixData[, ncol(inbixData)] + 1
   exprBySubj <- inbixData[, -ncol(inbixData)]
   exprByGene <- t(exprBySubj)
@@ -22,7 +23,7 @@ dcgain <- function(inbixData) {
   n1 <- length(which(phenos == 1))
   n2 <- length(which(phenos == 2))
   print(dim(inbixData))
-  cat("Group 1:", n1, "Group 2:", n2, "\n")
+  if(verbose) cat("dcGAIN Group 1:", n1, "Group 2:", n2, "\n")
   nVars <- ncol(exprBySubj)
 
   # determine group correlations
@@ -242,16 +243,16 @@ getInteractionEffects <- function(data, regressionFamily="binomial", numCovariat
     interactionStat <- regressionModel$stdbeta
     
     interactionValue <- NA
-    if(glmConverged) {
+#    if(glmConverged) {
       if(useBetas) {
         interactionValue <- interactionCoeff
       }
       else {
         interactionValue <- interactionStat
       }
-    } else {
-      interactionValue <- 0
-    }
+ #   } else {
+  #    interactionValue <- 0
+   # }
     if(interactionPval > 0.99) {
       if(verbose) {
         cat("WARNING: Interaction effect p-value > 0.99", interactionName, "\n")
@@ -274,12 +275,19 @@ getInteractionEffects <- function(data, regressionFamily="binomial", numCovariat
         interactionValueTransformed <- ifelse(interactionValue < 0, 0, interactionValue)
       }
     }
+
+    # -------------------------------------------------------------------------
     interactionValues[variable1Idx, variable2Idx] <- interactionValueTransformed
     interactionValues[variable2Idx, variable1Idx] <- interactionValueTransformed
-    #     cat("Interaction z value:", variable1Idx, variable2Idx, interactionStat, "\n")
-    #     if(abs(interactionStat) > 4) {
-    #       print(summary(regressionModel))
-    #     }
+    # -------------------------------------------------------------------------
+    if(verbose) {
+      cat("Interaction z value:", variable1Idx, variable2Idx, interactionStat, "\n")
+      if(abs(interactionStat) > 4) {
+        print(regressionModel)
+        print(summary(regressionModel))
+      }
+    }
+
     if(writeBetas) {
       allBetas <- NULL
       for(colIdx in 1:length(names(regressionModel$coefficients))) {
@@ -298,7 +306,7 @@ getInteractionEffects <- function(data, regressionFamily="binomial", numCovariat
     }
   }
   if(writeBetas) {
-    cat("Writing betas to intbetas.tab\n") 
+    if(verbose) cat("Writing betas to intbetas.tab\n") 
     # always
     betaCols <- c("Intercept", "Pval")
     # if main effects included
@@ -462,17 +470,21 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
 #' the last column should be labeled 'Class' and be 0 or 1 values.
 #' @param stdBetas Flag to use standardized beta coefficients.
 #' @param absBetas Flag to use absolute value of beta coefficients.
+#' @param verbose Flag to send verbose messages to stdout.
 #' @return regainMatrix Matrix of gene by gene regression coefficients.
 #' @export
-regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE) {
+regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE, verbose=FALSE) {
+  require(glm2)
   transform <- ifelse(absBetas, "abs", "")
   rawBetas <- ifelse(stdBetas, FALSE, TRUE)
   mainEffects <- getMainEffects(regressionData, 
                                 useBetas=rawBetas,
-                                transformMethod=transform)
+                                transformMethod=transform,
+                                verbose=verbose)
   regainMatrix <- getInteractionEffects(regressionData, 
                                         useBetas=rawBetas,
-                                        transformMethod=transform)
+                                        transformMethod=transform,
+                                        verbose=verbose)
   diag(regainMatrix) <- mainEffects
   colnames(regainMatrix) <- colnames(regressionData)[1:(ncol(regressionData)-1)]
   # replace NAs with zero
@@ -520,7 +532,14 @@ runInteractionEffectsTest <- function(data, variableIndices, depVarName,
     regressionFormula <- as.formula(paste(depVarName, "~", interactionTerm, 
                                           sep=" "))
   }
-  regressionModel <- glm(regressionFormula, family=regressionFamily, data=data)
+
+  # ---------------------------------------------------------------------------
+  # use glm2: Fits generalized linear models using the same model specification
+  # as glm in the stats package, but with a modified default fitting method that 
+  # provides greater stability for models that may fail to converge using glm
+  # bcw - 10/18/15
+  regressionModel <- glm2(regressionFormula, family=binomial(link="logit"), data=data)
+  # ---------------------------------------------------------------------------
   
   if(numCovariates > 0) {
     if(excludeMainEffects) {

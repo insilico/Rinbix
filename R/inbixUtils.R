@@ -11,9 +11,11 @@
 #' @param x Correlation value -1 to 1.
 #' @return Transformed correlation value.
 #' @export
-# 
+#' @examples
+#' fisherRtoZ(seq(from=-1, to=1, by=0.25))
+#' points(seq(from=-1, to=1, by=0.05), fisherRtoZ(seq(from=-1, to=1, by=0.05)))
 fisherRtoZ <- function(x) { 
-  0.5 * log(abs((1 + x) / (1 - x))) 
+  atanh(x)
 }
 
 # -----------------------------------------------------------------------------
@@ -122,7 +124,7 @@ scaleAB <- function(v, a, b) {
 }
 
 # ----------------------------------------------------------------------------
-#' Sum of powers of a matrix.
+#' Compute the power series of a matrix.
 #' 
 #' \code{sumOfPowers} 
 #' 
@@ -137,20 +139,16 @@ sumOfPowers <- function(A, n, verbose=FALSE) {
   # all paths with 2 intermediate nodes (A^3)    -- second order indirect
   # ...                                          ...
   # up to n-1 intermediate connections (A^(n-1)) -- n-1 order indirect
-  if(verbose) {
-	  createStr <- "Creating g <- A"
-  	cat(createStr, "\n")
-  }
+  createStr <- "Creating g <- A"
+  if(verbose) cat(createStr, "\n")
   g <- A
   currPowerOfA <- A
   #cat(g,"\n")
-  if(n >= 2){ # this should be a pretty efficient way to create g
+  if(n >= 2) { # this should be a pretty efficient way to create g
     for(i in 2:n){
-      if(verbose) {
-	      createStr <- paste(createStr," + A^", i, sep="")
-  	    cat(createStr,"\n")
-      }
+      if(verbose) cat(paste(createStr," + A^", i, "\n", sep=""))
       currPowerOfA <- currPowerOfA %*% A
+      #currPowerOfA <- currPowerOfA * A
       g <- g + currPowerOfA
       #cat(g,"\n") 
     }

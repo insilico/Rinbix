@@ -1,22 +1,4 @@
-# inbix.R - Bill White - 1/30/14
-
-#' Rinbix: An R library that supports the McKinney In Silico Bioinformatics (inbix) Lab 
-#' at the University of Tulsa.
-#'
-#' The Rinbix package provides several categories of important functions:
-#' * an R interface to the C++ library through system() calls
-#' * clustering
-#' * feature selection/ranking
-#' * classification
-#' * association networks
-#' * linear/logistic regression
-#' * data simulation
-#' * network analysis and visualization
-#' * utilities: statistical functions, filters
-#' 
-#' @docType package
-#' @name Rinbix
-NULL
+# inbixData.R - Bill White - 10/16/15
 
 #' A random dataset with 10 samples and 10 variables.
 #'
@@ -40,4 +22,26 @@ NULL
 #' @name simrnaseq
 #' @usage data(simrnaseq)
 #' @format Two data frames with 40 rows and 100 columns. Two vectors of 40 responses.
+NULL
+
+#' Erdos-Reyni Random Network adjacency matrix.
+#'
+#' A random network adjacency matrix used in data simulation.
+#'
+#' @docType data
+#' @keywords datasets
+#' @name erdosRenyiNetwork
+#' @usage data("erdosRenyiNetwork")
+#' @format Matrix 100x100.
+NULL
+
+#' Scale free network adjacency matrix.
+#'
+#' A scale-free network adjacency matrix used in data simulation.
+#'
+#' @docType data
+#' @keywords datasets
+#' @name scaleFreeNetwork
+#' @usage data("scaleFreeNetwork")
+#' @format Matrix 100x100.
 NULL

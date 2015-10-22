@@ -12,7 +12,8 @@ Depends:
     parallel (>= 3.1.2)
 Suggests: 
     testthat (>= 0.7.1.99),
-    knitr
+    knitr,
+    rmarkdown
 Imports: 
     caret,
     edgeR,
@@ -33,5 +34,7 @@ Imports:
     pROC,
     igraph,
     poweRlaw,
-    mclust
+    mclust,
+    expm,
+    glm2
 VignetteBuilder: knitr

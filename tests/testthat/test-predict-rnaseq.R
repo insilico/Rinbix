@@ -1,16 +1,17 @@
-library('testthat')
-library('Rinbix')
-
-context("Predict RNASeq")
+library(Rinbix)
+data(simrnaseq)  
+context("Predict RNA-Seq")
 
 test_that("Simulated RNASeq", {
-  cat("Loading simulated data sets...\n")
-  data(simrnaseq)  
-
-  cat("Running predictRnaseq()...\n")
-  predictResult <- Rinbix::predictRnaseq(predictorsTrain, responseTrain, 
-                                         predictorsTest, responseTest, 
-                                         "none", "randomforests", 5, "svm")
-  
-  expect_that(TRUE, equals(TRUE))
+  cat("FOO!\n")
+  predictResult <- predictRnaseq(rnaseqCountsTrain=predictorsTrain, 
+                                 groupLabelsTrain=responseTrain, 
+                                 rnaseqCountsTest=predictorsTest, 
+                                 groupLabelsTest=responseTest, 
+                                 preprocessMethod="none", 
+                                 filterMethod="randomforests", 
+                                 topN=2, 
+                                 classifierMethod="svm",
+                                 verbose=TRUE)
+  expect_equal(TRUE, TRUE)
 })

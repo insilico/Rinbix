@@ -7,7 +7,12 @@
 #   * preprocess
 #   * filterGenes
 #   * classify
-#   * getClassificationStats
+  
+require("CORElearn")
+require("edgeR")
+require("DESeq")
+require('DESeq2')
+require("randomForest")
 
 # ----------------------------------------------------------------------------
 #' Predict a response based on RNASeq gene expression.
@@ -22,13 +27,18 @@
 #' @param filterMethod String filtering method to reduce the dimensions for classification.
 #' @param topN Numeric top number of genes to keep in the filter step.
 #' @param classifierMethod String classifier used to build a model and predict new data.
-#' @param verbose Flag verbose for more output set TRUE
+#' @param verbose Flag verbose for more output set TRUE.
 #' @return List with ranked genes, classification metrics.
 #' @export
-predictRnaseq <- function(rnaseqCountsTrain, groupLabelsTrain,
-                          rnaseqCountsTest, groupLabelsTest,
-                          preprocessMethod="none", filterMethod="none", 
-                          topN=10, classifierMethod="none", verbose=FALSE) {
+predictRnaseq <- function(rnaseqCountsTrain=NULL,
+                          groupLabelsTrain=NULL,
+                          rnaseqCountsTest=NULL,
+                          groupLabelsTest=NULL,
+                          preprocessMethod="none",
+                          filterMethod="none", 
+                          topN=1,
+                          classifierMethod="svm",
+                          verbose=FALSE) {
   if(verbose) { cat("\tCalling preprocess(", preprocessMethod, ")\n") }
   preprocessResult <- preprocess(preprocessMethod, rnaseqCountsTrain, 
                                  rnaseqCountsTest, verbose)
@@ -37,7 +47,6 @@ predictRnaseq <- function(rnaseqCountsTrain, groupLabelsTrain,
     print(rnaseqCountsTrain[1:5, 1:5])
     cat("After preprocessing:\n")
     print(preprocessResult$train[1:5, 1:5])
-    
     cat("\tCalling filter(", filterMethod, topN, ")\n")
   }
   filterResult <- filterGenes(filterMethod, preprocessResult$train, groupLabelsTrain,
@@ -171,11 +180,11 @@ classify <- function(method="none", dataTrain, labelsTrain, dataTest,
     fit <- caret::train(dataTrain, yTrain, method="svmLinear", 
                         verbose=TRUE, trControl=fitControl, metric="Accuracy")
     predictionsTrain <- predict(fit, newdata=dataTrain)
-    classStatsTrain <- getClassificationStats(yTrain, predictionsTrain, 
-                                              classLevels=c(-1, 1))
-    predictionsTest <- predict(fit, newdata=dataTest)
-    classStatsTest <- getClassificationStats(yTest, predictionsTest, 
+    classStatsTrain <- computeFeatureMetrics(yTrain, predictionsTrain, 
                                              classLevels=c(-1, 1))
+    predictionsTest <- predict(fit, newdata=dataTest)
+    classStatsTest <- computeFeatureMetrics(yTest, predictionsTest, 
+                                            classLevels=c(-1, 1))
   }
   if(verbose) { 
     cat("\t\tCV10 ", 

@@ -15,4 +15,8 @@ Transformed correlation value.
 \description{
 \code{fisherRtoZ}
 }
+\examples{
+fisherRtoZ(seq(from=-1, to=1, by=0.25))
+points(seq(from=-1, to=1, by=0.05), fisherRtoZ(seq(from=-1, to=1, by=0.05)))
+}
 

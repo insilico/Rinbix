@@ -12,8 +12,12 @@
 #' plus phenotype column.
 #' @param outPrefix String file output prefix.
 #' @return List of gene scores and associated p-values.
+#' @examples
+#' data(testdata10)
+#' rinbixCppDcgain <- dcgainInbix(testdata10)
 #' @export
 dcgainInbix <- function(regressionData, outPrefix="Rinbix") {
+  inbixExists()
   # write regressionData data frame to inbix files
   writeRegressionInbixDataset(regressionData, "Rinbix")
   # run inbix reGAIN
@@ -34,6 +38,20 @@ dcgainInbix <- function(regressionData, outPrefix="Rinbix") {
 }
 
 # ----------------------------------------------------------------------------
+#' Check for the inbix executable in the PATH.
+#' 
+#' \code{inbixExists} 
+#' 
+#' @return TRUE if found, else exits with error
+#' @export
+inbixExists <- function() {
+  if(Sys.which("inbix") == "") {
+    stop("inbix is not in the PATH")
+  }
+  TRUE
+}
+
+# ----------------------------------------------------------------------------
 #' Network module/community detection.
 #' 
 #' \code{modularityInbix} 
@@ -41,24 +59,25 @@ dcgainInbix <- function(regressionData, outPrefix="Rinbix") {
 #' @param gainMatrix GAIN matrix.
 #' @param outPrefix String file output prefix.
 #' @return list of gene module assignments.
+#' @examples
+#' data(testdata10)
+#' corMatrix <- cor(testdata10[, -ncol(testdata10)])
+#' rinbixModulesDF <- Rinbix::modularity(corMatrix)
 #' @export
 modularityInbix <- function(gainMatrix, outPrefix="Rinbix") {
+  inbixExists()
   # write gainMatrix to inbix-compatible file
   write.table(gainMatrix, file="Rinbix.gain", quote=FALSE, col.names=TRUE, row.names=FALSE, sep="\t")
   inbixCmd <- paste("inbix --regain-file Rinbix.gain --modularity --out", outPrefix)
   #cat("Running inbix command:", inbixCmd, "\n")
-
   # run inbix
   modStdout <- system(inbixCmd, intern=T)
   #print(snprankStdout)
-
   # read results
   inbixModules <- read.table("Rinbix.modules", header=FALSE, sep="\t")
   colnames(inbixModules) <- c("Var", "Module")
-  
   # remove temporary files
   file.remove(c("Rinbix.gain", "Rinbix.modules", "Rinbix.log"))
-  
   # return module assignments
   inbixModules[order(inbixModules[,1]), ]
 }
@@ -79,6 +98,7 @@ modularityInbix <- function(gainMatrix, outPrefix="Rinbix") {
 #' @export
 permuteGainInbix <- function(regressionData, method="regain", numPerms=100, 
   pThresh=1, threshold=0.05, outPrefix="Rinbix") {
+  inbixExists()
   # write regressionData data frame to inbix files
   writeRegressionInbixDataset(regressionData, "Rinbix")
   # run inbix GAIN
@@ -140,21 +160,6 @@ readInbixNumericAsRegressionData <- function(baseInbixName) {
 }
 
 # ----------------------------------------------------------------------------
-#' Read inbix numeric data set and phenotypes.
-#' 
-#' \code{readInbixNumericPheno} 
-#' 
-#' @param inbixNumericFilename String inbix numeric filename.
-#' @param inbixPhenoFilename String inbix phenotype filename.
-#' @return list with numeric matrix and phenotypes.
-#' @export
-readInbixNumericPheno <- function(inbixNumericFilename, inbixPhenoFilename) {
-  inbixNumericTable <- read.table(inbixNumericFilename, header=T, sep="\t")
-  inbixPhenoTable <- read.table(inbixPhenoFilename, header=F, sep="\t")
-  list(inbixNumeric=inbixNumericTable, inbixPheno=inbixPhenoTable)
-}
-
-# ----------------------------------------------------------------------------
 #' Regression genetic association network - reGAIN.
 #' 
 #' \code{regainInbix} 
@@ -166,9 +171,13 @@ readInbixNumericPheno <- function(inbixNumericFilename, inbixPhenoFilename) {
 #' @param outPrefix String file output prefix.
 #' @param pThreshold Numeric p-value threshold for GAIN method.
 #' @return list of gene scores and associated p-values.
+#' @examples
+#' data(testdata10)
+#' inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
 #' @export
 regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE, 
                         outPrefix="Rinbix", pThreshold=1) {
+  inbixExists()
   # write regressionData data frame to inbix files
   writeRegressionInbixDataset(regressionData, outPrefix)
   stdBetasCmd <- ""
@@ -226,6 +235,7 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
 #' @return data frame of gene snpranks.
 #' @export
 snprankInbix <- function(gainMatrix, outPrefix="Rinbix", gamma=0.85) {
+  inbixExists()
   # write gainMatrix to inbix-compatible file
   write.table(gainMatrix, file="Rinbix.gain", quote=FALSE, col.names=TRUE, row.names=FALSE, sep="\t")
   gammaCmd <- ""
@@ -246,36 +256,6 @@ snprankInbix <- function(gainMatrix, outPrefix="Rinbix", gamma=0.85) {
   
   # return snpranks
   data.frame(gene=inbixSnpranks$SNP, snprank=inbixSnpranks$SNPrank)
-}
-
-# ----------------------------------------------------------------------------
-#' Write regression data set in inbix format.
-#' 
-#' \code{writeRegressionInbixDataset}
-#' 
-#' @param regDs Data frame with sample rows, gene columns 
-#' plus phenotype column.
-#' @param filePrefix String filename prefix for numeric and phenotype files.
-#' @export
-writeRegressionInbixDataset <- function(regDs, filePrefix) {
-  numGenes <- ncol(regDs) - 1
-  numSubjs <- nrow(regDs)
-  phenos <- regDs[, numGenes + 1]
-  phenoCats <- ifelse(phenos == 0, "control", "case")
-  subIds <- paste(phenoCats, 1:numSubjs, sep="")
-  
-  phenosTable <- cbind(subIds, subIds, phenos)
-  datasimInbixPhenoFile <- paste(filePrefix, ".pheno", sep="")
-  write.table(phenosTable, datasimInbixPhenoFile, quote=F, sep="\t",
-              col.names=F, row.names=F)
-  
-  dataTable <- cbind(subIds, subIds, regDs[, 1:numGenes])
-  #geneNames <- paste("gene", sprintf("%04d", 1:numGenes), sep="")
-  geneNames <- colnames(regDs)[1:numGenes]
-  colnames(dataTable) <- c("FID", "IID", geneNames)
-  datasimInbixNumFile <- paste(filePrefix, ".num", sep="")
-  write.table(dataTable, datasimInbixNumFile, quote=F, sep="\t",
-              col.names=T, row.names=F)
 }
 
 # ----------------------------------------------------------------------------
@@ -304,36 +284,5 @@ writeRegressionDataAsInbixNumeric <- function(regressionData, baseInbixName) {
   colnames(inbixNumericTable) <- c("FID", "IID", colnames(inbixNumericData))
   inbixNumericFile <- paste(baseInbixName, ".num", sep="")
   write.table(inbixNumericTable, inbixNumericFile, quote=F, sep="\t", 
-              col.names=T, row.names=F)
-}
-
-# ----------------------------------------------------------------------------
-#' Write simulated differential expression data matrix as inbix format.
-#' 
-#' \code{writeSimulatedInbixDataset} 
-#' 
-#' @param D Data frame simulated differential coexpression.
-#' @param Dfileprefix String output data file prefix.
-#' @export
-writeSimulatedInbixDataset <- function(D, Dfileprefix) {
-  # ----------------------------------------------------------------------------
-  # write the data set in inbix format for dcGAIN + SNPRank
-  # save inbix phenotypes
-  dimN <- ncol(D)
-  n1 <- dimN / 2
-  n2 <- dimN / 2
-  subIds <- c(paste("case", 1:n1, sep=""), paste("ctrl", 1:n2, sep=""))
-  phenos <- c(rep(1, n1), rep(0, n2))
-  phenosTable <- cbind(subIds, subIds, phenos)
-  datasimInbixPhenoFile <- paste(Dfileprefix, ".pheno", sep="")
-  write.table(phenosTable, datasimInbixPhenoFile, quote=F, sep="\t", 
-              col.names=F, row.names=F)
-  # save inbix numeric file/data set
-  inbixData <- t(D)
-  dataTable <- cbind(subIds, subIds, inbixData)
-  geneNames <- paste("gene", sprintf("%04d", 1:nrow(D)), sep="")
-  colnames(dataTable) <- c("FID", "IID", geneNames)
-  datasimInbixNumFile <- paste(Dfileprefix, ".num", sep="")
-  write.table(dataTable, datasimInbixNumFile, quote=F, sep="\t", 
               col.names=T, row.names=F)
 }

@@ -2,9 +2,11 @@
 title: "Insilico Bioinformatics Predict RNASeq Pipeline"
 author: "Bill C. White"
 date: '`r Sys.Date()`'
-output: pdf_document
-vignette: |
-  %\VignetteIndexEntry{Insilico Bioinformatics Predict RNASeq Pipeline} %\VignetteEngine{knitr::rmarkdown} \usepackage[utf8]{inputenc}
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Insilico Bioinformatics Predict RNASeq Pipeline}
+  %\VignetteEngine{knitr::rmarkdown} 
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r, echo = FALSE}

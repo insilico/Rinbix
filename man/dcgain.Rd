@@ -4,11 +4,12 @@
 \alias{dcgain}
 \title{Differential coexpression genetic association interaction network algorithm,}
 \usage{
-dcgain(inbixData)
+dcgain(inbixData, verbose = FALSE)
 }
 \arguments{
 \item{inbixData}{Data frame with samples in rows, genes in columns
-and phenotype in the last column.}
+and phenotype in the last column.
+$param verbose Falg to send messages to stdout.}
 }
 \value{
 results Matrix of gene by gene differential coexpression values.

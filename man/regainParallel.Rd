@@ -4,7 +4,8 @@
 \alias{regainParallel}
 \title{Parallel execution of the regression genetic association network algorithm.}
 \usage{
-regainParallel(regressionData, stdBetas = FALSE, absBetas = FALSE)
+regainParallel(regressionData, stdBetas = FALSE, absBetas = FALSE,
+  verbose = FALSE)
 }
 \arguments{
 \item{regressionData}{Data frame with gene in columns and samples in rows;
@@ -13,6 +14,8 @@ the last column should be labeled 'Class' and be 0 or 1 values.}
 \item{stdBetas}{Flag to use standardized beta coefficients.}
 
 \item{absBetas}{Flag to use absolute value of beta coefficients.}
+
+\item{verbose}{Flag to send verbose messages to stdout.}
 }
 \value{
 regainMatrix Matrix of gene by gene regression coefficients.
