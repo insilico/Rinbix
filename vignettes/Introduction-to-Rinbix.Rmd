@@ -1,0 +1,88 @@
+---
+title: "Introduction to Rinbix"
+author: "Bill C. White"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to Rinbix}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+The Rinbix package is a collection of functions that support the In silico research group's bioinformatics toolbox for network and machine learning analysis in bioinformatics. These functions are grouped roughly into the categories:
+
+- Feature Selection and Ranking
+- Classification and Prediction
+- Genetic Association Interaction Networks (GAIN)
+- Clustering and Network Community Detection
+- Data Simulation
+- Interfacing with the C++ inbix Program for Performance
+- RNA-Seq Classification and Prediction Pipeline
+
+## Installation
+
+Rinbix is a package that is most easily installed through RStudio's Tools->Install Packages... menu. Alternatively, the package can be installed from an R console with:
+```{r, eval=FALSE}
+install.packages("path_to_file/Rinbix-1.0.tar.gz", repos=NULL, type="source")
+```
+or from the command line with:
+```{r, eval=FALSE}
+R CMD INSTALL Rinbix-1.0.tar.gz
+```
+
+## Conventions
+
+Variable and function names are in camelCase. Data frames for case-control data sets are referred to as 'regressionData', 'trainData' and 'testData' and contain subject rows and variables (gene) columns, The last column is special and contains the case-control phenotype, coded 0/1. Due to the bioinformatics application domain and common data mining and machine learning jargon, the following terms are used interchangeably:
+
+- rows of X, subjects, samples, obervations
+- columns of X, variables. predictors, attributes, SNPs, genes
+- last column, y, response, phenotype
+
+## Example
+
+This simple example demonstrates a workflow from data simulation to ranked genes. Simulate a differential co-expression data set with 10 genes and 40 subjects.
+
+```{r, echo=FALSE}
+library(Rinbix)
+```
+
+### Data simulation
+
+```{r}
+data("scaleFreeNetwork")
+dataset <- createDiffCoexpMatrixNoME(M=10, N=40, meanExpression=7, 
+                                     A=scaleFreeNetwork,
+                                     randSdNoise=0.5, sdNoise=0.05,
+                                     sampleIndicesInteraction=seq(1:3))
+cat("Simulated genes:", colnames(dataset$regressionData)[1:3], "\n")
+```
+
+### First few rows of the simulated data set
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(dataset$regressionData))
+```
+
+### Run a ranker/feature selector algorithm. dcGAIN + SNPrank
+
+```{r}
+dcgain_snprank_results <- rankDcgainSnprank(dataset$regressionData)
+```
+
+### dcGAIN + SNPrank results
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(dcgain_snprank_results)
+```
+
+### Run a ranker/feature selector algorithm. reGAIN + SNPrank
+
+```{r}
+regain_snprank_results <- rankRegainSnprank(dataset$regressionData)
+```
+
+### reGAIN + SNPrank results
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(regain_snprank_results)
+```
