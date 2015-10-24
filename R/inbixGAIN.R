@@ -14,6 +14,9 @@
 #' @return results Matrix of gene by gene differential coexpression values.
 #' @family Genetic Association Interaction Network functions
 #' @seealso \code{\link{dmgain}} for differential modularity.
+#' @examples
+#' data(testdata10)
+#' rinbixDcgain <- dcgain(testdata10)
 #' @export
 dcgain <- function(inbixData, verbose=FALSE) {
   phenos <- inbixData[, ncol(inbixData)] + 1
@@ -22,8 +25,10 @@ dcgain <- function(inbixData, verbose=FALSE) {
   varNames <- colnames(inbixData)[1:ncol(exprBySubj)]
   n1 <- length(which(phenos == 1))
   n2 <- length(which(phenos == 2))
-  print(dim(inbixData))
-  if(verbose) cat("dcGAIN Group 1:", n1, "Group 2:", n2, "\n")
+  if(verbose) {
+    print(dim(inbixData))
+    cat("dcGAIN Group 1:", n1, "Group 2:", n2, "\n")
+  }
   nVars <- ncol(exprBySubj)
 
   # determine group correlations
@@ -92,6 +97,9 @@ dcgain <- function(inbixData, verbose=FALSE) {
 #' @param inbixData Data frame with samples in rows, genes in columns
 #' and phenotype in the last column.
 #' @return results Matrix of gene by gene differential modularity values.
+#' @examples
+#' data(testdata10)
+#' rinbixDmgain <- dmgain(testdata10)
 #' @export
 dmgain <- function(inbixData) {
   phenos <- inbixData[, ncol(inbixData)] + 1
@@ -472,6 +480,9 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
 #' @param absBetas Flag to use absolute value of beta coefficients.
 #' @param verbose Flag to send verbose messages to stdout.
 #' @return regainMatrix Matrix of gene by gene regression coefficients.
+#' @examples
+#' data(testdata10)
+#' rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
 #' @export
 regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE, verbose=FALSE) {
   require(glm2)

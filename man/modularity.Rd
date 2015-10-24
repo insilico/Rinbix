@@ -4,10 +4,12 @@
 \alias{modularity}
 \title{Detect modular structure in a network.}
 \usage{
-modularity(G)
+modularity(G, verbose = FALSE)
 }
 \arguments{
 \item{G}{Matrix Adjacency matrix.}
+
+\item{verbose}{Flag to output messages to stdout.}
 }
 \value{
 list of groups, Q and module assignments.

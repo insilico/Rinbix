@@ -17,6 +17,10 @@ results Matrix of gene by gene differential coexpression values.
 \description{
 \code{dcgain}
 }
+\examples{
+data(testdata10)
+rinbixDcgain <- dcgain(testdata10)
+}
 \seealso{
 \code{\link{dmgain}} for differential modularity.
 }

@@ -12,6 +12,21 @@
 #' @format Data frame with 10 rows and 10 variables plus "Class" column.
 NULL
 
+#' A main effects data set with 100 samples and 100 variables.
+#'
+#' A dataset containing 100 variables var1 ... var100. 
+#' Class/phenotypes are case-control coded 0/1. 
+#' Indices 1 and 5 are the simulated main effects variables.
+#' testdata100ME4 <- createMainEffectsMatrix(M=100, N=100, meanExpression=7, 
+#' randSdNoise=0.05, sampleIndicesMainEffects=c(1, 5), mainEffect=4) 
+#'
+#' @docType data
+#' @keywords datasets
+#' @name testdata100ME4
+#' @usage data(testdata100ME4)
+#' @format Data frame with 100 rows and 100 variables plus "Class" column.
+NULL
+
 #' Simulated RNASeq data set with 40 subjects and 100 genes.
 #'
 #' A dataset containing  with 40 subjects (20 cases, 20 controls), 100 genes, 

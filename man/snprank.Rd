@@ -7,14 +7,19 @@
 snprank(G, gamma = 0.85)
 }
 \arguments{
-\item{G}{Matrix genetic association network.}
+\item{G}{Matrix genetic association interaction network.}
 
-\item{gamma}{Numeric weighting interactions versus main effects.}
+\item{gamma}{Numeric weighting, interactions (closer to 1) versus main effects (closer to 0).}
 }
 \value{
 sortedTable Data frame with gene, SNPrank, diagonal and degree columns.
 }
 \description{
 \code{snprank}
+}
+\examples{
+data(testdata10)
+rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
+rinbixSnpranksDF <- snprank(rinbixRegain)
 }
 

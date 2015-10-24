@@ -4,200 +4,6 @@
 # Rinbix package cluster/modularity functions.
 
 # ----------------------------------------------------------------------------
-#' Cluster SNPrank gene scores and determine classification accuracy.
-#'
-#' Gaussian finite mixture model fitted by EM algorithm.
-#'
-#' \code{clusterSnpranks}
-#' 
-#' @param genesHit Vector gene indices of simulated genes.
-#' @param snprankResults Data frame genes and their SNPrank scores.
-#' @param M Numeric number of genes.
-#' @param rankNull Flag rank as null.
-#' @param qqPlot Flag plot QQ.
-#' @param qqPlotFilename Flag QQ plot filename.
-#' @param densityPlot Flag plot density.
-#' @param densityPlotFilename String density plot filename.
-#' @return data frame of classification statistics.
-#' @export
-clusterSnpranks <- function(genesHit, snprankResults, M, rankNull=FALSE,
-  qqPlot=FALSE, qqPlotFilename="foo.png", 
-  densityPlot=FALSE, densityPlotFilename="bar.png") {
-  ranksByGene <- snprankResults[order(snprankResults$gene), ]
-  
-  # Gaussian finite mixture model fitted by EM algorithm 
-  fit <- Mclust(ranksByGene$snprank, G=2)
-
-  if(qqPlot) {
-    png(qqPlotFilename, width=800, height=800)
-    rQQ <- qqnorm(ranksByGene$snprank, plot.it=T, main="SNPRank Q-Q Plot", 
-      xlab="Theoretical", ylab="SNPrank")
-    qqline(ranksByGene$snprank, distribution=qnorm)
-    degreeColors <- rep("white", numGenes)
-    degreeColors[genesHit] <- "red"
-    points(rQQ$x, rQQ$y, col=degreeColors)
-    abline(h=fit$parameters$mean[1], lty=2)
-    abline(h=fit$parameters$mean[2], lty=2)
-    dev.off()
-  }
-  
-  if(densityPlot) {
-    png(densityPlotFilename, width=1024, height=768) 
-    labels <- factor(rep(1, M), levels=c(1,2))
-    labels[genesHit] <- 2
-    densData <- cbind(snprankResults$snprank, labels)
-    colnames(densData) <- c("snprank", "label")
-    plot(fit, what=c("density"))
-    dev.off()
-  }
-
-  # call the group with the highest mean the "hit class"
-  hitClass <- 1
-  trueClassification <- factor(rep(2, M), levels=c(1,2))
-  if(!rankNull) {
-    trueClassification[genesHit] <- 1  
-  }
-  if(fit$parameters$mean[2] > fit$parameters$mean[1]) {
-    hitClass <- 2
-    trueClassification <- factor(rep(1, M), levels=c(1,2))
-    if(!rankNull) {
-      trueClassification[genesHit] <- 2  
-    }
-  }
-
-  # cat(length(trueClassification[trueClassification == 1]), "\n")
-  # cat(length(trueClassification[trueClassification == 2]), "\n")
-  # cat(length(fit$classification[fit$classification == 1]), "\n")
-  # cat(length(fit$classification[fit$classification == 2]), "\n")
-
-  # compute confusion matrix
-  confusionMatrix <- table(fit$classification, trueClassification)
-  #print(trueClassification)
-  #print(fit$classification)
-  #print(confusionMatrix)
-  if(hitClass == 1) {
-    TP <- confusionMatrix[1, 1]
-    FP <- confusionMatrix[1, 2]
-    FN <- confusionMatrix[2, 1]
-    TN <- confusionMatrix[2, 2]
-  } else {
-    TN <- confusionMatrix[1, 1]
-    FN <- confusionMatrix[1, 2]
-    FP <- confusionMatrix[2, 1]
-    TP <- confusionMatrix[2, 2]
-  }
-  
-  # calculate classification metrics from contingency table
-  TPR <- TP / (TP + FN) # TPR/recall/hit rate/sensitivity
-  SPC <- TN / (TN + FP) # TNR/specificity/SPC
-  PPV <- TP / (TP + FP) # precision/PPV
-  NPV <- TN / (TN + FN) # negative predictive value/NPV
-  FPR <- FP / (FP + TN) # fall-out/FPR/false positive rate
-  FDR <- FP / (FP + TP) # false discovery rate/FDR
-  FNR <- FN / (FN + TP) # false negative rate/FNR/miss rate
-  
-  # accuracy of the model
-  ACC <- (TP + TN) / (TP + FP + TN + FN)
-  BAC <- (TPR + SPC) / 2
-  F1 <- (2 * TP) / (2 * TP + FP + FN)
-  MCC <- 
-    ((TP * TN) - (FP * FN)) / 
-    sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN))
-
-  numGenesHit <- length(genesHit)
-  #cat("Number of  genes hit:", numGenesHit, "\n")
-  TPRS <- TP / numGenesHit
-  FPRS <- FP / (M - numGenesHit)
-
-  # package and return all the computed results
-  classStats <- cbind(TP, FP, TN, FN, TPR, SPC, PPV, NPV, FPR, FDR, FNR,  
-                      ACC, BAC, F1, MCC, TPRS, FPRS)
-  colnames(classStats) <- c("TP", "FP", "TN", "FN", "TPR", "SPC", "PPV", "NPV", 
-                            "FPR", "FDR", "FNR", "ACC", "BAC", "F1", "MCC", "TPRS", "FPRS")
-  as.data.frame(classStats)
-}
-
-# ----------------------------------------------------------------------------
-#' Cluster SNPrank gene scores and determine classification accuracy.
-#'
-#' Gaussian finite mixture model fitted by EM algorithm.
-#'
-#' \code{clusterSnpranks}
-#' 
-#' @param genesHitIntr Vector gene indices of simulated interaction genes.
-#' @param genesHitMain Vector gene indices of simulated main effects genes.
-#' @param snprankResults Data frame genes and their SNPrank scores.
-#' @param M Numeric number of genes.
-#' @return list with cluster statistics and correct clustering by type.
-#' @export
-clusterSnpranksByType <- function(genesHitIntr, genesHitMain, snprankResults, M) {
-  ranksByGene <- snprankResults[order(snprankResults$gene), ]
-  genesHit <- c(genesHitIntr, genesHitMain)
-  
-  # Gaussian finite mixture model fitted by EM algorithm 
-  fit <- Mclust(ranksByGene$snprank, G=2)
-  
-  # call the group with the highest mean the "hit class"
-  hitClass <- 1
-  trueClassification <- rep(2, M)
-  trueClassification[genesHit] <- 1
-  if(fit$parameters$mean[2] > fit$parameters$mean[1]) {
-    hitClass <- 2
-    trueClassification <- rep(1, M)
-    trueClassification[genesHit] <- 2
-  }
-  
-  # break down the classification by simulated gene type
-  iHits <- length(which(fit$classification[genesHitIntr] == hitClass))
-  mHits <- length(which(fit$classification[genesHitMain] == hitClass))
-  
-  clusterStats <- clusterSnpranks(genesHit, snprankResults, M)
-  hitStats <- c(iHits, mHits)
-  list(clustStats=clusterStats, hitStatsByType=hitStats)
-}
-
-# ----------------------------------------------------------------------------
-#' Cluster SNPrank gene scores and determine classification accuracy.
-#'
-#' Gaussian finite mixture model fitted by EM algorithm.
-#'
-#' \code{clusterSnpranksSimple}
-#' 
-#' @param snprankResults Data frame genes and their SNPrank scores.
-#' @param qqPlot Flag plot QQ.
-#' @param qqPlotFilename Flag QQ plot filename.
-#' @param densityPlot Flag plot density.
-#' @param densityPlotFilename String density plot filename.
-#' @return Mclust fit object.
-#' @export
-clusterSnpranksSimple <- function(snprankResults, 
-  qqPlot=FALSE, qqPlotFilename="foo.png", 
-  densityPlot=FALSE, densityPlotFilename="bar.png") {
-  ranksByGene <- snprankResults[order(snprankResults$gene), ]
-  
-  # Gaussian finite mixture model fitted by EM algorithm 
-  fit <- Mclust(ranksByGene$snprank, G=2)
-
-  if(qqPlot) {
-    png(qqPlotFilename, width=800, height=800)
-    rQQ <- qqnorm(ranksByGene$snprank, plot.it=T, main="SNPRank Q-Q Plot", 
-      xlab="Theoretical", ylab="SNPrank")
-    qqline(ranksByGene$snprank, distribution=qnorm)
-    abline(h=fit$parameters$mean[1], lty=2)
-    abline(h=fit$parameters$mean[2], lty=2)
-    dev.off()
-  }
-  
-  if(densityPlot) {
-    png(densityPlotFilename, width=1024, height=768) 
-    plot(fit, what=c("density"))
-    dev.off()
-  }
-
-  fit  
-}
-
-# ----------------------------------------------------------------------------
 #' Load ripM derived modules from RData file with filename.
 #' 
 #' \code{loadRipmResultsFromRdata} 
@@ -313,9 +119,10 @@ mergeSumPowers <- function(Aadj, startOrder=2, maxOrder=4,
 #' \code{modularity}
 #' 
 #' @param G Matrix Adjacency matrix.
+#' @param verbose Flag to output messages to stdout.
 #' @return list of groups, Q and module assignments.
 #' @export
-modularity <- function(G) {
+modularity <- function(G, verbose=FALSE) {
   MODULARITY_THRESHOLD <- 0.000001
   n <- nrow(G);
   geneNames <- colnames(G)
@@ -389,8 +196,10 @@ modularity <- function(G) {
   # ----------------------------------------------------------------------------
   # output modules
   # ----------------------------------------------------------------------------
-  cat("Q:", Q, "\n")
-  cat("Number of modules:", length(modules), "\n")
+  if(verbose) {
+    cat("Q:", Q, "\n")
+    cat("Number of modules:", length(modules), "\n")
+  }
   groupAssignments <- NULL
   for(i in 1:length(modules)) {
     modIdx <- modules[[i]]

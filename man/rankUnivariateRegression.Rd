@@ -17,4 +17,8 @@ p-value, standard error and standardized beta columns.
 \description{
 \code{rankUnivariateRegression}
 }
+\examples{
+data(testdata100ME4)
+rankUnivariateRegressionResults <- rankUnivariateRegression(testdata100ME4)
+}
 

@@ -19,7 +19,7 @@
 dcgainInbix <- function(regressionData, outPrefix="Rinbix") {
   inbixExists()
   # write regressionData data frame to inbix files
-  writeRegressionInbixDataset(regressionData, "Rinbix")
+  writeRegressionDataAsInbixNumeric(regressionData, "Rinbix")
   # run inbix reGAIN
   inbixCmd <- paste("inbix --dcgain --dcgain-abs --numeric-file Rinbix.num --pheno Rinbix.pheno --1 --out", 
                     outPrefix)
@@ -62,7 +62,7 @@ inbixExists <- function() {
 #' @examples
 #' data(testdata10)
 #' corMatrix <- cor(testdata10[, -ncol(testdata10)])
-#' rinbixModulesDF <- Rinbix::modularity(corMatrix)
+#' inbixModulesDF <- modularityInbix(corMatrix)
 #' @export
 modularityInbix <- function(gainMatrix, outPrefix="Rinbix") {
   inbixExists()
@@ -100,7 +100,7 @@ permuteGainInbix <- function(regressionData, method="regain", numPerms=100,
   pThresh=1, threshold=0.05, outPrefix="Rinbix") {
   inbixExists()
   # write regressionData data frame to inbix files
-  writeRegressionInbixDataset(regressionData, "Rinbix")
+  writeRegressionDataAsInbixNumeric(regressionData, "Rinbix")
   # run inbix GAIN
   if(method == "regain") {
     methodOptions = "--regain-use-beta-values --regain-matrix-transform abs"
@@ -179,7 +179,7 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
                         outPrefix="Rinbix", pThreshold=1) {
   inbixExists()
   # write regressionData data frame to inbix files
-  writeRegressionInbixDataset(regressionData, outPrefix)
+  writeRegressionDataAsInbixNumeric(regressionData, outPrefix)
   stdBetasCmd <- ""
   if(!stdBetas) {
     stdBetasCmd <- "--regain-use-beta-values"
@@ -233,6 +233,10 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
 #' @param outPrefix String file output prefix.
 #' @param gamma Numeric gamma damping parameter (see paper).
 #' @return data frame of gene snpranks.
+#' @examples
+#' data(testdata10)
+#' inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
+#' inbixSnprank <- snprankInbix(inbixRegain)
 #' @export
 snprankInbix <- function(gainMatrix, outPrefix="Rinbix", gamma=0.85) {
   inbixExists()

@@ -23,4 +23,8 @@ regainMatrix Matrix of gene by gene regression coefficients.
 \description{
 \code{regainParallel}
 }
+\examples{
+data(testdata10)
+rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
+}
 

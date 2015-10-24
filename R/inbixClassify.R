@@ -6,12 +6,12 @@
 # ------------------------------------------------------------------------------------
 #' Compute and return classifier stats from a confusion matrix.
 #' 
-#' \code{classifierStats} 
+#' \code{computeFeatureMetrics} 
 #' 
 #' @param confusionMatrix Matrix of classification counts.
 #' @return data frame of classifier stats.
 #' @export
-classifierStats <- function(confusionMatrix) {
+computeFeatureMetrics <- function(confusionMatrix) {
   TN <- confusionMatrix[1, 1]
   FN <- confusionMatrix[1, 2]
   FP <- confusionMatrix[2, 1]
@@ -235,7 +235,7 @@ computeFeatureMetrics <- function(someClassification,
                                   classLevels=c(0,1)) {
   confusionMatrix <- table(factor(someClassification, levels=classLevels),
                            factor(trueClassification, levels=classLevels))
-  classifierStats(confusionMatrix)
+  computeFeatureMetrics(confusionMatrix)
 }
 
 # ------------------------------------------------------------------------------------
@@ -298,8 +298,8 @@ glmMainEffect <- function(varName, trainData, testData) {
   fit <- glm(as.formula(regression_formula), data=trainData, family="binomial")
   fit_ys <- predict(fit, newdata=testData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
-  true_phenos <- ifelse(testData[, ncol(testData)] == "MDD", 1, 0)
-  classification_stats <- get_classification_stats(true_phenos, fit_phenos)
+  true_phenos <- testData[, ncol(testData)]
+  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
   #print(classification_stats)
   
   maineffect_term_idx <- 2
@@ -334,14 +334,14 @@ glmVarList <- function(varIdx, trainData, testData) {
 
   fit_ys <- predict(fit, newdata=trainData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
-  true_phenos <- ifelse(trainData[, ncol(trainData)] == "MDD", 1, 0)
-  classification_stats <- get_classification_stats(true_phenos, fit_phenos)
+  true_phenos <- trainData[, ncol(trainData)]
+  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
   train_acc <- classification_stats$ACC
 
   fit_ys <- predict(fit, newdata=testData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
-  true_phenos <- ifelse(testData[, ncol(testData)] == "MDD", 1, 0)
-  classification_stats <- get_classification_stats(true_phenos, fit_phenos)
+  true_phenos <- testData[, ncol(testData)]
+  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
   test_acc <- classification_stats$ACC
   
   data.frame(converged=fit$converged, train.acc=train_acc, test.acc=test_acc)
@@ -364,14 +364,14 @@ glmWithInteractionTerm <- function(var1Name, var2Name, trainData, testData) {
   fit <- glm(as.formula(regression_formula), data=trainData, family="binomial")
   fit_ys <- predict(fit, newdata=trainData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
-  true_phenos <- ifelse(trainData[, ncol(trainData)] == "MDD", 1, 0)
-  classification_stats <- get_classification_stats(true_phenos, fit_phenos)
+  true_phenos <- trainData[, ncol(trainData)]
+  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
   train_acc <- classification_stats$ACC
 
   fit_ys <- predict(fit, newdata=testData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
-  true_phenos <- ifelse(testData[, ncol(testData)] == "MDD", 1, 0)
-  classification_stats <- get_classification_stats(true_phenos, fit_phenos)
+  true_phenos <- testData[, ncol(testData)]
+  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
   test_acc <- classification_stats$ACC
   
   # get the interaction term model results and keep appending rows 
@@ -412,14 +412,14 @@ glmWithSquaredTerms <- function(var1Name, var2Name, trainData, testData) {
   fit <- glm(as.formula(regression_formula), data=trainData, family="binomial")
   fit_ys <- predict(fit, newdata=trainData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
-  true_phenos <- ifelse(trainData[, ncol(trainData)] == "MDD", 1, 0)
-  classification_stats <- get_classification_stats(true_phenos, fit_phenos)
+  true_phenos <- trainData[, ncol(trainData)]
+  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
   train_acc <- classification_stats$ACC
 
   fit_ys <- predict(fit, newdata=testData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
-  true_phenos <- ifelse(testData[, ncol(testData)] == "MDD", 1, 0)
-  classification_stats <- get_classification_stats(true_phenos, fit_phenos)
+  true_phenos <- testData[, ncol(testData)]
+  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
   test_acc <- classification_stats$ACC
   
   # get the interaction term model results and keep appending rows 

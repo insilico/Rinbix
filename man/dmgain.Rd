@@ -16,4 +16,8 @@ results Matrix of gene by gene differential modularity values.
 \description{
 \code{dmgain}
 }
+\examples{
+data(testdata10)
+rinbixDmgain <- dmgain(testdata10)
+}
 
