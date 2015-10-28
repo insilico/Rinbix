@@ -15,6 +15,7 @@ Suggests:
     knitr,
     rmarkdown
 Imports: 
+    Matrix,
     caret,
     edgeR,
     DESeq,

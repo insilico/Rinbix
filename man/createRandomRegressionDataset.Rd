@@ -17,4 +17,7 @@ data frame with class column.
 \description{
 \code{createRandomRegressionDataset}
 }
+\examples{
+ds <- createRandomRegressionDataset(100, 100)
+}
 

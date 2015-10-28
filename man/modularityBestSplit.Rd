@@ -7,9 +7,9 @@
 modularityBestSplit(B, m)
 }
 \arguments{
-\item{B}{Modularity matrix.}
+\item{B}{Matrix modularity matrix.}
 
-\item{m}{m (average degree?)}
+\item{m}{Numeric average degree?}
 }
 \value{
 List with modularity value Q and best split vector.
@@ -17,4 +17,5 @@ List with modularity value Q and best split vector.
 \description{
 \code{modularityBestSplit}
 }
+\keyword{internal}
 

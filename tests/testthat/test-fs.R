@@ -43,7 +43,7 @@ test_that("glmnet", {
 test_that("Lasso", {
 	success <- TRUE
 	rankLassoResults <- rankLasso(testdata100ME4)
-		if(nrow(rankLassoResults) == 2) {
+	if(nrow(rankLassoResults) == 2) {
 		success <- TRUE
 	}
 	expect_equal(success, TRUE)

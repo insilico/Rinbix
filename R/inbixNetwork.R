@@ -10,6 +10,10 @@
 #' 
 #' @param g IGraph graph object.
 #' @return data frame of graph statistics.
+#' @examples
+#' require(igraph)
+#' g <- erdos.renyi.game(1000, 1/1000)
+#' igstats <- getIGraphStats(g)
 #' @export
 getIGraphStats <- function(g) {
   return(
@@ -63,10 +67,14 @@ printIGraphStats <- function(g) {
 #' @param useIGraph Flag use the IGraph library to generate the graph.
 #' @param numBins Numeric number of bins to use in the degree histogram.
 #' @param filePrefix String file prefix for output files.
+#' @param verbose Flag to send runtime messages to stdout.
 #' @return network adjacency matrix.
+#' @examples
+#' net <- randomNetworkSim(n=1000)
 #' @export
 randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistPlot=F, 
-                               useIgraph=F, numBins=10, filePrefix="random_network_sim") {
+                             useIgraph=FALSE, numBins=10, filePrefix="random_network_sim",
+                             verbose=FALSE) {
   # Erdos-Renyi
   # usage: A <- random_network_sim(100,.1,1)
   if(useIgraph) {
@@ -76,10 +84,10 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
   } else {
     A <- matrix(ncol=n, nrow=n, data=runif(n * n))
     # undirected no self-connections, no weights
-    A <- triu(A < p, 1) # take upper triangle (k=1) of (random nxn < p)
+    A <- as.matrix(Matrix::triu(A < p, 1)) # take upper triangle (k=1) of (random nxn < p)
     #A = sparse(A)
     # now make A symmetric, undirected
-    A = A + t(A)
+    A <- A + t(A)
   }
   degrees <- rowSums(A)
   
@@ -98,12 +106,10 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
   nz_deg_counts <- deg_counts[nz_idx]
   
   # Igraph's discrete power law fit
-  powerLawFit = displ$new(nz_deg_counts)
-  xminEst = estimate_xmin(powerLawFit)
-  cat("Erdos-Renyi Graph Estimate of x_min:", xminEst$xmin, "\n")
-  cat("Erdos-Renyi Graph Estimate of x_min KS value:", xminEst$KS, "\n")
-  cat("Erdos-Renyi Graph Estimate of scaling parameter alpha:", xminEst$pars, "\n")
-  powerLawFit$setXmin(xminEst)
+  powerLawFit <- power.law.fit(nz_deg_counts)
+  if(verbose) cat("Erdos-Renyi Graph Estimate of x_min:", powerLawFit$xmin, "\n")
+  if(verbose) cat("Erdos-Renyi Graph Estimate of x_min KS value:", powerLawFit$KS.stat, "\n")
+  if(verbose) cat("Erdos-Renyi Graph Estimate of scaling parameter alpha:", powerLawFit$alpha, "\n")
   if(doFitPlot) {
     png(paste(filePrefix, "_er_powerlaw_fit.png", sep=""), width=1024, height=768)
     # data
@@ -139,10 +145,13 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
 #' @param useIGraph Flag use the IGraph library to generate the graph.
 #' @param numBins Numeric number of bins to use in the degree histogram.
 #' @param filePrefix String file prefix for output files.
+#' @param verbose Flag to send runtime messages to stdout.
 #' @return network adjacency matrix.
+#' @examples
+#' net <- scaleFreeSim(n=1000)
 #' @export
 scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F, 
-                           numBins=10, filePrefix="scale_free_sim") {
+                           numBins=10, filePrefix="scale_free_sim", verbose=FALSE) {
   
   # Baraba'si-Albert (BA) model generation of scale-free network
   if(useIgraph) {
@@ -189,17 +198,15 @@ scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F,
   nz_deg_counts <- deg_counts[nz_idx]
   
   # Igraph's discrete power law fit
-  powerLawFit = displ$new(nz_deg_counts)
-  xminEst = estimate_xmin(powerLawFit)
-  cat("Baraba'si-Albert Graph Estimate of x_min:", xminEst$xmin, "\n")
-  cat("Baraba'si-Albert Graph Estimate of x_min KS value:", xminEst$KS, "\n")
-  cat("Baraba'si-Albert Graph Estimate of scaling parameter alpha:", xminEst$pars, "\n")
-  powerLawFit$setXmin(xminEst)
+  powerLawFit <- power.law.fit(nz_deg_counts)
+  if(verbose) cat("Scale Free Graph Estimate of x_min:", powerLawFit$xmin, "\n")
+  if(verbose) cat("Scale Free Graph Estimate of x_min KS value:", powerLawFit$KS.stat, "\n")
+  if(verbose) cat("Scale Free Graph Estimate of scaling parameter alpha:", powerLawFit$alpha, "\n")
   if(doFitPlot) {
     png(paste(filePrefix, "_ba_powerlaw_fit.png", sep=""), width=1024, height=768)
     # data
     plot(powerLawFit, xlab="Degree", ylab="CDF", 
-         main="Baraba'si-Albert Graph Degree Distribution with Power Law Fit")
+         main="Scale Free Graph Degree Distribution with Power Law Fit")
     # fit
     lines(powerLawFit, col=2)
     dev.off()

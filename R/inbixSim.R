@@ -11,6 +11,8 @@
 #' @param numRows Numeric number of rows (samples).
 #' @param numCols Numeric number of columns (independent variables),
 #' @return data frame with class column.
+#' @examples
+#' ds <- createRandomRegressionDataset(100, 100)
 #' @export
 createRandomRegressionDataset <- function(numRows, numCols) {
   dmatrix <- matrix(nrow=numRows, ncol=numCols, data=rnorm(numRows*numCols))
@@ -30,6 +32,8 @@ createRandomRegressionDataset <- function(numRows, numCols) {
 #' @param meanExpression Numeric mean gene expression.
 #' @param randSdNoise Numeric standard deviation of random normal (rnorm) noise.
 #' @return list with subject by gene data frame with class column.
+#' @examples
+#' ds <- createRandomMatrix(100, 100, 7, 0.05)$regressionData
 #' @export
 createRandomMatrix <- function(M, N, meanExpression, randSdNoise) {
   # create a random data matrix
@@ -64,6 +68,21 @@ createRandomMatrix <- function(M, N, meanExpression, randSdNoise) {
 #' @param mainEffect desired fold change
 #' @param verbose verbose output to stdout
 #' @return list with subject by gene data frame with class column and fold changes.
+#' @examples
+#' data("scaleFreeNetwork")
+#' dsobj <- createDiffCoexpMatrix(M=100, 
+#'                              N=100, 
+#'                              meanExpression=7, 
+#'                              A=scaleFreeNetwork, 
+#'                              randSdNoise=0.05, 
+#'                              sdNoise=1.5, 
+#'                              mGenesToPerturb=3,
+#'                              sampleIndicesMainEffects = c(5, 10, 15),
+#'                              sampleIndicesInteraction = c(5, 10, 15),
+#'                              mainEffectMode=1,
+#'                              mainEffect=4,
+#'                              verbose=F)
+#' ds <- dsobj$regressionData  
 #' @export
 createDiffCoexpMatrix <- function(M, N, meanExpression, A, 
                                   randSdNoise, sdNoise, mGenesToPerturb, 
@@ -190,6 +209,16 @@ createDiffCoexpMatrix <- function(M, N, meanExpression, A,
 #' @param sampleIndicesInteraction Vector interaction gene indices.
 #' @param verbose Flag verbose output to stdout.
 #' @return list with subject by gene data frame with class column.
+#' @examples
+#' data("scaleFreeNetwork")
+#' dsobj <- createDiffCoexpMatrixNoME(M=100, 
+#'                              N=100, 
+#'                              meanExpression=7, 
+#'                              A=scaleFreeNetwork, 
+#'                              randSdNoise=0.05, 
+#'                              sdNoise=1.5, 
+#'                              sampleIndicesInteraction = c(5, 10, 15))
+#' ds <- dsobj$regressionData  
 #' @export
 createDiffCoexpMatrixNoME <- function(M, N, meanExpression, A, randSdNoise, 
   sdNoise, sampleIndicesInteraction) {
@@ -255,6 +284,15 @@ createDiffCoexpMatrixNoME <- function(M, N, meanExpression, A, randSdNoise,
 #' @param randSdNoise Numeric standard deviation of random normal (rnorm) noise.
 #' @param sdNoise Numeric standard deviation of noise in differential correlation.
 #' @return list with subject by gene data frame with class column.
+#' @examples
+#' data("scaleFreeNetwork")
+#' dsobj <- createDiffCoexpMatrixNull(M=100, 
+#'                              N=100, 
+#'                              meanExpression=7, 
+#'                              A=scaleFreeNetwork, 
+#'                              randSdNoise=0.05, 
+#'                              sdNoise=1.5)
+#' ds <- dsobj$regressionData  
 #' @export
 createDiffCoexpMatrixNull <- function(M, N, meanExpression, A, randSdNoise, sdNoise) {
   # create a random data matrix
@@ -300,13 +338,22 @@ createDiffCoexpMatrixNull <- function(M, N, meanExpression, A, randSdNoise, sdNo
 #' @param M Numeric number of genes.
 #' @param N Numeric number of subjects.
 #' @param meanExpression Numeric mean gene expression.
-#' @param A Matrix network adjacency matrix.
 #' @param randSdNoise Numeric standard deviation of random normal (rnorm) noise.
-#' @param sdNoise Numeric standard deviation of noise in differential correlation.
+#' @param sampleIndicesMainEffects main effects indices
 #' @param mainEffect Numeric desired fold change.
 #' @param doScale Flag scale the resulting matrix.
 #' @param doLog Flag log2 transform resulting matrix.
 #' @return list with subject by gene data frame with class column and fold changes.
+#' @examples
+#' dsobj <- createMainEffectsMatrix(M=100, 
+#'                              N=100, 
+#'                              meanExpression=7, 
+#'                              randSdNoise=0.05, 
+#'                              sampleIndicesMainEffects = c(5, 10),
+#'                              mainEffect=4, 
+#'                              doScale=FALSE, 
+#'                              doLog=FALSE)
+#' ds <- dsobj$regressionData  
 #' @export
 createMainEffectsMatrix <- function(M, N, meanExpression, randSdNoise, 
   sampleIndicesMainEffects, mainEffect, doScale=FALSE, doLog=FALSE) {
@@ -385,95 +432,26 @@ createMainEffectsMatrix <- function(M, N, meanExpression, randSdNoise,
 #' @param n1 Numeric size of group 1.
 #' @param N Numeric number of subjects.
 #' @return numeric fold change.
+#' @examples
+#' dsobj <- createMainEffectsMatrix(M=100, 
+#'                              N=100, 
+#'                              meanExpression=7, 
+#'                              randSdNoise=0.05, 
+#'                              sampleIndicesMainEffects = c(5, 10),
+#'                              mainEffect=4, 
+#'                              doScale=FALSE, 
+#'                              doLog=FALSE)
+#' ds <- dsobj$regressionData  
+#' fc <- getFoldChange(t(ds), 5, 50, 100)
 #' @export
 getFoldChange <- function(D, idx, n1, N) {
   # fold change before changes
-  g0 <- D[idx, (n1 + 1):N]
-  g1 <- D[idx, 1:n1]
+  g0 <- D[idx, 1:n1]
+  g1 <- D[idx, (n1 + 1):N]
   fc <- mean(g1) / mean(g0)
 }
-
-# ----------------------------------------------------------------------------
-#' Compute main effects fold change between groups for gene at idx.
-#' 
-#' \code{getFoldChangeME} 
-#' 
-#' @param D Matrix data matrix.
-#' @param idx Numeric index of variable to get fold change.
-#' @param n1 Numeric size of group 1.
-#' @param N Numeric number of subjects.
-#' @return numeric fold change.
-#' @export
 getFoldChangeME <- function(D, idx, n1, N) {
-  # fold change before changes
-  g2 <- D[idx, (n1 + 1):N]
-  g1 <- D[idx, 1:n1]
-  fc <- mean(g2) / mean(g1)
-}
-
-
-# ----------------------------------------------------------------------------
-#' Run one simulation parameter set through the ranking and classification process.
-#' 
-#' \code{runOneParamSet} 
-#' 
-#' @param numGenes Numeric number of genes.
-#' @param numSubjects Numeric number of subjects.
-#' @param meanExpression Numeric mean gene expression.
-#' @param networkAdj Matrix network model adjacency matrix.
-#' @param randomSdNoise Numeric standard deviation of random normal (rnorm) noise.
-#' @param sdNoise Numeric standard deviation of noise in differential correlation.
-#' @param m Numeric number of genes to perturb.
-#' @param thisSimGenesIntr Vector interaction gene indices.
-#' @param thisSimGenesMain Vector main effects indices.
-#' @param mainEffectMode Numeric 1=use interaction indices, else use main effects indices.
-#' @param mainEffect Numeric desired fold change.
-#' @param verboseOutput Flag verbose output to stdout.
-#' @param gamma Numeric SNPrank gamma.
-#' @param ranker String gene ranker.
-#' @return list of classification metrics, ranks and other statistics.
-#' @export
-runOneParamSet <- function(numGenes, numSubjects, meanExpression, networkAdj, 
-                           randomSdNoise, sdNoise, m, thisSimGenesIntr, thisSimGenesMain, 
-                           mainEffectMode, mainEffect, verboseOutput=FALSE, gamma=0.85,
-                           ranker="regain") {
-  
-  # simulate differential coexpression data set with main effects
-  ds <- createDiffCoexpMatrix(numGenes, numSubjects, meanExpression, networkAdj, 
-                              randomSdNoise, sdNoise, m, thisSimGenesIntr, thisSimGenesMain, 
-                              mainEffectMode, mainEffect, verboseOutput)
-  if(ranker == "regain") {
-    # run inbix C++ version of reGAIN
-    rgResult <- regainInbix(ds$regressionData, stdBetas=TRUE, absBetas=TRUE)
-    snprankResults <- snprankInbix(rgResult$reGAIN)
-  } else if(ranker == "dcgain") {
-    dcResult <- dcgain(ds$regressionData)
-    snprankResults <- snprankInbix(dcResult, gamma=gamma)
-  }
-  
-  # how well did SNPrank rank the simulated genes?
-  intrRanks <- getSimGeneRanks(thisSimGenesIntr, snprankResults)
-  mainRanks <- getSimGeneRanks(thisSimGenesMain, snprankResults)
-  
-  # how well does GMM classify simulated genes in case-control?
-  if(mainEffectMode == 1) {
-    genesHit <- thisSimGenesIntr
-    classificationMetrics <- clusterSnpranks(genesHit, snprankResults, numGenes)
-    clusterResult <- data.frame(hitStatsByType=c(classificationMetrics$TP, classificationMetrics$TP))
-  } else {
-    genesHit <- c(thisSimGenesIntr, thisSimGenesMain)
-    clusterResult <- clusterSnpranksByType(thisSimGenesIntr, thisSimGenesMain, 
-                                           snprankResults, numGenes)
-    classificationMetrics <- clusterResult$clustStats
-  }
-  
-  list(classMetrics=classificationMetrics, 
-       interactionRanks=intrRanks,
-       maineffectsRanks=mainRanks,
-       rgWarnings=rgResult$warningsText,
-       rgFailures=rgResult$failuresText,
-       hitStats=clusterResult$hitStatsByType
-  )
+  getFoldChange(D, idx, n1, N)
 }
 
 # -----------------------------------------------------------------------------
@@ -487,6 +465,8 @@ runOneParamSet <- function(numGenes, numSubjects, meanExpression, networkAdj,
 #' @param lower_true_corr Numeric minimum strength of correlation within clusters
 #' lower limit for a "true" correlation.
 #' @return n x n correlation matrix.
+#' @examples
+#' mat <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.5, lower_true_corr=0.5)
 #' @export
 simCorrMatrix <- function(n=4000, num_clust=20, max_noise_corr=0.2, lower_true_corr=0.6) {
   # creates same-size clusters, choose num_clust so that it divides evenly into n
@@ -529,9 +509,11 @@ simCorrMatrix <- function(n=4000, num_clust=20, max_noise_corr=0.2, lower_true_c
 #' @param lower_true_corr Numeric minimum strength of correlation within clusters
 #' lower limit for a "true" correlation.
 #' @return n x n correlation matrix
+#' @examples
+#' mat <- simCorrMatrixNonUniform(n=400, num_clust=20, max_noise_corr=0.5, lower_true_corr=0.5)
 #' @export
 simCorrMatrixNonUniform <- function(n=400, num_clust=20, max_noise_corr=0.2, 
-                                        lower_true_corr=0.6) {
+                                    lower_true_corr=0.6) {
   ## create a simulated correlation matrix with block diagonal clusters.
   # right now creates same-size clusters, choose num_clust so that it divides evenly into n
   ############### input ##############################

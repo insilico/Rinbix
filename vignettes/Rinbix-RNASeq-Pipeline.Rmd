@@ -1,0 +1,62 @@
+---
+title: "Rinbix RNA-Seq Pipeline"
+author: "Bill White"
+date: "October 27, 2015"
+output: html_document
+---
+
+#Load Rinbix and SImulated Data Set
+
+```{r}
+library(Rinbix)
+data(simrnaseq)
+```
+
+#Pipeline Call
+
+```{r}
+set.seed(1965)
+predictResult <- predictRnaseq(rnaseqCountsTrain=predictorsTrain, 
+                               groupLabelsTrain=responseTrain, 
+                               rnaseqCountsTest=predictorsTest, 
+                               groupLabelsTest=responseTest, 
+                               preprocessMethod="none", 
+                               filterMethod="randomforests", 
+                               topN=10, 
+                               classifierMethod="svm",
+                               verbose=FALSE)
+predictResult
+```
+
+#Implemented as Separate Function Calls
+
+```{r}
+set.seed(1965)
+preprocessResult <- preprocess(method="log2", 
+                               predictorsTrain, 
+                               predictorsTest, 
+                               verbose=FALSE)
+cat("Before preprocessing:\n")
+predictorsTrain[1:5, 1:5]
+cat("After preprocessing:\n")
+preprocessResult$train[1:5, 1:5]
+
+filterResult <- filterGenes(method="randomforests", 
+                            preprocessResult$train, 
+                            responseTrain, 
+                            preprocessResult$test, 
+                            responseTest,
+                            nTopGenes=10, 
+                            verbose=FALSE)
+
+cat("Genes before filtering:", ncol(preprocessResult$train), 
+    "after:", ncol(filterResult$train), "\n")
+
+classifyStats <- classify(method="svm", 
+                          filterResult$train, 
+                          responseTrain, 
+                          filterResult$test, 
+                          responseTest,
+                          verbose=FALSE)
+classifyStats
+```

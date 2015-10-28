@@ -17,4 +17,9 @@ list of groups, Q and module assignments.
 \description{
 \code{modularity}
 }
+\examples{
+data(testdata10)
+rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
+rinbixModulesDF <- Rinbix::modularity(rinbixRegain)
+}
 

@@ -29,6 +29,17 @@ require("randomForest")
 #' @param classifierMethod String classifier used to build a model and predict new data.
 #' @param verbose Flag verbose for more output set TRUE.
 #' @return List with ranked genes, classification metrics.
+#' @examples
+#' data(simrnaseq)
+#' predictResult <- predictRnaseq(rnaseqCountsTrain=predictorsTrain, 
+#'                                groupLabelsTrain=responseTrain, 
+#'                                rnaseqCountsTest=predictorsTest, 
+#'                                groupLabelsTest=responseTest, 
+#'                                preprocessMethod="none", 
+#'                                filterMethod="randomforests", 
+#'                                topN=2, 
+#'                                classifierMethod="svm",
+#'                                verbose=FALSE)
 #' @export
 predictRnaseq <- function(rnaseqCountsTrain=NULL,
                           groupLabelsTrain=NULL,
@@ -73,6 +84,12 @@ predictRnaseq <- function(rnaseqCountsTrain=NULL,
 #' @param countsTest RNASeq counts matrix for testing.
 #' @param verbose Verbose flag for more output set TRUE
 #' @return List with preprocessed training and testing matrices.
+#' @examples
+#' data(simrnaseq)
+#' preprocessResult <- preprocess(method="none", 
+#'                                predictorsTrain, 
+#'                                predictorsTest, 
+#'                                verbose=FALSE)
 #' @export
 preprocess <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
   returnTrain <- countsTrain
@@ -84,13 +101,13 @@ preprocess <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
   }
   if(method == "log2") {
     if(verbose) { cat("\t\tlog2\n") }
-    returnTrain <- log2(countsTrain)
-    returnTest <- log2(countsTest)
+    returnTrain <- log2(countsTrain + 1)
+    returnTest <- log2(countsTest + 1)
   }
   if(method == "log2scale") {
     if(verbose) { cat("\t\tlog2scale\n") }
-    returnTrain <- log2(countsTrain)
-    returnTest <- log2(countsTest)
+    returnTrain <- log2(countsTrain + 1)
+    returnTest <- log2(countsTest + 1)
     returnTrain <- scale(returnTrain)
     returnTest <- scale(returnTest)
   }
@@ -114,9 +131,19 @@ preprocess <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
 #' @param nTopGenes Numeric number of top genes to remain after filtering.
 #' @param verbose Flag verbose for more output set TRUE.
 #' @return List with filtered training and testing data sets.
+#' @examples
+#' data(simrnaseq)
+#' filteredGenes <- filterGenes(method="none", 
+#'                              predictorsTrain, 
+#'                              responseTrain, 
+#'                              predictorsTest, 
+#'                              responseTest,
+#'                              nTopGenes=10, 
+#'                              verbose=FALSE)
 #' @export
 filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, 
                         labelsTest, nTopGenes, verbose=FALSE) {
+  topGenes <- colnames(dataTrain)
   if(method == "edger") {
     if(verbose) { cat("\t\tedgeR\n") }
     y <- edgeR::DGEList(counts=t(dataTrain), group=factor(labelsTrain))
@@ -169,9 +196,19 @@ filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest,
 #' @param labelsTest Vector group labels.
 #' @param verbose Flag verbose for more output set TRUE.
 #' @return List with classifier stats for method.
+#' @examples
+#' data(simrnaseq)
+#' classifyStats <- classify(method="none", 
+#'                           predictorsTrain, 
+#'                           responseTrain, 
+#'                           predictorsTest, 
+#'                           responseTest,
+#'                           verbose=FALSE)
 #' @export
 classify <- function(method="none", dataTrain, labelsTrain, dataTest, 
                      labelsTest, verbose=FALSE) {
+  classStatsTrain <- NULL
+  classStatsTest <- NULL
   if(method == "svm") {
     if(verbose) { cat("\t\tSVM - Linear\n") }
     yTrain <- factor(ifelse(labelsTrain == 1, -1, 1))
@@ -180,11 +217,11 @@ classify <- function(method="none", dataTrain, labelsTrain, dataTest,
     fit <- caret::train(dataTrain, yTrain, method="svmLinear", 
                         verbose=TRUE, trControl=fitControl, metric="Accuracy")
     predictionsTrain <- predict(fit, newdata=dataTrain)
-    classStatsTrain <- computeFeatureMetrics(yTrain, predictionsTrain, 
-                                             classLevels=c(-1, 1))
+    classStatsTrain <- classifyPredictedValues(yTrain, predictionsTrain, 
+                                               classLevels=c(-1, 1))
     predictionsTest <- predict(fit, newdata=dataTest)
-    classStatsTest <- computeFeatureMetrics(yTest, predictionsTest, 
-                                            classLevels=c(-1, 1))
+    classStatsTest <- classifyPredictedValues(yTest, predictionsTest, 
+                                              classLevels=c(-1, 1))
   }
   if(verbose) { 
     cat("\t\tCV10 ", 

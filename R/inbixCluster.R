@@ -8,13 +8,23 @@
 #' 
 #' \code{loadRipmResultsFromRdata} 
 #' 
-#' @param rdata_filename String filename of saved module object.
+#' @param rdataFilename String filename of saved module object.
 #' @return ripM module object.
+#' @examples
+#' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
+#' modListRipm <- ripM(simMatrix, 
+#'                     thresholdType="hard", 
+#'                     thresholdValue=0.8, 
+#'                     startMergeOrder=2, maxMergeOrder=4, 
+#'                     minModuleSize=10, maxModuleSize=50, 
+#'                     useAbs=TRUE, useWeighted=TRUE,
+#'                     verbose=FALSE)
+#' saveRipmResultsToRdata(modListRipm, "foo.bar")
+#' file.remove(c("foo.bar_results.rds"))
 #' @export
-loadRipmResultsFromRdata <- function(rdata_filename) {
+loadRipmResultsFromRdata <- function(rdataFilename) {
   # save modules to separate files
-  load(file=rdata_filename)
-  TRUE  
+  readRDS(file=rdataFilename)
 }
 
 # -----------------------------------------------------------------------------
@@ -30,6 +40,8 @@ loadRipmResultsFromRdata <- function(rdata_filename) {
 #' @param verbose Flag send verbose messages to standard out.
 #' @param indentLevel Numeric tab indent level (recursion level).
 #' @return list with list of modules (lists of variable names) and number of iterations.
+#' @export
+#' @keywords internal
 mergeSumPowers <- function(Aadj, startOrder=2, maxOrder=4, 
                            minModuleSize=30, maxModuleSize=200, 
                            verbose=FALSE, indentLevel=1) {
@@ -54,7 +66,7 @@ mergeSumPowers <- function(Aadj, startOrder=2, maxOrder=4,
     iteration <- iteration + 1
     #indent <- paste(rep("  ", indentLevel), iteration, collapse="")
     if(verbose) cat(indent, "[MERGE FUNCTION] Calling sum of matrix powers order:", this_order, "\n")
-    this_matrix <- sum_powers(Aadj, this_order)
+    this_matrix <- sumOfPowers(Aadj, this_order)
     opt_mod_list <- modularity(this_matrix)
     opt_mod_list_all <- c(opt_mod_list_all, list(opt_mod_list))
     opt_mod_list_all_q <- c(opt_mod_list_all_q, opt_mod_list$q)
@@ -121,6 +133,10 @@ mergeSumPowers <- function(Aadj, startOrder=2, maxOrder=4,
 #' @param G Matrix Adjacency matrix.
 #' @param verbose Flag to output messages to stdout.
 #' @return list of groups, Q and module assignments.
+#' @examples
+#' data(testdata10)
+#' rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
+#' rinbixModulesDF <- Rinbix::modularity(rinbixRegain)
 #' @export
 modularity <- function(G, verbose=FALSE) {
   MODULARITY_THRESHOLD <- 0.000001
@@ -220,10 +236,11 @@ modularity <- function(G, verbose=FALSE) {
 #' 
 #' \code{modularityBestSplit} 
 #' 
-#' @param B Modularity matrix.
-#' @param m m (average degree?)
+#' @param B Matrix modularity matrix.
+#' @param m Numeric average degree?
 #' @return List with modularity value Q and best split vector.
 #' @export
+#' @keywords internal
 modularityBestSplit <- function(B, m) {
   # function to split columns of matrix into two groups
   # get the maximum eigenvector
@@ -263,6 +280,15 @@ modularityBestSplit <- function(B, m) {
 #' @param verbose Flag send verbose messages to standard out .
 #' @return list with: list of modules (list of lists of variable names), list of hubs, 
 #' list of node degrees.
+#' @examples
+#' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
+#' modListRipm <- ripM(simMatrix, 
+#'                       thresholdType="hard", 
+#'                       thresholdValue=0.8, 
+#'                       startMergeOrder=2, maxMergeOrder=4, 
+#'                       minModuleSize=10, maxModuleSize=50, 
+#'                       useAbs=TRUE, useWeighted=TRUE,
+#'                       verbose=TRUE)
 #' @export
 ripM <- function(Acorr, thresholdType="hard", thresholdValue=0.8, 
                  startMergeOrder=2, maxMergeOrder=4,
@@ -369,6 +395,8 @@ ripM <- function(Acorr, thresholdType="hard", thresholdValue=0.8,
 #' @param verbose Flag send verbose messages to standard out .
 #' @param indentLevel Flag tab indent level (recursion level).
 #' @return list with list of modules (lists of variable names) and number of iterations.
+#' @export
+#' @keywords internal
 ripMKernelStack <- function(Aadj, startOrder=2, maxOrder=4, 
                             minModuleSize=30, maxModuleSize=200, 
                             verbose=FALSE, indentLevel=1) {
@@ -545,21 +573,31 @@ ripMKernelStack <- function(Aadj, startOrder=2, maxOrder=4,
 #' 
 #' \code{ripmVariableModuleAssignments} 
 #' 
-#' @param ripm_result Rip-M result object.
+#' @param ripmResult Rip-M result object.
 #' @return data frame with two columns: var(iable) and module (integer).
+#' @examples
+#' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
+#' modListRipm <- ripM(simMatrix, 
+#'                     thresholdType="hard", 
+#'                     thresholdValue=0.8, 
+#'                     startMergeOrder=2, maxMergeOrder=4, 
+#'                     minModuleSize=10, maxModuleSize=50, 
+#'                     useAbs=TRUE, useWeighted=TRUE,
+#'                     verbose=FALSE)
+#' modAssignments <- ripmVariableModuleAssignments(modListRipm)
 #' @export
-ripmVariableModuleAssignments <- function(ripm_result) {
-  variable_assignments <- NULL
-  for(i in 1:length(ripm_result$module_list)) {
-    this_mod_list <- ripm_result$module_list[[i]]
+ripmVariableModuleAssignments <- function(ripmResult) {
+  variableAssignments <- NULL
+  for(i in 1:length(ripmResult$module_list)) {
+    this_mod_list <- ripmResult$module_list[[i]]
     for(j in 1:length(this_mod_list)) {
       #cat(i, j, this_mod_list[j], "\n")
-      variable_assignments <- rbind(variable_assignments,
+      variableAssignments <- rbind(variableAssignments,
                                     data.frame(var=this_mod_list[j], cluster=i, stringsAsFactors=F))
     }
   }
-  variable_assignments <- variable_assignments[order(variable_assignments$var), ]
-  variable_assignments
+  variableAssignments <- variableAssignments[order(variableAssignments$var), ]
+  variableAssignments
 }
 
 # ----------------------------------------------------------------------------
@@ -569,27 +607,36 @@ ripmVariableModuleAssignments <- function(ripm_result) {
 #' 
 #' \code{saveModuleListGmt} 
 #' 
-#' @param module_obj Module object from ripM call.
-#' @param output_prefix String filename prefix for output GMT file.
+#' @param moduleObj Module object from ripM call.
+#' @param outputPrefix String filename prefix for output GMT file.
+#' @examples
+#' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
+#' modListRipm <- ripM(simMatrix, 
+#'                     thresholdType="hard", 
+#'                     thresholdValue=0.8, 
+#'                     startMergeOrder=2, maxMergeOrder=4, 
+#'                     minModuleSize=10, maxModuleSize=50, 
+#'                     useAbs=TRUE, useWeighted=TRUE,
+#'                     verbose=FALSE)
+#' saveModuleListGmt(modListRipm, "foobar")
 #' @export
-saveModuleListGmt <- function(module_obj, output_prefix) {
+saveModuleListGmt <- function(moduleObj, outputPrefix) {
   # save modules to gmt
-  cat("Saving", length(module_obj$module_list), "modules to GMT and transposed GMT.\n")
+  cat("Saving", length(moduleObj$module_list), "modules to GMT and transposed GMT.\n")
   results <- NULL
-  for(mod_idx in 1:length(module_obj$module_list)) {
-    this_mod <- module_obj$module_list[[mod_idx]]
-    results <- rbind(results, data.frame(paste(paste("hub_", module_obj$hubs[mod_idx], sep=""), 
-                                               "\t", paste(this_mod, collapse="\t"), sep="")))
+  for(modIdx in 1:length(moduleObj$module_list)) {
+    thisMod <- moduleObj$module_list[[modIdx]]
+    results <- rbind(results, data.frame(paste(paste("hub_", moduleObj$hubs[modIdx], sep=""), 
+                                               "\t", paste(thisMod, collapse="\t"), sep="")))
   }
-  gmt_filename <- paste(output_prefix, ".gmt", sep="")
-  cat("Saving GMT:", gmt_filename, "\n")
-  #lapply(results, cat, "\n", file=gmt_filename, append=FALSE)
-  write.table(results, gmt_filename, quote=F, row.names=F, col.names=F)
+  gmtFilename <- paste(outputPrefix, ".gmt", sep="")
+  cat("Saving GMT:", gmtFilename, "\n")
+  #lapply(results, cat, "\n", file=gmtFilename, append=FALSE)
+  write.table(results, gmtFilename, quote=F, row.names=F, col.names=F)
   # transpose for spreadsheets
-  #gmt_filename <- paste(output_prefix, ".gmtt", sep="")
+  #gmtFilename <- paste(outputPrefix, ".gmtt", sep="")
   #cat("Saving transposed GMT:", mod_filename, "\n")
-  #write.table(t(results), gmt_filename, quote=F, row.names=F, col.names=F)
-
+  #write.table(t(results), gmtFilename, quote=F, row.names=F, col.names=F)
   TRUE  
 }
 
@@ -598,14 +645,25 @@ saveModuleListGmt <- function(module_obj, output_prefix) {
 #' 
 #' \code{saveRipmResultsToRdata} 
 #' 
-#' @param Module_obj module object from ripM call.
-#' @param output_prefix String filename prefix for module output files.
+#' @param resultsList list returned by ripM.
+#' @param outputPrefix String filename prefix for module output files.
+#' @param verbose FLag send messages to stdout.
+#' @examples
+#' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
+#' modListRipm <- ripM(simMatrix, 
+#'                     thresholdType="hard", 
+#'                     thresholdValue=0.8, 
+#'                     startMergeOrder=2, maxMergeOrder=4, 
+#'                     minModuleSize=10, maxModuleSize=50, 
+#'                     useAbs=TRUE, useWeighted=TRUE,
+#'                     verbose=FALSE)
+#' saveRipmResultsToRdata(modListRipm, "foobar")
 #' @export
-saveRipmResultsToRdata <- function(results_list, output_prefix) {
+saveRipmResultsToRdata <- function(resultsList, outputPrefix, verbose=FALSE) {
   # save modules to separate files
-  save_filename <- paste(output_prefix, "_results.Rdata", sep="")
-  cat("Saving", save_filename, "\n")
-  save(results_list, file=save_filename)
+  saveFilename <- paste(outputPrefix, "_results.rds", sep="")
+  if(verbose) cat("Saving", saveFilename, "\n")
+  saveRDS(resultsList, file=saveFilename)
   TRUE  
 }
 
@@ -614,41 +672,28 @@ saveRipmResultsToRdata <- function(results_list, output_prefix) {
 #' 
 #' \code{saveRipmModules} 
 #' 
-#' @param module_obj Module object from ripM call.
-#' @param output_prefix String filename prefix for module output files.
+#' @param moduleObj Module object from ripM call.
+#' @param outputPrefix String filename prefix for module output files.
+#' @examples
+#' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
+#' modListRipm <- ripM(simMatrix, 
+#'                     thresholdType="hard", 
+#'                     thresholdValue=0.8, 
+#'                     startMergeOrder=2, maxMergeOrder=4, 
+#'                     minModuleSize=10, maxModuleSize=50, 
+#'                     useAbs=TRUE, useWeighted=TRUE,
+#'                     verbose=FALSE)
+#' saveRipmModules(modListRipm, "foobar")
 #' @export
-saveRipmModules <- function(module_obj, output_prefix) {
+saveRipmModules <- function(moduleObj, outputPrefix) {
   # save modules to separate files
-  cat("Saving", length(module_obj$module_list), "modules to separate files.\n")
+  cat("Saving", length(moduleObj$module_list), "modules to separate files.\n")
   results <- NULL
-  for(mod_idx in 1:length(module_obj$module_list)) {
-    this_mod <- module_obj$module_list[[mod_idx]]
-    mod_filename <- paste(output_prefix, "_module", mod_idx, ".tab", sep="")
-    cat("Saving", mod_filename, "\n")
-    write.table(this_mod, mod_filename, quote=F, row.names=F, col.names=F)
+  for(modIdx in 1:length(moduleObj$module_list)) {
+    thisMod <- moduleObj$module_list[[modIdx]]
+    modFilename <- paste(outputPrefix, "_module", modIdx, ".tab", sep="")
+    cat("Saving", modFilename, "\n")
+    write.table(thisMod, modFilename, quote=F, row.names=F, col.names=F)
   }
   TRUE  
 }
-
-# -----------------------------------------------------------------------------
-#' Assign all variables names in a WGCNA result object cluster list index values.
-#' 
-#' \code{wgcnaVariableModuleAssignments} 
-#' 
-#' @param wgcna_result WGCNA result object.
-#' @return data frame with two columns: var(iable) and module (integer).
-#' @export
-wgcnaVariableModuleAssignments <- function(wgcna_result) {
-  variable_assignments <- NULL
-  for(i in 1:length(wgcna_result$mods.genes)) {
-    this_mod_list <- wgcna_result$mods.genes[[i]]
-    for(j in 1:length(this_mod_list)) {
-      #cat(i, j, this_mod_list[j], "\n")
-      variable_assignments <- rbind(variable_assignments,
-                                    data.frame(var=this_mod_list[j], cluster=i, stringsAsFactors=F))
-    }
-  }
-  variable_assignments <- variable_assignments[order(variable_assignments$var), ]
-  variable_assignments
-}
-

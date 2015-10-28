@@ -6,9 +6,9 @@ test_that("fisherRtoZ check range from -1 to 1", {
   lapply(testValues, function(x) { expect_equal(fisherRtoZ(x), 0.5 * log((1 + x) / (1 - x))) })
 })
 
-test_that("scaleAB adjusts a vector to the correct scale", {
+test_that("scaleAB adjusts a vector to the specified scale", {
   expect_equal(scaleAB(seq(from=0, to=10), 0, 1), 
-               c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1))
+               seq(from=0, to=1, by=0.1))
 })
 
 test_that("sumOfPowers computes the power series of a matrix", {

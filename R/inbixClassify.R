@@ -6,12 +6,16 @@
 # ------------------------------------------------------------------------------------
 #' Compute and return classifier stats from a confusion matrix.
 #' 
-#' \code{computeFeatureMetrics} 
+#' \code{classifyConfusionMatrix} 
 #' 
 #' @param confusionMatrix Matrix of classification counts.
 #' @return data frame of classifier stats.
+#' @examples
+#' testValues <- matrix(c(0,0,0,0,0,1,1,1,1,1))
+#' trueValues <- matrix(c(0,1,0,1,0,1,0,1,0,0))
+#' classifierStats <- classifyConfusionMatrix(table(testValues, trueValues))
 #' @export
-computeFeatureMetrics <- function(confusionMatrix) {
+classifyConfusionMatrix <- function(confusionMatrix) {
   TN <- confusionMatrix[1, 1]
   FN <- confusionMatrix[1, 2]
   FP <- confusionMatrix[2, 1]
@@ -48,8 +52,13 @@ computeFeatureMetrics <- function(confusionMatrix) {
 #' @param trainData Data frame with class column.
 #' @param testData Data frame with class column.
 #' @return list of classifier stats.
+#' @examples
+#' data(testdata100ME4)
+#' testdata100ME4$Class <- factor(testdata100ME4$Class)
+#' classifierStats <- classifyOneVarWeka("gene0005", testdata100ME4, testdata100ME4)
 #' @export
 classifyOneVarWeka <- function(varName, trainData, testData) {
+  require(RWeka)
   fit_formula <- paste("Class ~", varName)
   weka_model <- Logistic(as.formula(fit_formula), data=trainData)
   weka_model_acc <- summary(weka_model)$details["pctCorrect"]
@@ -70,18 +79,44 @@ classifyOneVarWeka <- function(varName, trainData, testData) {
 #' @param trainData Data frame with class column.
 #' @param testData Data frame with class column.
 #' @return list of classifier stats.
+#' @examples
+#' data(testdata100ME4)
+#' testdata100ME4$Class <- factor(testdata100ME4$Class)
+#' classifierStats <- classifyPairWeka("gene0005", "gene0010", testdata100ME4, testdata100ME4)
 #' @export
 classifyPairWeka <- function(var1Name, var2Name, trainData, testData) {
-  fit_formula <- paste("Class ~", var1Name, "+" , var2Name, 
-                       "+", var1Name, "*", var2Name)
+  fit_formula <- paste("Class ~", var1Name, "+" , var2Name)
   weka_model <- Logistic(as.formula(fit_formula), data=trainData)
   weka_model_acc <- summary(weka_model)$details["pctCorrect"]
   weka_model_eval <- evaluate_Weka_classifier(weka_model, newdata=testData, 
                                               complexity=FALSE, class=TRUE)
   weka_model_eval_acc <- weka_model_eval$details["pctCorrect"]
-  weka_model_eval_hr <- evaluate_Weka_classifier(weka_model, newdata=testData_hr, 
+  weka_model_eval_hr <- evaluate_Weka_classifier(weka_model, newdata=testData, 
                                                  complexity=FALSE, class=TRUE)
   list(train_acc=weka_model_acc, test_acc=weka_model_eval_acc)
+}
+
+# ------------------------------------------------------------------------------------
+#' Compute and return classifier stats from classifier predicted values versus 
+#' true clasifications.
+#' 
+#' \code{classifyPredictedValues} 
+#' 
+#' @param someClassification Vector of predicted values.
+#' @param trueClassification Vector of true values.
+#' @param classLevels Vector of class levels.
+#' @return data frame of classifier stats.
+#' @examples
+#' testValues <- matrix(c(0,0,0,0,0,1,1,1,1,1))
+#' trueValues <- matrix(c(0,1,0,1,0,1,0,1,0,0))
+#' classifierStats <- classifyPredictedValues(testValues, trueValues)
+#' @export
+classifyPredictedValues <- function(someClassification, 
+                                    trueClassification,
+                                    classLevels=c(0,1)) {
+  confusionMatrix <- table(factor(someClassification, levels=classLevels),
+                           factor(trueClassification, levels=classLevels))
+  classifyConfusionMatrix(confusionMatrix)
 }
 
 # ------------------------------------------------------------------------------------
@@ -173,11 +208,11 @@ classifyPredictFold <- function(foldIdx, trainData, testData,
     fit <- J48(Class~., data=trainData, control=Weka_control(M=1, U=FALSE))
     #fit <- J48(Class~., data=trainData)
     eval_train <- evaluate_Weka_classifier(fit, newdata=trainData, numFolds=0, class=TRUE)
-    eval_stats <- classifier_stats(eval_train$confusionMatrix)
+    eval_stats <- classifyConfusionMatrix(eval_train$confusionMatrix)
     fold_train_acc <- eval_stats$F1
     # testing
     eval_test <- evaluate_Weka_classifier(fit, newdata=testData, numFolds=0, class=TRUE)
-    eval_stats <- classifier_stats(eval_test$confusionMatrix)
+    eval_stats <- classifyConfusionMatrix(eval_test$confusionMatrix)
     fold_test_acc <- eval_stats$F1
 
     # caret models
@@ -220,25 +255,6 @@ classifyPredictFold <- function(foldIdx, trainData, testData,
 }
 
 # ------------------------------------------------------------------------------------
-#' Compute and return classifier stats from classifier predicted values versus 
-#' true clasifications.
-#' 
-#' \code{computeFeatureMetrics} 
-#' 
-#' @param someClassification Vector of predicted values.
-#' @param trueClassification Vector of true values.
-#' @param classLevels Vector of class levels.
-#' @return data frame of classifier stats.
-#' @export
-computeFeatureMetrics <- function(someClassification, 
-                                  trueClassification,
-                                  classLevels=c(0,1)) {
-  confusionMatrix <- table(factor(someClassification, levels=classLevels),
-                           factor(trueClassification, levels=classLevels))
-  computeFeatureMetrics(confusionMatrix)
-}
-
-# ------------------------------------------------------------------------------------
 #' Cross validated classify and predict outer loop.
 #' 
 #' \code{crossValidate} 
@@ -251,6 +267,10 @@ computeFeatureMetrics <- function(someClassification,
 #' @param wrapper String feature slection algorithm.
 #' @param top_n Numeric top n features to select.
 #' @return list of all results and averaged results.
+#' @examples
+#' data(testdata100ME4)
+#' cv_res <- crossValidate(testdata100ME4, k_folds=10, repeat_cv=1, my_seed=5627, 
+#'                         samp_method="orig", wrapper="none", top_n=ncol(testdata100ME4)-1)
 #' @export
 crossValidate <- function(classData, k_folds=10, repeat_cv=1, my_seed=5627, 
   samp_method="orig", wrapper="none", top_n=ncol(classData)-1) {
@@ -260,7 +280,7 @@ crossValidate <- function(classData, k_folds=10, repeat_cv=1, my_seed=5627,
     cat("Repeat:", repeat_idx, "\n")
     # k-fold cross validation with feature selection CV wrapper and various down/up sampling 
     cat("Creating ", k_folds, " folds for cross validation\n", sep="")
-    split_idx <- createFolds(classData$Class, k=k_folds, list=TRUE, returnTrain=FALSE)
+    split_idx <- caret::createFolds(classData$Class, k=k_folds, list=TRUE, returnTrain=FALSE)
     # CV split loops
     cat("---------------------------------------------------------------------------\n")
     cat("Fold\tRSmpl\ttrn0\ttrn1\ttrn0%\ttrn1%\ttst0\ttst1\ttst0%\ttst1%\tWrapper\tTop N\tTrain Acc\tTest Acc\tTop Vars\n")
@@ -292,6 +312,10 @@ crossValidate <- function(classData, k_folds=10, repeat_cv=1, my_seed=5627,
 #' @param trainData Data frame with class column.
 #' @param testData Data frame with class column.
 #' @return data frame of model fit information.
+#' @examples
+#' data(testdata100ME4)
+#' testdata100ME4$Class <- factor(testdata100ME4$Class)
+#' classifierStats <- glmMainEffect("gene0005", testdata100ME4, testdata100ME4)
 #' @export
 glmMainEffect <- function(varName, trainData, testData) {
   regression_formula <- paste("Class ~", varName, sep="")
@@ -299,7 +323,7 @@ glmMainEffect <- function(varName, trainData, testData) {
   fit_ys <- predict(fit, newdata=testData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
   true_phenos <- testData[, ncol(testData)]
-  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
+  classification_stats <- classifyPredictedValues(true_phenos, fit_phenos)
   #print(classification_stats)
   
   maineffect_term_idx <- 2
@@ -325,6 +349,10 @@ glmMainEffect <- function(varName, trainData, testData) {
 #' @param trainData Data frame with class column.
 #' @param testData Data frame with class column.
 #' @return data frame of classification results.
+#' @examples
+#' data(testdata100ME4)
+#' testdata100ME4$Class <- factor(testdata100ME4$Class)
+#' classifierStats <- glmVarList(c(5, 10), testdata100ME4, testdata100ME4)
 #' @export
 glmVarList <- function(varIdx, trainData, testData) {
   var_names <- colnames(trainData[, 1:(ncol(trainData)-1)])
@@ -335,13 +363,13 @@ glmVarList <- function(varIdx, trainData, testData) {
   fit_ys <- predict(fit, newdata=trainData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
   true_phenos <- trainData[, ncol(trainData)]
-  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
+  classification_stats <- classifyPredictedValues(true_phenos, fit_phenos)
   train_acc <- classification_stats$ACC
 
   fit_ys <- predict(fit, newdata=testData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
   true_phenos <- testData[, ncol(testData)]
-  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
+  classification_stats <- classifyPredictedValues(true_phenos, fit_phenos)
   test_acc <- classification_stats$ACC
   
   data.frame(converged=fit$converged, train.acc=train_acc, test.acc=test_acc)
@@ -357,6 +385,10 @@ glmVarList <- function(varIdx, trainData, testData) {
 #' @param trainData Data frame with class column.
 #' @param testData Data frame with class column.
 #' @return data frame of classification results.
+#' @examples
+#' data(testdata100ME4)
+#' testdata100ME4$Class <- factor(testdata100ME4$Class)
+#' classifierStats <- glmWithInteractionTerm("gene0005", "gene0010", testdata100ME4, testdata100ME4)
 #' @export
 glmWithInteractionTerm <- function(var1Name, var2Name, trainData, testData) {
   regression_formula <- paste("Class ~", var1Name, " + ", var2Name, " + ",
@@ -365,13 +397,13 @@ glmWithInteractionTerm <- function(var1Name, var2Name, trainData, testData) {
   fit_ys <- predict(fit, newdata=trainData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
   true_phenos <- trainData[, ncol(trainData)]
-  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
+  classification_stats <- classifyPredictedValues(true_phenos, fit_phenos)
   train_acc <- classification_stats$ACC
 
   fit_ys <- predict(fit, newdata=testData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
   true_phenos <- testData[, ncol(testData)]
-  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
+  classification_stats <- classifyPredictedValues(true_phenos, fit_phenos)
   test_acc <- classification_stats$ACC
   
   # get the interaction term model results and keep appending rows 
@@ -403,6 +435,10 @@ glmWithInteractionTerm <- function(var1Name, var2Name, trainData, testData) {
 #' @param trainData Data frame with class column.
 #' @param testData Data frame with class column.
 #' @return data frame of classification results.
+#' @examples
+#' data(testdata100ME4)
+#' testdata100ME4$Class <- factor(testdata100ME4$Class)
+#' classifierStats <- glmWithSquaredTerms("gene0005", "gene0010", testdata100ME4, testdata100ME4)
 #' @export
 glmWithSquaredTerms <- function(var1Name, var2Name, trainData, testData) {
   regression_formula <- paste("Class ~", var1Name, " + ", var2Name, " + ",
@@ -413,13 +449,13 @@ glmWithSquaredTerms <- function(var1Name, var2Name, trainData, testData) {
   fit_ys <- predict(fit, newdata=trainData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
   true_phenos <- trainData[, ncol(trainData)]
-  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
+  classification_stats <- classifyPredictedValues(true_phenos, fit_phenos)
   train_acc <- classification_stats$ACC
 
   fit_ys <- predict(fit, newdata=testData, type="response")
   fit_phenos <- ifelse(fit_ys > 0.5, 1, 0)    
   true_phenos <- testData[, ncol(testData)]
-  classification_stats <- computeFeatureMetrics(true_phenos, fit_phenos)
+  classification_stats <- classifyPredictedValues(true_phenos, fit_phenos)
   test_acc <- classification_stats$ACC
   
   # get the interaction term model results and keep appending rows 

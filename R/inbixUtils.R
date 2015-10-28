@@ -26,13 +26,16 @@ fisherRtoZ <- function(x) {
 #' @param dataMatrix Data frame with genes in rows and samples in columns.
 #' @param percentile Numeric percentile threshold below which genes will be removed.
 #' @return List with the mask used and filtered data frame.
+#' @examples
+#' data(testdata100ME4)
+#' lowValFiltered <- geneLowValueFilter(testdata100ME4[, -ncol(testdata100ME4)])
 #' @export
 geneLowValueFilter <- function(dataMatrix, percentile=0.1) {
   # Remove gene profiles with low absolute values in dataMatrix. Returns:
   # 1) a logical vector mask identifying gene expression profiles in dataMatrix
   #    that have absolute expression levels in the lowest 10% of the data set.
   # 2) a data matrix containing filtered expression profiles.
-  threshold <- quantile(dataMatrix, c(percentile))
+  threshold <- quantile(as.matrix(dataMatrix), c(percentile))
   mask <- apply(dataMatrix, 1, function(x) all(x < threshold))
   fdata <- dataMatrix[!mask, ]
   
@@ -55,9 +58,12 @@ geneLowValueFilter <- function(dataMatrix, percentile=0.1) {
 #' @param dataMatrix Data frame with genes in rows and samples in columns.
 #' @param percentile Numeric variance percentile threshold below which genes will be removed.
 #' @return List with the mask used and filtered data frame
+#' @examples
+#' data(testdata100ME4)
+#' lowVarFiltered <- geneLowVarianceFilter(testdata100ME4[, -ncol(testdata100ME4)])
 #' @export
 geneLowVarianceFilter <- function(dataMatrix, percentile=0.1) {
-  variances <- apply(dataMatrix, 1, var)
+  variances <- apply(as.matrix(dataMatrix), 1, var)
   threshold <- quantile(variances, c(percentile))
   mask <- apply(dataMatrix, 1, function(x) var(x) > threshold)
   fdata <- dataMatrix[mask, ]
@@ -67,7 +73,7 @@ geneLowVarianceFilter <- function(dataMatrix, percentile=0.1) {
 }
 
 # -----------------------------------------------------------------------------
-#' Logarithmic spiral coordinate generator for network node layout.
+#' Logarithmic spiral coordinate generator for igraph network node layout.
 #'
 #' \code{logSpiral}
 #' 
@@ -81,6 +87,8 @@ geneLowVarianceFilter <- function(dataMatrix, percentile=0.1) {
 #' @param coils Numeric coils or full rotations. (Positive numbers spin clockwise, negative numbers spin counter-clockwise)
 #' @param rotation Numeric overall rotation of the spiral. ('0'=no rotation, '1'=360 degrees, '180/360'=180 degrees)
 #' @return matrix of x-y coordinates 'sides' rows and two columns.
+#' @export
+#' @keywords internal
 logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
   # Start at the center.
   #moveTo(centerX, centerY);
@@ -115,6 +123,8 @@ logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
 #' @param a Minimum value in range.
 #' @param b Maximum value in range.
 #' @return v scaled to range (a, b).
+#' @examples
+#' scaleAB(1:10, 0, 1)
 #' @export
 scaleAB <- function(v, a, b) {
   v <- v - min(v)
@@ -131,6 +141,9 @@ scaleAB <- function(v, a, b) {
 #' @param A Matrix adjacency.
 #' @param n Numeric power to raise adjacencyMatrix^n.
 #' @return A^n.
+#' @examples
+#' A <- matrix(1:9, 3)
+#' sumOfPowers(A, 3)
 #' @export
 sumOfPowers <- function(A, n, verbose=FALSE) {
   # g = A + A^2 + A^3 + ... A^n
