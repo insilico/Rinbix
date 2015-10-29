@@ -18,10 +18,10 @@
 #' rDeseq <- rankDeseq(X, y)
 #' @export
 rankDeseq <- function(rnaExpr, groups) {
-	deData <- newCountDataSet(rnaExpr, as.factor(t(groups)))
-	deData <- estimateSizeFactors(deData)
-	deData <- estimateDispersions(deData)
-	results <- nbinomTest(deData, "0", "1")
+	deData <- DESeq::newCountDataSet(rnaExpr, as.factor(t(groups)))
+	deData <- DESeq::estimateSizeFactors(deData)
+	deData <- DESeq::estimateDispersions(deData)
+	results <- DESeq::nbinomTest(deData, "0", "1")
 	resultsSorted <- results[order(results$pval), ]
 	resultsSave <- cbind(resultsSorted$pval, resultsSorted[, 1])
 	colnames(resultsSave) <- c("pval", "gene")
@@ -44,9 +44,9 @@ rankDeseq <- function(rnaExpr, groups) {
 #' @export
 rankDeseq2 <- function(rnaExpr, groups) {
 	colData <- data.frame(groups=groups)
-	deData <- DESeqDataSetFromMatrix(countData=rnaExpr, colData=colData, design=~groups)
-	deData <- DESeq(deData, betaPrior=F)
-	results <- results(deData)
+	deData <- DESeq2::DESeqDataSetFromMatrix(countData=rnaExpr, colData=colData, design=~groups)
+	deData <- DESeq2::DESeq(deData, betaPrior=F)
+	results <- DESeq2::results(deData)
 	resultsSorted <- results[order(results$pvalue), ]
 }
 
@@ -65,9 +65,9 @@ rankDeseq2 <- function(rnaExpr, groups) {
 #' rEdger <- rankEdgeR(X, y)
 #' @export
 rankEdgeR <- function(rnaExpr, groups) {
-	y <- DGEList(counts=rnaExpr, group=groups)
-	y <- estimateCommonDisp(y)
-	d <- exactTest(y)
+	y <- edgeR::DGEList(counts=rnaExpr, group=groups)
+	y <- edgeR::estimateCommonDisp(y)
+	d <- edgeR::exactTest(y)
 	results <- d$table
 	results[order(results$PValue), ]
 	results
@@ -92,15 +92,15 @@ rankEdgeR <- function(rnaExpr, groups) {
 rankEdgeRGlm <- function(rnaExpr, groups, covariates) {
 	design <- model.matrix(~groups+covariates)
 	# make the DGElist object as above
-	d <- DGEList(counts=rnaExpr, group=groups)
+	d <- edgeR::DGEList(counts=rnaExpr, group=groups)
 	# work with the DEGlist as above
-	d <- estimateGLMCommonDisp(d, design)
-	d <- estimateGLMTrendedDisp(d, design)
-	d <- estimateGLMTagwiseDisp(d, design)   
+	d <- edgeR::estimateGLMCommonDisp(d, design)
+	d <- edgeR::estimateGLMTrendedDisp(d, design)
+	d <- edgeR::estimateGLMTagwiseDisp(d, design)   
 	# fit the general linear model
 	# EdgeR glmfit
-	fit <- glmFit(d, design)
+	fit <- edgeR::glmFit(d, design)
 	# conduct the likelihood ratio test
-	lrt <- glmLRT(fit)
+	lrt <- edgeR::glmLRT(fit)
 	lrt
 }

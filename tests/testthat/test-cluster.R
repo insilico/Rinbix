@@ -15,7 +15,7 @@ test_that("Rinbix modularity from reGAIN stdBetas=TRUE, absBetas=TRUE", {
   moduleListGrps$Group <- as.integer(moduleListGrps$Group)
   moduleListGrpsKey <- as.integer(substr(moduleListGrps$Gene, 4, length(moduleListGrps$Gene)))
   moduleListGrps <- moduleListGrps[order(moduleListGrpsKey), ]
-  expect_equal(rand.index(inbixModulesGrps$Group, inbixModulesGrps$Group), 1)
+  expect_equal(fossil::rand.index(inbixModulesGrps$Group, inbixModulesGrps$Group), 1)
 })
 
 test_that("Rinbix modularity from reGAIN stdBetas=FALSE, absBetas=TRUE", {
@@ -31,7 +31,7 @@ test_that("Rinbix modularity from reGAIN stdBetas=FALSE, absBetas=TRUE", {
   moduleListGrps$Group <- as.integer(moduleListGrps$Group)
   moduleListGrpsKey <- as.integer(substr(moduleListGrps$Gene, 4, length(moduleListGrps$Gene)))
   moduleListGrps <- moduleListGrps[order(moduleListGrpsKey), ]
-  expect_equal(rand.index(inbixModulesGrps$Group, inbixModulesGrps$Group), 1)
+  expect_equal(fossil::rand.index(inbixModulesGrps$Group, inbixModulesGrps$Group), 1)
 })
 
 test_that("Rinbix modularity from reGAIN stdBetas=TRUE, absBetas=FALSE", {
@@ -47,7 +47,7 @@ test_that("Rinbix modularity from reGAIN stdBetas=TRUE, absBetas=FALSE", {
   moduleListGrps$Group <- as.integer(moduleListGrps$Group)
   moduleListGrpsKey <- as.integer(substr(moduleListGrps$Gene, 4, length(moduleListGrps$Gene)))
   moduleListGrps <- moduleListGrps[order(moduleListGrpsKey), ]
-  expect_equal(rand.index(inbixModulesGrps$Group, inbixModulesGrps$Group), 1)
+  expect_equal(fossil::rand.index(inbixModulesGrps$Group, inbixModulesGrps$Group), 1)
 })
 
 test_that("Rinbix modularity from reGAIN stdBetas=FALSE, absBetas=FALSE", {
@@ -63,7 +63,7 @@ test_that("Rinbix modularity from reGAIN stdBetas=FALSE, absBetas=FALSE", {
   moduleListGrps$Group <- as.integer(moduleListGrps$Group)
   moduleListGrpsKey <- as.integer(substr(moduleListGrps$Gene, 4, length(moduleListGrps$Gene)))
   moduleListGrps <- moduleListGrps[order(moduleListGrpsKey), ]
-  expect_equal(rand.index(inbixModulesGrps$Group, inbixModulesGrps$Group), 1)
+  expect_equal(fossil::rand.index(inbixModulesGrps$Group, inbixModulesGrps$Group), 1)
 })
 
 test_that("rip-M", {

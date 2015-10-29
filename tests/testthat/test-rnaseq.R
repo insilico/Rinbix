@@ -2,14 +2,14 @@ library(Rinbix)
 data(simrnaseq)
 context("RNA-Seq")
 
-test_that("DESeq", {
-	require(DESeq)
-	data(simrnaseq)
-	X <- t(predictorsTrain)
-	y <- as.factor(responseTrain - 1)
-	rDeseq <- rankDeseq(X, y)
-  expect_equal(nrow(rDeseq), ncol(predictorsTrain))
-})
+# test_that("DESeq", {
+# 	require(DESeq)
+# 	data(simrnaseq)
+# 	X <- t(predictorsTrain)
+# 	y <- as.factor(responseTrain - 1)
+# 	rDeseq <- rankDeseq(X, y)
+#   expect_equal(nrow(rDeseq), ncol(predictorsTrain))
+# })
 
 test_that("DESeq2", {
 	require(DESeq2)

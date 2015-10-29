@@ -15,7 +15,6 @@ test_that("R dcGAIN same as inbix C++ dcGAIN", {
 })
 
 test_that("R modularity same as inbix C++ modularity", {
-	require(fossil)
 	corMatrix <- cor(testdata10[, -ncol(testdata10)])
 	rinbixModulesDF <- Rinbix::modularity(corMatrix)
 	moduleListGrps <- as.data.frame(rinbixModulesDF$groups)
@@ -28,7 +27,7 @@ test_that("R modularity same as inbix C++ modularity", {
 	                                Group=as.integer(rinbixCppModulesDF$Module))
 	moduleListGrpsCppKey <- as.integer(substr(moduleListGrpsCpp$Gene, 4, length(moduleListGrpsCpp$Gene)))
 	moduleListGrpsCpp <- moduleListGrpsCpp[order(moduleListGrpsCppKey), ]
-	expect_equal(rand.index(moduleListGrpsCpp$Group, moduleListGrps$Group), 1)
+	expect_equal(fossil::rand.index(moduleListGrpsCpp$Group, moduleListGrps$Group), 1)
 })
 
 test_that("reGAIN stdBetas=TRUE, absBetas=TRUE", {
@@ -58,9 +57,18 @@ test_that("reGAIN stdBetas=FALSE, absBetas=FALSE", {
 test_that("SNPrank Rinbix vs C++ from reGAIN stdBetas=TRUE, absBetas=TRUE", {
   rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
   inbixSnpranksDF <- snprankInbix(rinbixRegain)
-  inbixSnpranks <- inbixSnpranksDF[,2]
+  inbixSnpranks <- inbixSnpranksDF[, 2]
   rinbixSnpranksDF <- snprank(rinbixRegain)
-  rinbixSnpranks <- rinbixSnpranksDF[,2]
+  rinbixSnpranks <- rinbixSnpranksDF[, 2]
+  expect_equal(object=rinbixSnpranks, expected=inbixSnpranks, tolerance=0.05)
+})
+
+test_that("SNPrank Rinbix vs C++ from reGAIN stdBetas=TRUE, absBetas=TRUE", {
+  inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
+  inbixSnpranksDF <- snprankInbix(inbixRegain$reGAIN)
+  inbixSnpranks <- inbixSnpranksDF[, 2]
+  rinbixSnpranksDF <- snprank(inbixRegain$reGAIN)
+  rinbixSnpranks <- rinbixSnpranksDF[, 2]
   expect_equal(object=rinbixSnpranks, expected=inbixSnpranks, tolerance=0.05)
 })
 

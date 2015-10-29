@@ -236,7 +236,7 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
 #' @examples
 #' data(testdata10)
 #' inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
-#' inbixSnprank <- snprankInbix(inbixRegain)
+#' inbixSnpranksDF <- snprankInbix(inbixRegain$reGAIN)
 #' @export
 snprankInbix <- function(gainMatrix, outPrefix="Rinbix", gamma=0.85) {
   inbixExists()

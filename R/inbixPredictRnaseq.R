@@ -4,16 +4,10 @@
 # Functions to support Insilico Bioinformatics (inbix) RNASeq 
 # classification pipeline:
 #   * predictRnaseq
-#   * preprocess
-#   * filterGenes
-#   * classify
+#   * preprocessRnaseq
+#   * filterRnaseq
+#   * classifyRnaseq
   
-require("CORElearn")
-require("edgeR")
-require("DESeq")
-require('DESeq2')
-require("randomForest")
-
 # ----------------------------------------------------------------------------
 #' Predict a response based on RNASeq gene expression.
 #' 
@@ -51,7 +45,7 @@ predictRnaseq <- function(rnaseqCountsTrain=NULL,
                           classifierMethod="svm",
                           verbose=FALSE) {
   if(verbose) { cat("\tCalling preprocess(", preprocessMethod, ")\n") }
-  preprocessResult <- preprocess(preprocessMethod, rnaseqCountsTrain, 
+  preprocessResult <- preprocessRnaseq(preprocessMethod, rnaseqCountsTrain, 
                                  rnaseqCountsTest, verbose)
   if(verbose) {
     cat("Before preprocessing:\n")
@@ -60,15 +54,15 @@ predictRnaseq <- function(rnaseqCountsTrain=NULL,
     print(preprocessResult$train[1:5, 1:5])
     cat("\tCalling filter(", filterMethod, topN, ")\n")
   }
-  filterResult <- filterGenes(filterMethod, preprocessResult$train, groupLabelsTrain,
-                              preprocessResult$test, groupLabelsTest, topN, verbose)
+  filterResult <- filterRnaseq(filterMethod, preprocessResult$train, groupLabelsTrain,
+                               preprocessResult$test, groupLabelsTest, topN, verbose)
   if(verbose) { 
     cat("Genes before filtering:", ncol(preprocessResult$train), 
         "after:", ncol(filterResult$train), "\n")
   }
   
-  if(verbose) { cat("\tCalling classify(", classifierMethod, ")\n") }
-  classifyStats <- classify(classifierMethod, filterResult$train, groupLabelsTrain,
+  if(verbose) { cat("\tCalling classifier(", classifierMethod, ")\n") }
+  classifyStats <- classifyRnaseq(classifierMethod, filterResult$train, groupLabelsTrain,
                             filterResult$test, groupLabelsTest, verbose)
   
   list(stats=classifyStats)
@@ -77,7 +71,7 @@ predictRnaseq <- function(rnaseqCountsTrain=NULL,
 # ----------------------------------------------------------------------------
 #' Pre-processing step of the predictRnaseq function.
 #' 
-#' \code{preprocess} 
+#' \code{preprocessRnaseq} 
 #' 
 #' @param method Pre-processing method: none, scale, log2, log2scale.
 #' @param countsTrain RNASeq counts matrix for training.
@@ -86,12 +80,12 @@ predictRnaseq <- function(rnaseqCountsTrain=NULL,
 #' @return List with preprocessed training and testing matrices.
 #' @examples
 #' data(simrnaseq)
-#' preprocessResult <- preprocess(method="none", 
+#' preprocessResult <- preprocessRnaseq(method="none", 
 #'                                predictorsTrain, 
 #'                                predictorsTest, 
 #'                                verbose=FALSE)
 #' @export
-preprocess <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
+preprocessRnaseq <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
   returnTrain <- countsTrain
   returnTest <- countsTest
   if(method == "scale") {
@@ -121,7 +115,7 @@ preprocess <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
 # ----------------------------------------------------------------------------
 #' Filtering step of the predictRnaseq function.
 #' 
-#' \code{filterGenes} 
+#' \code{filterRnaseq} 
 #' 
 #' @param method String filtering method: none, relieff, edger, deseq2, randomforests.
 #' @param dataTrain Matrix RNASeq counts.
@@ -133,7 +127,7 @@ preprocess <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
 #' @return List with filtered training and testing data sets.
 #' @examples
 #' data(simrnaseq)
-#' filteredGenes <- filterGenes(method="none", 
+#' filteredGenes <- filterRnaseq(method="none", 
 #'                              predictorsTrain, 
 #'                              responseTrain, 
 #'                              predictorsTest, 
@@ -141,7 +135,7 @@ preprocess <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
 #'                              nTopGenes=10, 
 #'                              verbose=FALSE)
 #' @export
-filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest, 
+filterRnaseq <- function(method="none", dataTrain, labelsTrain, dataTest, 
                         labelsTest, nTopGenes, verbose=FALSE) {
   topGenes <- colnames(dataTrain)
   if(method == "edger") {
@@ -187,7 +181,7 @@ filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest,
 # ----------------------------------------------------------------------------
 #' Classifying step of the predictRnaseq function.
 #' 
-#' \code{classify} 
+#' \code{classifyRnaseq} 
 #' 
 #' @param method String filtering method: none, relieff, edger, deseq2, randomforests.
 #' @param dataTrain Matrix RNASeq counts.
@@ -198,14 +192,14 @@ filterGenes <- function(method="none", dataTrain, labelsTrain, dataTest,
 #' @return List with classifier stats for method.
 #' @examples
 #' data(simrnaseq)
-#' classifyStats <- classify(method="none", 
+#' classifyStats <- classifyRnaseq(method="none", 
 #'                           predictorsTrain, 
 #'                           responseTrain, 
 #'                           predictorsTest, 
 #'                           responseTest,
 #'                           verbose=FALSE)
 #' @export
-classify <- function(method="none", dataTrain, labelsTrain, dataTest, 
+classifyRnaseq <- function(method="none", dataTrain, labelsTrain, dataTest, 
                      labelsTest, verbose=FALSE) {
   classStatsTrain <- NULL
   classStatsTest <- NULL

@@ -18,16 +18,16 @@ test_that("predictRnaseq", {
   expect_equal(predictResult$stats$statsTest$TP, 0)
 })
 
-test_that("preprocess", {
-	preprocessResult <- preprocess(method="log2", 
+test_that("preprocessRnaseq", {
+	preprocessResult <- preprocessRnaseq(method="log2", 
 	                               predictorsTrain, 
 	                               predictorsTest, 
 	                               verbose=FALSE)
 	expect_equal(length(preprocessResult), 2)
 })
 
-test_that("filterGenes", {
-	filteredGenes <- filterGenes(method="randomforests", 
+test_that("filterRnaseq", {
+	filteredGenes <- filterRnaseq(method="randomforests", 
 	                             predictorsTrain, 
 	                             responseTrain, 
 	                             predictorsTest, 
@@ -37,8 +37,8 @@ test_that("filterGenes", {
 	expect_equal(length(filteredGenes), 2)
 })
 
-test_that("classify", {
-	classifyStats <- classify(method="svm", 
+test_that("classifyRnaseq", {
+	classifyStats <- classifyRnaseq(method="svm", 
 	                          predictorsTrain, 
 	                          responseTrain, 
 	                          predictorsTest, 

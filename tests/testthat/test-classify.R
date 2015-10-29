@@ -2,8 +2,8 @@ library(Rinbix)
 context("Classify")
 
 test_that("classifyConfusionMatrix", {
-	testValues <- matrix(c(0,0,0,0,0,1,1,1,1,1))
-	trueValues <- matrix(c(0,1,0,1,0,1,0,1,0,0))
+	testValues <- c(0,0,0,0,0,1,1,1,1,1)
+	trueValues <- c(0,1,0,1,0,1,0,1,0,0)
 	classifierStats <- classifyConfusionMatrix(table(testValues, trueValues))
   expect_equal(classifierStats$ACC, 0.5)
 })
@@ -27,8 +27,8 @@ test_that("classifyPairWeka", {
 })
 
 test_that("classifyPredictedValues", {
-	testValues <- matrix(c(0,0,0,0,0,1,1,1,1,1))
-	trueValues <- matrix(c(0,1,0,1,0,1,0,1,0,0))
+	testValues <- c(0,0,0,0,0,1,1,1,1,1)
+	trueValues <- c(0,1,0,1,0,1,0,1,0,0)
 	classifierStats <- classifyPredictedValues(testValues, trueValues)
   expect_equal(classifierStats$ACC, 0.5)
 })

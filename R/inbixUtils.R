@@ -10,10 +10,9 @@
 #' 
 #' @param x Correlation value -1 to 1.
 #' @return Transformed correlation value.
-#' @export
 #' @examples
 #' fisherRtoZ(seq(from=-1, to=1, by=0.25))
-#' points(seq(from=-1, to=1, by=0.05), fisherRtoZ(seq(from=-1, to=1, by=0.05)))
+#' @export
 fisherRtoZ <- function(x) { 
   atanh(x)
 }
@@ -120,8 +119,8 @@ logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
 #' \code{scaleAB}
 #' 
 #' @param v Numeric vector.
-#' @param a Minimum value in range.
-#' @param b Maximum value in range.
+#' @param a Numeric minimum value in range.
+#' @param b Numeric maximum value in range.
 #' @return v scaled to range (a, b).
 #' @examples
 #' scaleAB(1:10, 0, 1)
@@ -136,10 +135,13 @@ scaleAB <- function(v, a, b) {
 # ----------------------------------------------------------------------------
 #' Compute the power series of a matrix.
 #' 
+#' A <- A^1 + A^2 + . . . + A^n
+#' 
 #' \code{sumOfPowers} 
 #' 
 #' @param A Matrix adjacency.
-#' @param n Numeric power to raise adjacencyMatrix^n.
+#' @param n Numeric maximum power of series adjacencyMatrix^n.
+#' @param verbose Flag to send messages to stdout.
 #' @return A^n.
 #' @examples
 #' A <- matrix(1:9, 3)

@@ -1,5 +1,5 @@
 #' Rinbix: In silico research group's bioinformatics toolbox for network and 
-#' machine learning analysis in bioinformatics. 1/30/14
+#' machine learning analysis.
 #'
 #' The Rinbix package provides several categories of important functions:
 #' * an R interface to the C++ library through system() calls

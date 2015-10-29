@@ -18,16 +18,16 @@
 getIGraphStats <- function(g) {
   return(
     data.frame(
-      nnodes=vcount(g), 
-      maxDegree=max(degree(g)),
-      minDegree=min(degree(g)),
-      nedges=ecount(g), 
-      radius=radius(g), 
-      diameter=diameter(g), 
-      density=graph.density(g), 
-      transitivity=transitivity(g), 
-      avgPathLen=average.path.length(g), 
-      assortativeDegree=assortativity.degree(g)))
+      nnodes=igraph::vcount(g), 
+      maxDegree=max(igraph::degree(g)),
+      minDegree=min(igraph::degree(g)),
+      nedges=igraph::ecount(g), 
+      radius=igraph::radius(g), 
+      diameter=igraph::diameter(g), 
+      density=igraph::graph.density(g), 
+      transitivity=igraph::transitivity(g), 
+      avgPathLen=igraph::average.path.length(g), 
+      assortativeDegree=igraph::assortativity.degree(g)))
 }
 
 # ----------------------------------------------------------------------------
@@ -38,16 +38,16 @@ getIGraphStats <- function(g) {
 #' @param g IGraph graph object.
 #' @export
 printIGraphStats <- function(g) {
-  cat("Number of nodes:", vcount(g), "\n")
-  cat("Maximum degree: ", max(degree(g)), "\n")
-  cat("Minimum degree: ", min(degree(g)), "\n")
-  cat("Number of edges:", ecount(g), "\n")
-  cat("Radius:         ", radius(g), "\n")
-  cat("Diameter:       ", diameter(g), "\n")
-  cat("Density:        ", graph.density(g), "\n")
-  cat("Transitivity:   ", transitivity(g), "\n")
-  cat("Avg path length:", average.path.length(g), "\n")
-  cat("Assortativity:  ", assortativity.degree(g), "\n")
+  cat("Number of nodes:", igraph::vcount(g), "\n")
+  cat("Maximum degree: ", max(igraph::degree(g)), "\n")
+  cat("Minimum degree: ", min(igraph::degree(g)), "\n")
+  cat("Number of edges:", igraph::ecount(g), "\n")
+  cat("Radius:         ", igraph::radius(g), "\n")
+  cat("Diameter:       ", igraph::diameter(g), "\n")
+  cat("Density:        ", igraph::graph.density(g), "\n")
+  cat("Transitivity:   ", igraph::transitivity(g), "\n")
+  cat("Avg path length:", igraph::average.path.length(g), "\n")
+  cat("Assortativity:  ", igraph::assortativity.degree(g), "\n")
   
   return(TRUE)
 }
@@ -55,7 +55,7 @@ printIGraphStats <- function(g) {
 # ----------------------------------------------------------------------------
 #' Random network simulation.
 #'
-#' From Brett's Matlab function of the same name.
+#' Generates a Erdos-Renyi random network as an adjacency matrix.
 #' 
 #' \code{randomNetworkSim}
 #' 
@@ -64,7 +64,7 @@ printIGraphStats <- function(g) {
 #' @param doFitPlot Flag plot sclae-free fit.
 #' @param doNetworkPlot Flag plot the network.
 #' @param doHistPlot Flag plot histogram of node degree.
-#' @param useIGraph Flag use the IGraph library to generate the graph.
+#' @param useIgraph Flag use the IGraph library to generate the graph.
 #' @param numBins Numeric number of bins to use in the degree histogram.
 #' @param filePrefix String file prefix for output files.
 #' @param verbose Flag to send runtime messages to stdout.
@@ -78,9 +78,9 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
   # Erdos-Renyi
   # usage: A <- random_network_sim(100,.1,1)
   if(useIgraph) {
-    g <- erdos.renyi.game(n, p)
+    g <- igraph::erdos.renyi.game(n, p)
     printIGraphStats(g)
-    A <- get.adjacency(g)
+    A <- igraph::get.adjacency(g)
   } else {
     A <- matrix(ncol=n, nrow=n, data=runif(n * n))
     # undirected no self-connections, no weights
@@ -93,7 +93,7 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
   
   # calculates the scale free parameter and shows network
   if(useIgraph) {
-    deg_counts <- floor(degree.distribution(g)*100)
+    deg_counts <- floor(igraph::degree.distribution(g)*100)
   } else {
     k_rows <- rowSums(A)
     bins <- numBins
@@ -106,7 +106,7 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
   nz_deg_counts <- deg_counts[nz_idx]
   
   # Igraph's discrete power law fit
-  powerLawFit <- power.law.fit(nz_deg_counts)
+  powerLawFit <- igraph::power.law.fit(nz_deg_counts)
   if(verbose) cat("Erdos-Renyi Graph Estimate of x_min:", powerLawFit$xmin, "\n")
   if(verbose) cat("Erdos-Renyi Graph Estimate of x_min KS value:", powerLawFit$KS.stat, "\n")
   if(verbose) cat("Erdos-Renyi Graph Estimate of scaling parameter alpha:", powerLawFit$alpha, "\n")
@@ -122,10 +122,10 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
   
   # viz with lower triangle removed.
   if(doNetworkPlot) {
-    g <- graph.adjacency(A)
-    V(g)$size <- scaleAB(degrees, 10, 20)
+    g <- igraph::graph.adjacency(A)
+    igraph::V(g)$size <- scaleAB(degrees, 10, 20)
     png(paste(filePrefix, "_er_network.png", sep=""), width=1024, height=768)
-    plot(g, layout=layout.fruchterman.reingold, edge.arrow.mode=0)
+    plot(g, layout=igraph::layout.fruchterman.reingold, edge.arrow.mode=0)
     dev.off()
   }
   
@@ -135,14 +135,14 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
 # ----------------------------------------------------------------------------
 #' Scale free network simulation.
 #' 
-#' From Brett's Matlab function of the same name.
+#' Generates a scale free network as an adjacency matrix.
 #' 
 #' \code{scaleFreeSim}
 #' 
 #' @param n Numeric number of nodes.
 #' @param doFitPlot Flag plot sclae-free fit.
 #' @param doNetworkPlot Flag plot the network.
-#' @param useIGraph Flag use the IGraph library to generate the graph.
+#' @param useIgraph Flag use the IGraph library to generate the graph.
 #' @param numBins Numeric number of bins to use in the degree histogram.
 #' @param filePrefix String file prefix for output files.
 #' @param verbose Flag to send runtime messages to stdout.
@@ -155,9 +155,9 @@ scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F,
   
   # Baraba'si-Albert (BA) model generation of scale-free network
   if(useIgraph) {
-    g <- barabasi.game(n, directed=F)
+    g <- igraph::barabasi.game(n, directed=F)
     foo <- printIGraphStats(g)
-    A <- get.adjacency(g)
+    A <- igraph::get.adjacency(g)
   } else {
     A <- matrix(ncol=n, nrow=n, data=c(0))
     deg <- rep(0, n)
@@ -185,7 +185,7 @@ scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F,
   
   # calculates the scale free parameter and shows network
   if(useIgraph) {
-    deg_counts <- floor(degree.distribution(g)*100)
+    deg_counts <- floor(igraph::degree.distribution(g)*100)
   } else {
     k_rows <- rowSums(A)
     bins <- numBins
@@ -198,7 +198,7 @@ scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F,
   nz_deg_counts <- deg_counts[nz_idx]
   
   # Igraph's discrete power law fit
-  powerLawFit <- power.law.fit(nz_deg_counts)
+  powerLawFit <- igraph::power.law.fit(nz_deg_counts)
   if(verbose) cat("Scale Free Graph Estimate of x_min:", powerLawFit$xmin, "\n")
   if(verbose) cat("Scale Free Graph Estimate of x_min KS value:", powerLawFit$KS.stat, "\n")
   if(verbose) cat("Scale Free Graph Estimate of scaling parameter alpha:", powerLawFit$alpha, "\n")
@@ -215,10 +215,10 @@ scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F,
   # viz with lower triangle removed
   #A[upper.tri(A)] <- 0
   if(doNetworkPlot) {
-    g <- graph.adjacency(A)
-    V(g)$size <- scaleAB(degrees, 10, 20)
+    g <- igraph::graph.adjacency(A)
+    igraph::V(g)$size <- scaleAB(degrees, 10, 20)
     png(paste(filePrefix, "_ba_network.png", sep=""), width=1024, height=768)
-    plot(g, layout=layout.fruchterman.reingold, edge.arrow.mode=0)
+    plot(g, layout=igraph::layout.fruchterman.reingold, edge.arrow.mode=0)
     dev.off()
   }
   

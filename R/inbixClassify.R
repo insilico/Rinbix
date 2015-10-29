@@ -11,8 +11,8 @@
 #' @param confusionMatrix Matrix of classification counts.
 #' @return data frame of classifier stats.
 #' @examples
-#' testValues <- matrix(c(0,0,0,0,0,1,1,1,1,1))
-#' trueValues <- matrix(c(0,1,0,1,0,1,0,1,0,0))
+#' testValues <- c(0,0,0,0,0,1,1,1,1,1)
+#' trueValues <- c(0,1,0,1,0,1,0,1,0,0)
 #' classifierStats <- classifyConfusionMatrix(table(testValues, trueValues))
 #' @export
 classifyConfusionMatrix <- function(confusionMatrix) {
@@ -58,12 +58,11 @@ classifyConfusionMatrix <- function(confusionMatrix) {
 #' classifierStats <- classifyOneVarWeka("gene0005", testdata100ME4, testdata100ME4)
 #' @export
 classifyOneVarWeka <- function(varName, trainData, testData) {
-  require(RWeka)
   fit_formula <- paste("Class ~", varName)
-  weka_model <- Logistic(as.formula(fit_formula), data=trainData)
+  weka_model <- RWeka::Logistic(as.formula(fit_formula), data=trainData)
   weka_model_acc <- summary(weka_model)$details["pctCorrect"]
-  weka_model_eval <- evaluate_Weka_classifier(weka_model, newdata=testData, 
-                                              complexity=FALSE, class=TRUE)
+  weka_model_eval <- RWeka::evaluate_Weka_classifier(weka_model, newdata=testData, 
+                                                     complexity=FALSE, class=TRUE)
   weka_model_eval_acc <- weka_model_eval$details["pctCorrect"]
   
   list(train_acc=weka_model_acc, test_acc=weka_model_eval_acc)
@@ -86,12 +85,12 @@ classifyOneVarWeka <- function(varName, trainData, testData) {
 #' @export
 classifyPairWeka <- function(var1Name, var2Name, trainData, testData) {
   fit_formula <- paste("Class ~", var1Name, "+" , var2Name)
-  weka_model <- Logistic(as.formula(fit_formula), data=trainData)
+  weka_model <- RWeka::Logistic(as.formula(fit_formula), data=trainData)
   weka_model_acc <- summary(weka_model)$details["pctCorrect"]
-  weka_model_eval <- evaluate_Weka_classifier(weka_model, newdata=testData, 
+  weka_model_eval <- RWeka::evaluate_Weka_classifier(weka_model, newdata=testData, 
                                               complexity=FALSE, class=TRUE)
   weka_model_eval_acc <- weka_model_eval$details["pctCorrect"]
-  weka_model_eval_hr <- evaluate_Weka_classifier(weka_model, newdata=testData, 
+  weka_model_eval_hr <- RWeka::evaluate_Weka_classifier(weka_model, newdata=testData, 
                                                  complexity=FALSE, class=TRUE)
   list(train_acc=weka_model_acc, test_acc=weka_model_eval_acc)
 }
@@ -107,8 +106,8 @@ classifyPairWeka <- function(var1Name, var2Name, trainData, testData) {
 #' @param classLevels Vector of class levels.
 #' @return data frame of classifier stats.
 #' @examples
-#' testValues <- matrix(c(0,0,0,0,0,1,1,1,1,1))
-#' trueValues <- matrix(c(0,1,0,1,0,1,0,1,0,0))
+#' testValues <- c(0,0,0,0,0,1,1,1,1,1)
+#' trueValues <- c(0,1,0,1,0,1,0,1,0,0)
 #' classifierStats <- classifyPredictedValues(testValues, trueValues)
 #' @export
 classifyPredictedValues <- function(someClassification, 
@@ -147,18 +146,14 @@ classifyPredictFold <- function(foldIdx, trainData, testData,
   names(ranked_vars) <- gene_names
   top_vars <- colnames(gene_expr)
   if(wrapper == "relieff") {
-    ranked_vars <- attrEval(Class ~ ., trainData, estimator="Relief")
+    ranked_vars <- CORElearn::attrEval(Class ~ ., trainData, estimator="Relief")
   }
   if(wrapper == "rf") {
-    rf_model <- CoreModel(Class ~ ., trainData, model="rf")
-    ranked_vars <- rfAttrEval(rf_model)
+    rf_model <- CORElearn::CoreModel(Class ~ ., trainData, model="rf")
+    ranked_vars <- CORElearn::rfAttrEval(rf_model)
   }
   if(wrapper == "glmnet") {
-    x <- as.matrix(gene_expr)
-    y <- as.numeric(ifelse(trainData[, ncol(trainData)] <= 0, 0, 1))
-    glmnet_res <- get_glmnet_nz_coef(x, y)
-    ranked_vars <- glmnet_res$values
-    names(ranked_vars) <- glmnet_res$names
+    ranked_vars <- rankGlmnet(trainData)$names
   }
   if(wrapper == "ttest") {
     t_test_pvals <- vector(mode="numeric", length=num_genes)
@@ -203,15 +198,17 @@ classifyPredictFold <- function(foldIdx, trainData, testData,
     # Weka J48, C4.5-like decision tree
     # training
     trainData <- trainData[, c(top_vars, "Class")]
+    trainData$Class <- as.factor(trainData$Class)
     # For J48 options use: control= Weka_control(M=1,U=TRUE)
     # use WOW(J48) to see all options
-    fit <- J48(Class~., data=trainData, control=Weka_control(M=1, U=FALSE))
+    fit <- RWeka::J48(Class~., data=trainData, control=RWeka::Weka_control(M=1, U=FALSE))
     #fit <- J48(Class~., data=trainData)
-    eval_train <- evaluate_Weka_classifier(fit, newdata=trainData, numFolds=0, class=TRUE)
+    eval_train <- RWeka::evaluate_Weka_classifier(fit, newdata=trainData, numFolds=0, class=TRUE)
     eval_stats <- classifyConfusionMatrix(eval_train$confusionMatrix)
     fold_train_acc <- eval_stats$F1
     # testing
-    eval_test <- evaluate_Weka_classifier(fit, newdata=testData, numFolds=0, class=TRUE)
+    testData$Class <- as.factor(testData$Class)
+    eval_test <- RWeka::evaluate_Weka_classifier(fit, newdata=testData, numFolds=0, class=TRUE)
     eval_stats <- classifyConfusionMatrix(eval_test$confusionMatrix)
     fold_test_acc <- eval_stats$F1
 

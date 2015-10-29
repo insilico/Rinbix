@@ -4,13 +4,13 @@
 # Rinbix package genetic association network (GAIN) functions.
 
 # -----------------------------------------------------------------------------
-#' Differential coexpression genetic association interaction network algorithm,
+#' Differential coexpression genetic association interaction network algorithm.
 #' 
 #' \code{dcgain} 
 #' 
 #' @param inbixData Data frame with samples in rows, genes in columns
 #' and phenotype in the last column.
-#' $param verbose Falg to send messages to stdout.
+#' @param verbose Flag to send messages to stdout.
 #' @return results Matrix of gene by gene differential coexpression values.
 #' @family Genetic Association Interaction Network functions
 #' @seealso \code{\link{dmgain}} for differential modularity.
@@ -213,7 +213,8 @@ getInteractionEffects <- function(data, regressionFamily="binomial", numCovariat
   #   if(startIdx < lastIdx) {
   #     # cat("Running chunk", i, "split size:", splitSize, "start:", startIdx, 
   #     #     "end:", endIdx, "\n")
-  results <- c(results, mclapply(idxCombList, mc.cores=numCores,
+  results <- c(results, 
+               parallel::mclapply(idxCombList, mc.cores=numCores,
                                  function(x) runInteractionEffectsTest(data, x, 
                                                                        depVarName, 
                                                                        regressionFamily, 
@@ -372,7 +373,7 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
     cat(paste("Computing GLM main effect models for each variable (", 
               numVariables, "), in parallel", sep=""), "\n")
   }
-  results <- mclapply(variableNames, mc.cores=numCores, 
+  results <- parallel::mclapply(variableNames, mc.cores=numCores, 
                       function(x) runMainEffectsTest(data=data, 
                                                      variableName=x, 
                                                      depVarName=depVarName, 
@@ -470,7 +471,7 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
 }
 
 # -----------------------------------------------------------------------------
-#' Parallel execution of the regression genetic association network algorithm.
+#' Parallel execution of the regression genetic association interaction network algorithm.
 #' 
 #' \code{regainParallel}
 #' 
@@ -485,7 +486,6 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
 #' rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
 #' @export
 regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE, verbose=FALSE) {
-  require(glm2)
   transform <- ifelse(absBetas, "abs", "")
   rawBetas <- ifelse(stdBetas, FALSE, TRUE)
   mainEffects <- getMainEffects(regressionData, 
@@ -549,7 +549,7 @@ runInteractionEffectsTest <- function(data, variableIndices, depVarName,
   # as glm in the stats package, but with a modified default fitting method that 
   # provides greater stability for models that may fail to converge using glm
   # bcw - 10/18/15
-  regressionModel <- glm2(regressionFormula, family=binomial(link="logit"), data=data)
+  regressionModel <- glm2::glm2(regressionFormula, family=binomial(link="logit"), data=data)
   # ---------------------------------------------------------------------------
   
   if(numCovariates > 0) {
@@ -612,7 +612,7 @@ runMainEffectsTest <- function(data, variableName, depVarName, regressionFamily,
                                           paste("`", variableName, "`", sep=""), sep=" "))
   }
   #print(formulaString)
-  regressionModel <- glm(regressionFormula, family=regressionFamily, data=data)
+  regressionModel <- glm2::glm2(regressionFormula, family=regressionFamily, data=data)
   
   #interceptCoeff <- summary(regressionModel)$coefficients[1, "Estimate"]
   mainCoeff <- summary(regressionModel)$coefficients[2, "Estimate"]

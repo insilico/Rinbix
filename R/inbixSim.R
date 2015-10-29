@@ -81,7 +81,7 @@ createRandomMatrix <- function(M, N, meanExpression, randSdNoise) {
 #'                              sampleIndicesInteraction = c(5, 10, 15),
 #'                              mainEffectMode=1,
 #'                              mainEffect=4,
-#'                              verbose=F)
+#'                              verbose=FALSE)
 #' ds <- dsobj$regressionData  
 #' @export
 createDiffCoexpMatrix <- function(M, N, meanExpression, A, 
@@ -205,9 +205,7 @@ createDiffCoexpMatrix <- function(M, N, meanExpression, A,
 #' @param A Matrix network adjacency matrix.
 #' @param randSdNoise Numeric standard deviation of random normal (rnorm) noise.
 #' @param sdNoise Numeric standard deviation of noise in differential correlation.
-#' @param mGenesToPerturb Numeric number of genes to perturb.
 #' @param sampleIndicesInteraction Vector interaction gene indices.
-#' @param verbose Flag verbose output to stdout.
 #' @return list with subject by gene data frame with class column.
 #' @examples
 #' data("scaleFreeNetwork")
