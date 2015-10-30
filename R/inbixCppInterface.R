@@ -95,9 +95,12 @@ modularityInbix <- function(gainMatrix, outPrefix="Rinbix") {
 #' @param threshold Numeric permute GAIN threshold.
 #' @param outPrefix String file output prefix.
 #' @return list of gene thresholds.
+#' @examples 
+#' data(testdata10)
+#' inbixRegainThresholds <- permuteGainInbix(testdata10)
 #' @export
 permuteGainInbix <- function(regressionData, method="regain", numPerms=100, 
-  pThresh=1, threshold=0.05, outPrefix="Rinbix") {
+                             pThresh=1, threshold=0.05, outPrefix="Rinbix") {
   inbixExists()
   # write regressionData data frame to inbix files
   writeRegressionDataAsInbixNumeric(regressionData, "Rinbix")

@@ -27,4 +27,5 @@ p-value, standard error and standardized beta columns.
 \description{
 \code{runInteractionEffectsTest}
 }
+\keyword{internal}
 

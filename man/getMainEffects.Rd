@@ -31,4 +31,5 @@ mainEffectValues Vector of main effect values.
 \description{
 \code{getMainEffects}
 }
+\keyword{internal}
 

@@ -25,4 +25,5 @@ p-value, standard error and standardized beta columns.
 \description{
 \code{runMainEffectsTest}
 }
+\keyword{internal}
 

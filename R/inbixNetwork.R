@@ -151,7 +151,7 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
 #' net <- scaleFreeSim(n=1000)
 #' @export
 scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F, 
-                           numBins=10, filePrefix="scale_free_sim", verbose=FALSE) {
+                         numBins=10, filePrefix="scale_free_sim", verbose=FALSE) {
   
   # Baraba'si-Albert (BA) model generation of scale-free network
   if(useIgraph) {
@@ -192,7 +192,7 @@ scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F,
     histObj <- hist(k_rows, bins, plot=F)
     deg_counts <- histObj$counts
   }
-  #print(deg_counts)
+
   # find non zero entries for log plot  
   nz_idx <- which(deg_counts != 0, arr.ind=T)
   nz_deg_counts <- deg_counts[nz_idx]

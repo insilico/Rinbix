@@ -78,3 +78,8 @@ test_that("Read/write inbix data files", {
 	file.remove(c("foo.num", "foo.pheno"))
   expect_equal(object=foodata10, expected=testdata10, tolerance=0.05)
 })
+
+test_that("Permute GAIN inbix", {
+  inbixRegainThresholds <- permuteGainInbix(testdata10)
+  expect_equal(object=nrow(inbixRegainThresholds), expected=ncol(testdata10)-1)
+})

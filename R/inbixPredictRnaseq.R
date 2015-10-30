@@ -81,9 +81,9 @@ predictRnaseq <- function(rnaseqCountsTrain=NULL,
 #' @examples
 #' data(simrnaseq)
 #' preprocessResult <- preprocessRnaseq(method="none", 
-#'                                predictorsTrain, 
-#'                                predictorsTest, 
-#'                                verbose=FALSE)
+#'                                      predictorsTrain, 
+#'                                      predictorsTest, 
+#'                                      verbose=FALSE)
 #' @export
 preprocessRnaseq <- function(method="none", countsTrain, countsTest, verbose=FALSE) {
   returnTrain <- countsTrain
@@ -128,12 +128,12 @@ preprocessRnaseq <- function(method="none", countsTrain, countsTest, verbose=FAL
 #' @examples
 #' data(simrnaseq)
 #' filteredGenes <- filterRnaseq(method="none", 
-#'                              predictorsTrain, 
-#'                              responseTrain, 
-#'                              predictorsTest, 
-#'                              responseTest,
-#'                              nTopGenes=10, 
-#'                              verbose=FALSE)
+#'                               predictorsTrain, 
+#'                               responseTrain, 
+#'                               predictorsTest, 
+#'                               responseTest,
+#'                               nTopGenes=10, 
+#'                               verbose=FALSE)
 #' @export
 filterRnaseq <- function(method="none", dataTrain, labelsTrain, dataTest, 
                         labelsTest, nTopGenes, verbose=FALSE) {
@@ -193,11 +193,11 @@ filterRnaseq <- function(method="none", dataTrain, labelsTrain, dataTest,
 #' @examples
 #' data(simrnaseq)
 #' classifyStats <- classifyRnaseq(method="none", 
-#'                           predictorsTrain, 
-#'                           responseTrain, 
-#'                           predictorsTest, 
-#'                           responseTest,
-#'                           verbose=FALSE)
+#'                                 predictorsTrain, 
+#'                                 responseTrain, 
+#'                                 predictorsTest, 
+#'                                 responseTest,
+#'                                 verbose=FALSE)
 #' @export
 classifyRnaseq <- function(method="none", dataTrain, labelsTrain, dataTest, 
                      labelsTest, verbose=FALSE) {

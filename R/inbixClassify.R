@@ -81,7 +81,8 @@ classifyOneVarWeka <- function(varName, trainData, testData) {
 #' @examples
 #' data(testdata100ME4)
 #' testdata100ME4$Class <- factor(testdata100ME4$Class)
-#' classifierStats <- classifyPairWeka("gene0005", "gene0010", testdata100ME4, testdata100ME4)
+#' classifierStats <- classifyPairWeka("gene0005", "gene0010", 
+#'                                     testdata100ME4, testdata100ME4)
 #' @export
 classifyPairWeka <- function(var1Name, var2Name, trainData, testData) {
   fit_formula <- paste("Class ~", var1Name, "+" , var2Name)
@@ -133,8 +134,8 @@ classifyPredictedValues <- function(someClassification,
 #' @return data frame of classification and prediction statistics.
 #' @export
 classifyPredictFold <- function(foldIdx, trainData, testData, 
-                                  my_seed=5627, samp_method="orig",
-                                  wrapper="none", top_n=ncol(trainData)-1) {
+                                my_seed=5627, samp_method="orig",
+                                wrapper="none", top_n=ncol(trainData)-1) {
   grp_table_trn <- table(trainData$Class)
   grp_table_tst <- table(testData$Class)
   gene_expr <- trainData[, -ncol(trainData)]

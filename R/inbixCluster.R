@@ -272,12 +272,12 @@ modularityBestSplit <- function(B, m) {
 #' @examples
 #' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
 #' modListRipm <- ripM(simMatrix, 
-#'                       thresholdType="hard", 
-#'                       thresholdValue=0.8, 
-#'                       startMergeOrder=2, maxMergeOrder=4, 
-#'                       minModuleSize=10, maxModuleSize=50, 
-#'                       useAbs=TRUE, useWeighted=TRUE,
-#'                       verbose=TRUE)
+#'                     thresholdType="hard", 
+#'                     thresholdValue=0.8, 
+#'                     startMergeOrder=2, maxMergeOrder=4, 
+#'                     minModuleSize=10, maxModuleSize=50, 
+#'                     useAbs=TRUE, useWeighted=TRUE,
+#'                     verbose=TRUE)
 #' @export
 ripM <- function(Acorr, thresholdType="hard", thresholdValue=0.8, 
                  startMergeOrder=2, maxMergeOrder=4,

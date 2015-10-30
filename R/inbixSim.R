@@ -71,17 +71,17 @@ createRandomMatrix <- function(M, N, meanExpression, randSdNoise) {
 #' @examples
 #' data("scaleFreeNetwork")
 #' dsobj <- createDiffCoexpMatrix(M=100, 
-#'                              N=100, 
-#'                              meanExpression=7, 
-#'                              A=scaleFreeNetwork, 
-#'                              randSdNoise=0.05, 
-#'                              sdNoise=1.5, 
-#'                              mGenesToPerturb=3,
-#'                              sampleIndicesMainEffects = c(5, 10, 15),
-#'                              sampleIndicesInteraction = c(5, 10, 15),
-#'                              mainEffectMode=1,
-#'                              mainEffect=4,
-#'                              verbose=FALSE)
+#'                                N=100, 
+#'                                meanExpression=7, 
+#'                                A=scaleFreeNetwork, 
+#'                                randSdNoise=0.05, 
+#'                                sdNoise=1.5, 
+#'                                mGenesToPerturb=3,
+#'                                sampleIndicesMainEffects = c(5, 10, 15),
+#'                                sampleIndicesInteraction = c(5, 10, 15),
+#'                                mainEffectMode=1,
+#'                                mainEffect=4,
+#'                                verbose=FALSE)
 #' ds <- dsobj$regressionData  
 #' @export
 createDiffCoexpMatrix <- function(M, N, meanExpression, A, 
@@ -210,16 +210,16 @@ createDiffCoexpMatrix <- function(M, N, meanExpression, A,
 #' @examples
 #' data("scaleFreeNetwork")
 #' dsobj <- createDiffCoexpMatrixNoME(M=100, 
-#'                              N=100, 
-#'                              meanExpression=7, 
-#'                              A=scaleFreeNetwork, 
-#'                              randSdNoise=0.05, 
-#'                              sdNoise=1.5, 
-#'                              sampleIndicesInteraction = c(5, 10, 15))
+#'                                    N=100, 
+#'                                    meanExpression=7, 
+#'                                    A=scaleFreeNetwork, 
+#'                                    randSdNoise=0.05, 
+#'                                    sdNoise=1.5, 
+#'                                    sampleIndicesInteraction = c(5, 10, 15))
 #' ds <- dsobj$regressionData  
 #' @export
 createDiffCoexpMatrixNoME <- function(M, N, meanExpression, A, randSdNoise, 
-  sdNoise, sampleIndicesInteraction) {
+                                      sdNoise, sampleIndicesInteraction) {
   # create a random data matrix
   D <- matrix(nrow=M, ncol=N, data=rnorm(M*N, mean=meanExpression, sd=randSdNoise))
   
@@ -285,11 +285,11 @@ createDiffCoexpMatrixNoME <- function(M, N, meanExpression, A, randSdNoise,
 #' @examples
 #' data("scaleFreeNetwork")
 #' dsobj <- createDiffCoexpMatrixNull(M=100, 
-#'                              N=100, 
-#'                              meanExpression=7, 
-#'                              A=scaleFreeNetwork, 
-#'                              randSdNoise=0.05, 
-#'                              sdNoise=1.5)
+#'                                    N=100, 
+#'                                    meanExpression=7, 
+#'                                    A=scaleFreeNetwork, 
+#'                                    randSdNoise=0.05, 
+#'                                    sdNoise=1.5)
 #' ds <- dsobj$regressionData  
 #' @export
 createDiffCoexpMatrixNull <- function(M, N, meanExpression, A, randSdNoise, sdNoise) {
@@ -344,17 +344,18 @@ createDiffCoexpMatrixNull <- function(M, N, meanExpression, A, randSdNoise, sdNo
 #' @return list with subject by gene data frame with class column and fold changes.
 #' @examples
 #' dsobj <- createMainEffectsMatrix(M=100, 
-#'                              N=100, 
-#'                              meanExpression=7, 
-#'                              randSdNoise=0.05, 
-#'                              sampleIndicesMainEffects = c(5, 10),
-#'                              mainEffect=4, 
-#'                              doScale=FALSE, 
-#'                              doLog=FALSE)
+#'                                  N=100, 
+#'                                  meanExpression=7, 
+#'                                  randSdNoise=0.05, 
+#'                                  sampleIndicesMainEffects = c(5, 10),
+#'                                  mainEffect=4, 
+#'                                  doScale=FALSE, 
+#'                                  doLog=FALSE)
 #' ds <- dsobj$regressionData  
 #' @export
 createMainEffectsMatrix <- function(M, N, meanExpression, randSdNoise, 
-  sampleIndicesMainEffects, mainEffect, doScale=FALSE, doLog=FALSE) {
+                                    sampleIndicesMainEffects, mainEffect, 
+                                    doScale=FALSE, doLog=FALSE) {
 
   # create a random data matrix
   D <- matrix(nrow=M, ncol=N, data=rnorm(M*N, mean=meanExpression, sd=randSdNoise))
@@ -432,13 +433,13 @@ createMainEffectsMatrix <- function(M, N, meanExpression, randSdNoise,
 #' @return numeric fold change.
 #' @examples
 #' dsobj <- createMainEffectsMatrix(M=100, 
-#'                              N=100, 
-#'                              meanExpression=7, 
-#'                              randSdNoise=0.05, 
-#'                              sampleIndicesMainEffects = c(5, 10),
-#'                              mainEffect=4, 
-#'                              doScale=FALSE, 
-#'                              doLog=FALSE)
+#'                                  N=100, 
+#'                                  meanExpression=7, 
+#'                                  randSdNoise=0.05, 
+#'                                  sampleIndicesMainEffects = c(5, 10),
+#'                                  mainEffect=4, 
+#'                                  doScale=FALSE, 
+#'                                  doLog=FALSE)
 #' ds <- dsobj$regressionData  
 #' fc <- getFoldChange(t(ds), 5, 50, 100)
 #' @export

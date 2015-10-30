@@ -34,9 +34,6 @@ dcgain <- function(inbixData, verbose=FALSE) {
   # determine group correlations
   expr_g1 <- exprByGene[, phenos == 1]
   expr_g2 <- exprByGene[, phenos == 2]
-#   cat("DEBUG Rinbix package\n")
-#   print(expr_g1[1:5, 1:5])
-#   print(expr_g2[1:5, 1:5])
   cor_table_g1 <- cor(t(expr_g1))
   cor_table_g2 <- cor(t(expr_g2))
     
@@ -56,12 +53,10 @@ dcgain <- function(inbixData, verbose=FALSE) {
     results[i, i] <- Z_i
     pvalues[i, i] <- 1
     # t-test
-#     t_result <- t.test(g1_data, g2_data)
-#     t_i <- abs(t_result$statistic)
-#     results[i, i] <- t_i
-#     pvalues[i, i] <- t_result$p.value
-    
-    #cat(Z_i, t_i, "\n")
+    #     t_result <- t.test(g1_data, g2_data)
+    #     t_i <- abs(t_result$statistic)
+    #     results[i, i] <- t_i
+    #     pvalues[i, i] <- t_result$p.value
   }
   
   # ----------------------------------------------------------------------------
@@ -181,7 +176,7 @@ dmgain <- function(inbixData) {
 #' @param verbose Flag to send verbose messages to stdout.
 #' @param numCores Number of processor cores to use in mclapply
 #' @return results Matrix of gene by gene regression coefficients.
-#' @export
+#' @keywords internal
 getInteractionEffects <- function(data, regressionFamily="binomial", numCovariates=0,
                                   writeBetas=FALSE, excludeMainEffects=FALSE, useBetas=FALSE, 
                                   transformMethod="", verbose=FALSE, numCores=2) {
@@ -358,7 +353,7 @@ getInteractionEffects <- function(data, regressionFamily="binomial", numCovariat
 #' @param verbose Flag to send verbose messages to stdout.
 #' @param numCores Number of processor cores to use in mclapply.
 #' @return mainEffectValues Vector of main effect values.
-#' @export
+#' @keywords internal
 # -----------------------------------------------------------------------------
 getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0, 
                            writeBetas=FALSE, useBetas=FALSE, transformMethod="", 
@@ -382,16 +377,12 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
   if(verbose) {
     cat("Loading the reGAIN matrix diagonal with GLM main effect coefficients\n")
   }
-  #print(unlist(results))
-  #stop("DEBUG")
   if(writeBetas) {
     betaInfo <- NULL
   }
   mainEffectValues <- vector(mode="numeric", length=numVariables)
   for(i in 1:numVariables) {
     regressionModel <- results[[i]]
-    #print(regressionModel)
-    #print(summary(regressionModel))
     glmConverged <- regressionModel$converged
     if(!glmConverged) {
       if(verbose) {
@@ -418,13 +409,11 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
       if(verbose) {
         cat("WARNING: Main effect p-value > 0.99", variableNames[i], "\n")
       }
-      #mainEffectValue <- 0
     }
     if(mainPval < 2e-16) {
       if(verbose) {
         cat("WARNING: Main effect p-value < 2e-16", variableNames[i], "\n")
       }
-      #mainEffectValue <- 0
     }
     
     mainEffectValueTransformed <- mainEffectValue
@@ -436,7 +425,6 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
         mainEffectValueTransformed <- ifelse(mainEffectValue < 0, 0, mainEffectValue)
       }
     }
-    #regainMatrix[i, i] <- mainEffectValueTransformed
     mainEffectValues[i] <- mainEffectValueTransformed
     if(writeBetas) {
       thisBetas <- c(mainCoeff, mainPval)
@@ -516,7 +504,7 @@ regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE, verbo
 #' @param excludeMainEffects Flag indicating whether to exclude main effect terms.
 #' @return Data frame with gene, convergence status, beta coefficient,
 #' p-value, standard error and standardized beta columns.
-#' @export
+#' @keywords internal
 runInteractionEffectsTest <- function(data, variableIndices, depVarName, 
                                       regressionFamily, numCovariates, excludeMainEffects) {
   variable1Idx <- variableIndices[1]
@@ -595,7 +583,7 @@ runInteractionEffectsTest <- function(data, variableIndices, depVarName,
 #' @param numCovariates Number of included covariates.
 #' @return Data frame with gene, convergence status, beta coefficient, 
 #' p-value, standard error and standardized beta columns.
-#' @export
+#' @keywords internal
 runMainEffectsTest <- function(data, variableName, depVarName, regressionFamily, numCovariates) {
   if(numCovariates > 0) {
     covarsStart <- ncol(data) - numCovariates

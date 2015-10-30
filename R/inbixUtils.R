@@ -77,7 +77,7 @@ geneLowVarianceFilter <- function(dataMatrix, percentile=0.1) {
 #' \code{logSpiral}
 #' 
 #' Ported from Javascript found here: 
-#' http://www.pixelwit.com/blog/2008/05/how-to-draw-logarithmic-spiral/
+#' \url{http://www.pixelwit.com/blog/2008/05/how-to-draw-logarithmic-spiral/}
 #'
 #' @param centerX Numeric X origin of the spiral.
 #' @param centerY Numeric Y origin of the spiral.
@@ -158,14 +158,11 @@ sumOfPowers <- function(A, n, verbose=FALSE) {
   if(verbose) cat(createStr, "\n")
   g <- A
   currPowerOfA <- A
-  #cat(g,"\n")
   if(n >= 2) { # this should be a pretty efficient way to create g
     for(i in 2:n){
       if(verbose) cat(paste(createStr," + A^", i, "\n", sep=""))
       currPowerOfA <- currPowerOfA %*% A
-      #currPowerOfA <- currPowerOfA * A
       g <- g + currPowerOfA
-      #cat(g,"\n") 
     }
   }
   g

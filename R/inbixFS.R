@@ -554,7 +554,7 @@ snprank <- function(G, gamma=0.85) {
 # ----------------------------------------------------------------------------
 #' Rank by t-test.
 #' 
-#' \code{rankReliefSeq} 
+#' \code{rankTTest} 
 #' 
 #' @param regressionData Data frame of predictors and final class column,
 #' @return data frame with t-test results: gene, p-value.
@@ -604,9 +604,7 @@ rankUnivariateRegression <- function(regressionData) {
   regressionData$Class <- factor(regressionData$Class)
   for(i in 1:numVars) {
     glmFormula <- paste("Class ~ ", colNames[i], sep="")
-    #print(glmFormula)
     interactionModel <- glm(as.formula(glmFormula), family="binomial", data=regressionData)
-    #print(summary(interactionModel))
     glmConverged <- interactionModel$converged
     intCoef <- summary(interactionModel)$coefficients[2, "Estimate"]
     intStdErr <- summary(interactionModel)$coefficients[2, "Std. Error"]

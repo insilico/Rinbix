@@ -33,4 +33,5 @@ results Matrix of gene by gene regression coefficients.
 \description{
 \code{getInteractionEffects}
 }
+\keyword{internal}
 
