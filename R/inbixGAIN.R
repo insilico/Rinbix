@@ -459,6 +459,37 @@ getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0,
 }
 
 # -----------------------------------------------------------------------------
+#' Front end to the reGAIN algorithm.
+#' 
+#' Tests number of variables/columns and runs either parallel R or parallel C++.
+#' 
+#' \code{regain}
+#' 
+#' @param regressionData Data frame with gene in columns and samples in rows;
+#' the last column should be labeled 'Class' and be 0 or 1 values.
+#' @param stdBetas Flag to use standardized beta coefficients.
+#' @param absBetas Flag to use absolute value of beta coefficients.
+#' @param verbose Flag to send verbose messages to stdout.
+#' @return regainMatrix Matrix of gene by gene regression coefficients.
+#' @examples
+#' data(testdata10)
+#' rinbixRegain <- regain(testdata10, stdBetas=TRUE, absBetas=TRUE)
+#' @export
+regain <- function(regressionData, stdBetas=FALSE, absBetas=FALSE, verbose=FALSE) {
+  numVars <- ncol(regressionData) - 1  
+  regainMatrix <- NULL
+  if(numVars <= 5000) {
+    if(verbose) cat("[", numVars, "] Running parallel R reGAIN\n")
+    regainMatrix <- regainParallel(regressionData, stdBetas, absBetas, verbose)
+  } else {
+    cat("WARNING: More than 5000 genes, attempting to run reGAIN in C++\n")
+    if(verbose) cat("[", numVars, "] Running C++ inbix reGAIN\n")
+    regainMatrix <- regainInbix(regressionData, stdBetas, absBetas)$reGAIN
+  }
+  regainMatrix
+}
+
+# -----------------------------------------------------------------------------
 #' Parallel execution of the regression genetic association interaction network algorithm.
 #' 
 #' \code{regainParallel}

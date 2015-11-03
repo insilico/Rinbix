@@ -76,6 +76,17 @@ NULL
 #' @name responseTest
 NULL
 
+#' Random list of gene symbols.
+#'
+#' A character vector of 200 gene symbol strings.
+#'
+#' @docType data
+#' @keywords datasets
+#' @name geneListSymbols
+#' @usage data(geneListSymbols)
+#' @format Character vector.
+NULL
+
 #' Erdos-Reyni Random Network adjacency matrix.
 #'
 #' A random network adjacency matrix used in data simulation.

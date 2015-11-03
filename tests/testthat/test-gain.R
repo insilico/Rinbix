@@ -14,26 +14,32 @@ test_that("dmGAIN", {
   expect_equal(inbixDmgain, rinbixDmgain$scores, tolerance=0.002)
 })
 
+test_that("R reGAIN front end same as inbix C++ reGAIN", {
+  rinbixRegain <- regain(testdata10, stdBetas=TRUE, absBetas=TRUE)
+  rinbixCppRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)$reGAIN
+  expect_equal(object=rinbixRegain, expected=rinbixCppRegain, tolerance=0.02)
+})
+
 test_that("reGAIN stdBetas=TRUE, absBetas=TRUE", {
   inbixRegain <- as.matrix(read.table("testdata10-abs-zval.block.regain", header=T))
-  rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
+  rinbixRegain <- regain(testdata10, stdBetas=TRUE, absBetas=TRUE)
   expect_equal(object=rinbixRegain, expected=inbixRegain, tolerance=0.02)
 })
 
 test_that("reGAIN stdBetas=FALSE, absBetas=TRUE", {
   inbixRegain <- as.matrix(read.table("testdata10-abs-beta.block.regain", header=T))
-  rinbixRegain <- regainParallel(testdata10, stdBetas=FALSE, absBetas=TRUE)
+  rinbixRegain <- regain(testdata10, stdBetas=FALSE, absBetas=TRUE)
   expect_equal(object=rinbixRegain, expected=inbixRegain, tolerance=0.02)
 })
 
 test_that("reGAIN stdBetas=TRUE, absBetas=FALSE", {
   inbixRegain <- as.matrix(read.table("testdata10-noabs-zval.block.regain", header=T))
-  rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=FALSE)
+  rinbixRegain <- regain(testdata10, stdBetas=TRUE, absBetas=FALSE)
   expect_equal(object=rinbixRegain, expected=inbixRegain, tolerance=0.02)
 })
 
 test_that("reGAIN stdBetas=FALSE, absBetas=FALSE", {
   inbixRegain <- as.matrix(read.table("testdata10-noabs-beta.block.regain", header=T))
-  rinbixRegain <- regainParallel(testdata10, stdBetas=FALSE, absBetas=FALSE)
+  rinbixRegain <- regain(testdata10, stdBetas=FALSE, absBetas=FALSE)
   expect_equal(object=rinbixRegain, expected=inbixRegain, tolerance=0.02)
 })

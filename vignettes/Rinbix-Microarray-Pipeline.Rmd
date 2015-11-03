@@ -5,184 +5,65 @@ date: "October 27, 2015"
 output: html_document
 ---
 
-```{r, echo=FALSE}
-suppressMessages(library(affy))
-suppressMessages(library(affyPLM))
-suppressMessages(library(leukemiasEset))
-suppressMessages(library(ggplot2))
-suppressMessages(library(clusterProfiler))
-suppressMessages(library(broom))
-suppressMessages(library(biomaRt))
+```{r, echo=FALSE, message=FALSE}
+library(affy)
+library(affyPLM)
+library(leukemiasEset)
+library(ggplot2)
+library(clusterProfiler)
+library(broom)
+library(biomaRt)
+library(Rinbix)
 ```
+
+#Get Leukemias Data
 
 ```{r}
 data(leukemiasEset)  # load bone marrow samples
-dim(leukemiasEset) # 20172 genes x 60 samples
-sampleNames(leukemiasEset) # cell file names
-
+# quantiles function needs eset to operate on
+leukExprData_quantile <- normalize.ExpressionSet.quantiles(leukemiasEset, transfn="log")
+leukExprData_quantileLog2 <- log2(exprs(leukExprData_quantile))
+#dim(leukemiasEset) # 20172 genes x 60 samples
+#sampleNames(leukemiasEset) # cell file names
+#featureNames(leukemiasEset)[1:5] # first 5 gene ensemble ids
 allPheno <- pData(leukemiasEset)
-head(allPheno)  # look at phenotype info
-leukPheno <- allPheno$LeukemiaType  # abbreviated leukemia types
-summary(leukPheno)
+# abbreviated leukemia types
+leukPheno <- allPheno$LeukemiaType  
 # ALL AML CLL CML NoL 
 # 12  12  12  12  12 
-featureNames(leukemiasEset)[1:5] # first 5 gene ensemble ids
-
-leukExprData <- exprs(leukemiasEset) # exprs is an affy function to extract expression data from eset
-colnames(leukExprData) <- leukPheno  # add phenotype names to matrix
+colnames(leukExprData_quantileLog2) <- leukPheno
 ```
 
-```{r, echo=FALSE}
-### boxplots raw
-boxplot(leukemiasEset,range=0,ylab="raw probe intensity", main="Raw", names=leukPheno)
-# raw data is skewed
-hist(leukemiasEset[,1], freq=F, ylab="density", xlab="raw probe intensity", main="Raw Data Density for Sample 1")
-### boxplots log2 transformed, need to use expression matrix
-boxplot(log2(leukExprData), range=0,ylab="log2 intensity", main="Log2 Transformed", names=leukPheno)
-# log2 is more symmetric
-hist(log2(leukExprData[,1]), freq=F, ylab="density", xlab="log2 probe intensity", main="log2 Data Density for Sample 1")
-```
+#Gene Filters
 
 ```{r}
-# quantiles function needs eset to operate on
-leukExprData_quantile <- normalize.ExpressionSet.quantiles(leukemiasEset,transfn="log")
-boxplot(leukExprData_quantile,range=0,ylab="raw intensity", main="Quantile Normalized")
-leukExprData_quantileLog2 <- log2(exprs(leukExprData_quantile))
-colnames(leukExprData_quantileLog2) <- leukPheno  # add phenotype names to matrix
+lvalf <- geneLowValueFilter(leukExprData_quantileLog2, 0.8)
+lvarf <- geneLowVarianceFilter(lvalf$fdata, 0.8)
+geneFilteredData <- as.data.frame(t(lvarf$fdata))
+geneFilteredData$Class <- ifelse(leukPheno == "NoL", 0, 1)
 ```
 
-```{r, echo=FALSE}
-boxplot(leukExprData_quantileLog2,range=0,ylab="log2 intensity", main="Quantile Normalized Log2")
-hist(log2(leukExprData_quantileLog2[,1]), freq=F, ylab="density", xlab="log2 probe intensity", main="log2 Quantile Normalized for Sample 1")
-```
+#Rankers
 
 ```{r}
-# transpose data matrix and convert to data frame
-expr_SxG <- data.frame(t(leukExprData_quantileLog2))  # ggplot wants data frame and subjects as rows
-colnames(expr_SxG) <- rownames(leukExprData_quantileLog2)
-#rownames(expr_SxG) <- sampleNames(leukExprData)
+ttestResults <- rankTTest(geneFilteredData)
+print(head(ttestResults))
+
+dcgainSnprankResults <- rankDcgainSnprank(geneFilteredData)
+print(head(dcgainSnprankResults))
+
+reliefseqRanks <- rankReliefSeq(geneFilteredData)
+print(head(reliefseqRanks))
 ```
 
 ```{r, echo=FALSE}
-## MDS of subjects 
-d<-dist(expr_SxG)  # Euclidean metric
-leuk.mds <- cmdscale(d, k = 2)
-x <- leuk.mds[,1]
-y <- leuk.mds[,2]
-leuk.mds.df <- data.frame(leuk.mds)
-colnames(leuk.mds.df) <- c("dim1","dim2")
-# - ggplot2 is a “graphics grammar” plotting library
-# - operates on data frames
-# - creates geometry objects with geom_point or geom_bar, etc. 
-# - aes is the aesthetic or what you are plotting
-# - you add layers to a ggplot with +
-p <- ggplot() # initialize empty ggplot object
-p <- p + geom_point(data=leuk.mds.df, aes(x=dim1, y=dim2, color=leukPheno, shape=leukPheno), size=3)
-p <- p + ggtitle("MDS") + xlab("Dim 1") + ylab("Dim 2")
-print(p)
-
-## hierarchical cluster of subjects
-leukTree = hclust(d)
-leukTree$labels <- leukPheno
-plot(leukTree)
-```
-
-```{r}
-# 1. create subset of data for the two groups
-ALL.NoL.mask <- colnames(leukExprData) == "ALL" | colnames(leukExprData) == "NoL"
-ALL.NoL.Data <- leukExprData[,ALL.NoL.mask]
-# 2. coefficient of variation filter sd(x)/abs(mean(x))
-# there are a lot of genes that have very low signal to noise that we can get rid of.
-coef.of.vars <- apply(ALL.NoL.Data,1,function(x) {sd(x)/abs(mean(x))})
-# the smaller the threshold, the higher the experimental effect relative to the measurement precision
-sum(coef.of.vars<.05)  # 5,378 genes
-# filter the data matrix
-ALL.NoL.Data.filter <- ALL.NoL.Data[coef.of.vars<.05,]
-dim(ALL.NoL.Data.filter)
-# 3. create factor variable for the two groups for the t-test
-test.groups <- as.factor(colnames(ALL.NoL.Data.filter))
-test.groups
-str(test.groups)
-levels(test.groups)
-
-# a few ways to do t-test in R
-myrow <- 1  # pick a gene row
-mygene<-rownames(ALL.NoL.Data.filter)[myrow]
-mygene
-
-# a. by hand, using the formula
-grp1 <- ALL.NoL.Data.filter[myrow,test.groups=="ALL"]
-grp2 <- ALL.NoL.Data.filter[myrow,test.groups=="NoL"]
-t.result <- (mean(grp1)-mean(grp2))/sqrt(var(grp1)/length(grp1)+var(grp2)/length(grp2))
-t.result  
-df <- length(grp1) + length(grp2) - 2
-pvalue <- 1-pt(t.result,df)  # using studnet t distribution function , pt
-
-# b. traditional interface 
-grp1 <- ALL.NoL.Data.filter[myrow,test.groups=="ALL"]
-grp2 <- ALL.NoL.Data.filter[myrow,test.groups=="NoL"]
-t.result <- t.test(grp1,grp2)
-t.result  
-
-# c. formula interface ~
-t.result <- t.test(ALL.NoL.Data.filter[myrow,] ~ test.groups)
-t.result  
-
-# the last t.result prints the info nicely but it is a list data type 
-# that leads to clumsy access to output, like t.result[[1]] for the t-stat
-tidy.result <- tidy(t.result)  
-tidy.result # it's a tidy data frame
-tidy.result$statistic
-tidy.result$p.value
-```
-
-```{r, echo=FALSE}
-# let's plot the gene's expression by group
-myrow.data.df <- data.frame(gene=ALL.NoL.Data.filter[myrow,],cancerGroups=test.groups)
-p <- ggplot(myrow.data.df, aes(x=cancerGroups, y=gene, fill=cancerGroups)) + stat_boxplot(geom ='errorbar') + geom_boxplot()
-p <- p + xlab("ALL versus Control") + ylab(mygene)
-p
-```
-
-```{r}
-# put it all together. apply to all genes
-# i is the data row or gene index
-ttest_fn <- function(i){
-      mygene<-rownames(ALL.NoL.Data.filter)[i]
-      t.result <- t.test(ALL.NoL.Data.filter[i,] ~ test.groups)
-      tidy.result <- tidy(t.result)
-      tstat <- tidy.result$statistic
-      pval <- tidy.result$p.value
-      cbind(mygene, tstat, pval)    
-} 
-
-# Start the clock!
-#ptm <- proc.time()
-ttest_allgene_results.df<-data.frame(t(sapply(1:nrow(ALL.NoL.Data.filter), ttest_fn)))
-colnames(ttest_allgene_results.df) <- c("ensmblID", "t-stat", "p-value")
-
-# sort
-ttest_allgene_sorted <- ttest_allgene_results.df[order(as.numeric(as.character(ttest_allgene_results.df$"p-value"))), ]
-#tested<-topTable(fitE, adjust="fdr", sort.by="B", number=Inf)
-#DE <- tested[tested$adj.P.Val < 0.01,]
-
-top_cutoff <- 100
-# grab top ensmblID 
-# convert output to character instead of factor
-topFeatures <- as.character(ttest_allgene_sorted[1:top_cutoff,]$ensmblID)
-
-ensembl = useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
-top_geneNames <- getBM(attributes=c('ensembl_gene_id','hgnc_symbol'), filters='ensembl_gene_id', 
-             values=topFeatures, mart=ensembl)
-top_geneNames
-
-kegg_enrichment <- enrichKEGG(top_geneNames$hgnc_symbol,pvalueCutoff = 0.05)
-go_enrichment <- enrichGO(top_geneNames$hgnc_symbol,"human", "MF")
-
-summary(kegg_enrichment)
-summary(go_enrichment)
-```
-
-```{r, echo=FALSE}
-#plot(kegg_enrichment)
+allResults <- data.frame(ttest=sort(1-ttestResults), 
+                         dcgain=sort(dcgainSnprankResults$snprank), 
+                         relieff=sort(reliefseqRanks$score))
+x <- 1:nrow(allResults)
+plot(x, allResults$ttest, col="red", pch=16, main="Rankers")
+points(x, allResults$dcgain, pch=16, col="blue")
+points(x, allResults$relieff, pch=16, col="magenta")
+legend("topleft", c("1 - t-test", "dcGAIN+SNPrank", "ReliefSeq"), 
+       col=c("red", "blue", "magenta"), pch=rep(16, 3))
 ```

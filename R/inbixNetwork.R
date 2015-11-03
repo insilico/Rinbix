@@ -23,7 +23,6 @@ getIGraphStats <- function(g) {
       minDegree=min(igraph::degree(g)),
       nedges=igraph::ecount(g), 
       radius=igraph::radius(g), 
-      diameter=igraph::diameter(g), 
       density=igraph::graph.density(g), 
       transitivity=igraph::transitivity(g), 
       avgPathLen=igraph::average.path.length(g), 
@@ -43,7 +42,6 @@ printIGraphStats <- function(g) {
   cat("Minimum degree: ", min(igraph::degree(g)), "\n")
   cat("Number of edges:", igraph::ecount(g), "\n")
   cat("Radius:         ", igraph::radius(g), "\n")
-  cat("Diameter:       ", igraph::diameter(g), "\n")
   cat("Density:        ", igraph::graph.density(g), "\n")
   cat("Transitivity:   ", igraph::transitivity(g), "\n")
   cat("Avg path length:", igraph::average.path.length(g), "\n")

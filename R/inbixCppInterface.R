@@ -173,13 +173,14 @@ readInbixNumericAsRegressionData <- function(baseInbixName) {
 #' @param absBetas Flag take absolute value of beta coefficients.
 #' @param outPrefix String file output prefix.
 #' @param pThreshold Numeric p-value threshold for GAIN method.
+#' @param verbose Flag to send verbose messages to stdout.
 #' @return list of gene scores and associated p-values.
 #' @examples
 #' data(testdata10)
 #' inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
 #' @export
 regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE, 
-                        outPrefix="Rinbix", pThreshold=1) {
+                        outPrefix="Rinbix", pThreshold=1, verbose=FALSE) {
   inbixExists()
   # write regressionData data frame to inbix files
   writeRegressionDataAsInbixNumeric(regressionData, outPrefix)
@@ -198,7 +199,7 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
   # run inbix reGAIN
   inbixCmd <- paste("inbix --regain --numeric-file Rinbix.num --pheno Rinbix.pheno --1 --out", 
                     outPrefix, stdBetasCmd, absBetasCmd, pThresholdCmd)
-  #cat("Running inbix command:", inbixCmd, "\n")
+  if(verbose) cat("Running inbix command:", inbixCmd, "\n")
   regainStdout <- system(inbixCmd, intern=T)
   inbixRegain <- read.table("Rinbix.block.regain", header=TRUE, sep="\t")
   
@@ -207,12 +208,12 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
   failuresText <- ""
   if(file.exists("Rinbix.regression.warnings")) {
     warningsText <- readLines("Rinbix.regression.warnings")
-    #cat(warningsText, "\n")
+    if(verbose) cat(warningsText, "\n")
     file.remove("Rinbix.regression.warnings")
   }
   if(file.exists("Rinbix.regression.failures")) {
     failuresText <- readLines("Rinbix.regression.failures")
-    #cat(failuresText, "\n")
+    if(verbose) cat(failuresText, "\n")
     file.remove("Rinbix.regression.failures")
   }
 
