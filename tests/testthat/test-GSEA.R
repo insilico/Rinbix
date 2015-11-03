@@ -1,6 +1,6 @@
 library(Rinbix)
 data(geneListSymbols)
-context("Pathway")
+context("GSEA")
 
 test_that("getReactomePathways", {
 	reactomePathDesc <- getReactomePathways(geneListSymbols)

@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
-# inbixPathway.R - Bill White - 10/31/15
+# inbixGSEA.R - Bill White - 10/31/15
 #
-# Rinbix package for pathway analysis.
+# Rinbix package for gene set enrichment analysis (GSEA).
 
 # ----------------------------------------------------------------------------
 #' Get the Reactome pathway descriptions for a vector of gene symbols.
