@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Bill White" />
+
+<meta name="date" content="2015-10-27" />
+
+<title>Rinbix Microarray Pipeline</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<link href="data:text/css,body%20%7B%0A%20%20background%2Dcolor%3A%20%23fff%3B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20max%2Dwidth%3A%20700px%3B%0A%20%20overflow%3A%20visible%3B%0A%20%20padding%2Dleft%3A%202em%3B%0A%20%20padding%2Dright%3A%202em%3B%0A%20%20font%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0A%20%20font%2Dsize%3A%2014px%3B%0A%20%20line%2Dheight%3A%201%2E35%3B%0A%7D%0A%0A%23header%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0A%0A%23TOC%20%7B%0A%20%20clear%3A%20both%3B%0A%20%20margin%3A%200%200%2010px%2010px%3B%0A%20%20padding%3A%204px%3B%0A%20%20width%3A%20400px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20border%2Dradius%3A%205px%3B%0A%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20font%2Dsize%3A%2013px%3B%0A%20%20line%2Dheight%3A%201%2E3%3B%0A%7D%0A%20%20%23TOC%20%2Etoctitle%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%20%20font%2Dsize%3A%2015px%3B%0A%20%20%20%20margin%2Dleft%3A%205px%3B%0A%20%20%7D%0A%0A%20%20%23TOC%20ul%20%7B%0A%20%20%20%20padding%2Dleft%3A%2040px%3B%0A%20%20%20%20margin%2Dleft%3A%20%2D1%2E5em%3B%0A%20%20%20%20margin%2Dtop%3A%205px%3B%0A%20%20%20%20margin%2Dbottom%3A%205px%3B%0A%20%20%7D%0A%20%20%23TOC%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dleft%3A%20%2D2em%3B%0A%20%20%7D%0A%20%20%23TOC%20li%20%7B%0A%20%20%20%20line%2Dheight%3A%2016px%3B%0A%20%20%7D%0A%0Atable%20%7B%0A%20%20margin%3A%201em%20auto%3B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dcolor%3A%20%23DDDDDD%3B%0A%20%20border%2Dstyle%3A%20outset%3B%0A%20%20border%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0A%20%20border%2Dwidth%3A%202px%3B%0A%20%20padding%3A%205px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0A%20%20border%2Dwidth%3A%201px%3B%0A%20%20border%2Dstyle%3A%20inset%3B%0A%20%20line%2Dheight%3A%2018px%3B%0A%20%20padding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0A%20%20border%2Dleft%2Dstyle%3A%20none%3B%0A%20%20border%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Ap%20%7B%0A%20%20margin%3A%200%2E5em%200%3B%0A%7D%0A%0Ablockquote%20%7B%0A%20%20background%2Dcolor%3A%20%23f6f6f6%3B%0A%20%20padding%3A%200%2E25em%200%2E75em%3B%0A%7D%0A%0Ahr%20%7B%0A%20%20border%2Dstyle%3A%20solid%3B%0A%20%20border%3A%20none%3B%0A%20%20border%2Dtop%3A%201px%20solid%20%23777%3B%0A%20%20margin%3A%2028px%200%3B%0A%7D%0A%0Adl%20%7B%0A%20%20margin%2Dleft%3A%200%3B%0A%7D%0A%20%20dl%20dd%20%7B%0A%20%20%20%20margin%2Dbottom%3A%2013px%3B%0A%20%20%20%20margin%2Dleft%3A%2013px%3B%0A%20%20%7D%0A%20%20dl%20dt%20%7B%0A%20%20%20%20font%2Dweight%3A%20bold%3B%0A%20%20%7D%0A%0Aul%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%7D%0A%20%20ul%20li%20%7B%0A%20%20%20%20list%2Dstyle%3A%20circle%20outside%3B%0A%20%20%7D%0A%20%20ul%20ul%20%7B%0A%20%20%20%20margin%2Dbottom%3A%200%3B%0A%20%20%7D%0A%0Apre%2C%20code%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20color%3A%20%23333%3B%0A%7D%0Apre%20%7B%0A%20%20white%2Dspace%3A%20pre%2Dwrap%3B%20%20%20%20%2F%2A%20Wrap%20long%20lines%20%2A%2F%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20margin%3A%205px%200px%2010px%200px%3B%0A%20%20padding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0A%20%20background%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0A%0Acode%20%7B%0A%20%20font%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0A%20%20font%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0A%20%20padding%3A%202px%200px%3B%0A%7D%0A%0Adiv%2Efigure%20%7B%0A%20%20text%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0A%20%20background%2Dcolor%3A%20%23FFFFFF%3B%0A%20%20padding%3A%202px%3B%0A%20%20border%3A%201px%20solid%20%23DDDDDD%3B%0A%20%20border%2Dradius%3A%203px%3B%0A%20%20border%3A%201px%20solid%20%23CCCCCC%3B%0A%20%20margin%3A%200%205px%3B%0A%7D%0A%0Ah1%20%7B%0A%20%20margin%2Dtop%3A%200%3B%0A%20%20font%2Dsize%3A%2035px%3B%0A%20%20line%2Dheight%3A%2040px%3B%0A%7D%0A%0Ah2%20%7B%0A%20%20border%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20padding%2Dbottom%3A%202px%3B%0A%20%20font%2Dsize%3A%20145%25%3B%0A%7D%0A%0Ah3%20%7B%0A%20%20border%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0A%20%20padding%2Dtop%3A%2010px%3B%0A%20%20font%2Dsize%3A%20120%25%3B%0A%7D%0A%0Ah4%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0A%20%20margin%2Dleft%3A%208px%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Ah5%2C%20h6%20%7B%0A%20%20border%2Dbottom%3A%201px%20solid%20%23ccc%3B%0A%20%20font%2Dsize%3A%20105%25%3B%0A%7D%0A%0Aa%20%7B%0A%20%20color%3A%20%230033dd%3B%0A%20%20text%2Ddecoration%3A%20none%3B%0A%7D%0A%20%20a%3Ahover%20%7B%0A%20%20%20%20color%3A%20%236666ff%3B%20%7D%0A%20%20a%3Avisited%20%7B%0A%20%20%20%20color%3A%20%23800080%3B%20%7D%0A%20%20a%3Avisited%3Ahover%20%7B%0A%20%20%20%20color%3A%20%23BB00BB%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%20%20a%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0A%20%20%20%20text%2Ddecoration%3A%20underline%3B%20%7D%0A%0A%2F%2A%20Class%20described%20in%20https%3A%2F%2Fbenjeffrey%2Ecom%2Fposts%2Fpandoc%2Dsyntax%2Dhighlighting%2Dcss%0A%20%20%20Colours%20from%20https%3A%2F%2Fgist%2Egithub%2Ecom%2Frobsimmons%2F1172277%20%2A%2F%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Keyword%20%2A%2F%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%2F%2A%20DataType%20%2A%2F%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%2F%2A%20DecVal%20%28decimal%20values%29%20%2A%2F%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20BaseN%20%2A%2F%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Float%20%2A%2F%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20Char%20%2A%2F%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%2F%2A%20String%20%2A%2F%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%2F%2A%20Comment%20%2A%2F%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%2F%2A%20OtherToken%20%2A%2F%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20AlertToken%20%2A%2F%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%2F%2A%20Function%20calls%20%2A%2F%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%2F%2A%20ErrorTok%20%2A%2F%0A%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+<div id="header">
+<h1 class="title">Rinbix Microarray Pipeline</h1>
+<h4 class="author"><em>Bill White</em></h4>
+<h4 class="date"><em>October 27, 2015</em></h4>
+</div>
+
+
+<div id="get-leukemias-eset" class="section level1">
+<h1>Get Leukemias Eset</h1>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(leukemiasEset)  <span class="co"># load bone marrow samples</span>
+<span class="co"># objects in the data</span>
+<span class="co">#str(leukemiasEset)</span>
+<span class="co">#slotNames(leukemiasEset) # phenoData, etc</span>
+<span class="kw">dim</span>(leukemiasEset) <span class="co"># 20172 genes x 60 samples</span></code></pre>
+<pre><code>## Features  Samples 
+##    20172       60</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sampleNames</span>(leukemiasEset) <span class="co"># cell file names</span></code></pre>
+<pre><code>##  [1] &quot;GSM330151.CEL&quot; &quot;GSM330153.CEL&quot; &quot;GSM330154.CEL&quot; &quot;GSM330157.CEL&quot;
+##  [5] &quot;GSM330171.CEL&quot; &quot;GSM330174.CEL&quot; &quot;GSM330178.CEL&quot; &quot;GSM330182.CEL&quot;
+##  [9] &quot;GSM330185.CEL&quot; &quot;GSM330186.CEL&quot; &quot;GSM330195.CEL&quot; &quot;GSM330201.CEL&quot;
+## [13] &quot;GSM330532.CEL&quot; &quot;GSM330546.CEL&quot; &quot;GSM330559.CEL&quot; &quot;GSM330566.CEL&quot;
+## [17] &quot;GSM330571.CEL&quot; &quot;GSM330574.CEL&quot; &quot;GSM330580.CEL&quot; &quot;GSM330584.CEL&quot;
+## [21] &quot;GSM330593.CEL&quot; &quot;GSM330603.CEL&quot; &quot;GSM330611.CEL&quot; &quot;GSM330612.CEL&quot;
+## [25] &quot;GSM330933.CEL&quot; &quot;GSM330934.CEL&quot; &quot;GSM330969.CEL&quot; &quot;GSM330979.CEL&quot;
+## [29] &quot;GSM330980.CEL&quot; &quot;GSM330982.CEL&quot; &quot;GSM330987.CEL&quot; &quot;GSM330999.CEL&quot;
+## [33] &quot;GSM331004.CEL&quot; &quot;GSM331009.CEL&quot; &quot;GSM331037.CEL&quot; &quot;GSM331048.CEL&quot;
+## [37] &quot;GSM331377.CEL&quot; &quot;GSM331378.CEL&quot; &quot;GSM331381.CEL&quot; &quot;GSM331382.CEL&quot;
+## [41] &quot;GSM331383.CEL&quot; &quot;GSM331386.CEL&quot; &quot;GSM331387.CEL&quot; &quot;GSM331388.CEL&quot;
+## [45] &quot;GSM331389.CEL&quot; &quot;GSM331390.CEL&quot; &quot;GSM331392.CEL&quot; &quot;GSM331393.CEL&quot;
+## [49] &quot;GSM331660.CEL&quot; &quot;GSM331661.CEL&quot; &quot;GSM331663.CEL&quot; &quot;GSM331666.CEL&quot;
+## [53] &quot;GSM331668.CEL&quot; &quot;GSM331670.CEL&quot; &quot;GSM331671.CEL&quot; &quot;GSM331672.CEL&quot;
+## [57] &quot;GSM331673.CEL&quot; &quot;GSM331674.CEL&quot; &quot;GSM331675.CEL&quot; &quot;GSM331677.CEL&quot;</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">allPheno &lt;-<span class="st"> </span><span class="kw">pData</span>(leukemiasEset)
+<span class="co">#head(allPheno)  # look at phenotype info</span>
+leukPheno &lt;-<span class="st"> </span>allPheno$LeukemiaType  <span class="co"># abbreviated leukemia types</span>
+<span class="kw">summary</span>(leukPheno)</code></pre>
+<pre><code>## ALL AML CLL CML NoL 
+##  12  12  12  12  12</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># ALL AML CLL CML NoL </span>
+<span class="co"># 12  12  12  12  12 </span>
+<span class="co">#featureNames(leukemiasEset)[1:5] # first 5 gene ensemble ids</span>
+leukExprData &lt;-<span class="st"> </span><span class="kw">exprs</span>(leukemiasEset) <span class="co"># exprs is an affy function to extract expression data from eset</span>
+<span class="kw">colnames</span>(leukExprData) &lt;-<span class="st"> </span>leukPheno  <span class="co"># add phenotype names to matrix</span></code></pre>
+</div>
+<div id="preprocess" class="section level1">
+<h1>Preprocess</h1>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># quantiles function needs eset to operate on</span>
+leukExprData_quantile &lt;-<span class="st"> </span><span class="kw">normalize.quantiles</span>(leukExprData)
+<span class="kw">boxplot</span>(leukExprData_quantile,<span class="dt">range=</span><span class="dv">0</span>,<span class="dt">ylab=</span><span class="st">&quot;raw intensity&quot;</span>, <span class="dt">main=</span><span class="st">&quot;Quantile Normalized&quot;</span>)</code></pre>
+<p><img src="data:image/png;base64,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" /></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co">#leukExprData_quantileLog2 &lt;- log2(exprs(leukExprData_quantile))</span>
+leukExprData_quantileLog2 &lt;-<span class="st"> </span><span class="kw">log2</span>(leukExprData_quantile)
+<span class="kw">colnames</span>(leukExprData_quantileLog2) &lt;-<span class="st"> </span>leukPheno  <span class="co"># add phenotype names to matrix</span>
+<span class="kw">boxplot</span>(leukExprData_quantileLog2,<span class="dt">range=</span><span class="dv">0</span>,<span class="dt">ylab=</span><span class="st">&quot;log2 intensity&quot;</span>, 
+        <span class="dt">main=</span><span class="st">&quot;Quantile Normalized Log2&quot;</span>)</code></pre>
+<p><img src="data:image/png;base64,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" /></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># compare the ALL and NoL groups; find genes that are differentially expressed between groups</span>
+<span class="co"># use t.test</span>
+<span class="co"># 1. create subset of data for the two groups</span>
+ALL.NoL.mask &lt;-<span class="st"> </span><span class="kw">colnames</span>(leukExprData) ==<span class="st"> &quot;ALL&quot;</span> |<span class="st"> </span><span class="kw">colnames</span>(leukExprData) ==<span class="st"> &quot;NoL&quot;</span>
+ALL.NoL.Data &lt;-<span class="st"> </span>leukExprData[,ALL.NoL.mask]</code></pre>
+</div>
+<div id="coefficient-of-variation-filter-sdxabsmeanx" class="section level1">
+<h1>2. coefficient of variation filter sd(x)/abs(mean(x))</h1>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># there are a lot of genes that have very low signal to noise that we can get rid of.</span>
+coef.of.vars &lt;-<span class="st"> </span><span class="kw">apply</span>(ALL.NoL.Data,<span class="dv">1</span>,function(x) {<span class="kw">sd</span>(x)/<span class="kw">abs</span>(<span class="kw">mean</span>(x))})
+<span class="co"># the smaller the threshold, the higher the experimental effect relative to the measurement precision</span>
+<span class="kw">sum</span>(coef.of.vars&lt;.<span class="dv">05</span>)  <span class="co"># 5,378 genes</span></code></pre>
+<pre><code>## [1] 5378</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># filter the data matrix</span>
+ALL.NoL.Data.filter &lt;-<span class="st"> </span>ALL.NoL.Data[coef.of.vars&lt;.<span class="dv">05</span>,]
+<span class="kw">dim</span>(ALL.NoL.Data.filter)</code></pre>
+<pre><code>## [1] 5378   24</code></pre>
+</div>
+<div id="create-factor-variable-for-the-two-groups-for-the-t-test" class="section level1">
+<h1>3. create factor variable for the two groups for the t-test</h1>
+<pre class="sourceCode r"><code class="sourceCode r">test.groups &lt;-<span class="st"> </span><span class="kw">as.factor</span>(<span class="kw">colnames</span>(ALL.NoL.Data.filter))
+test.groups</code></pre>
+<pre><code>##  [1] ALL ALL ALL ALL ALL ALL ALL ALL ALL ALL ALL ALL NoL NoL NoL NoL NoL
+## [18] NoL NoL NoL NoL NoL NoL NoL
+## Levels: ALL NoL</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(test.groups)</code></pre>
+<pre><code>##  Factor w/ 2 levels &quot;ALL&quot;,&quot;NoL&quot;: 1 1 1 1 1 1 1 1 1 1 ...</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">levels</span>(test.groups)</code></pre>
+<pre><code>## [1] &quot;ALL&quot; &quot;NoL&quot;</code></pre>
+</div>
+<div id="t-test" class="section level1">
+<h1>t-test</h1>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># put it all together. apply to all genes</span>
+<span class="co"># i is the data row or gene index</span>
+ttest_fn &lt;-<span class="st"> </span>function(i){
+      mygene&lt;-<span class="kw">rownames</span>(ALL.NoL.Data.filter)[i]
+      t.result &lt;-<span class="st"> </span><span class="kw">t.test</span>(ALL.NoL.Data.filter[i,] ~<span class="st"> </span>test.groups)
+      tidy.result &lt;-<span class="st"> </span><span class="kw">tidy</span>(t.result)
+      tstat &lt;-<span class="st"> </span>tidy.result$statistic
+      pval &lt;-<span class="st"> </span>tidy.result$p.value
+      <span class="kw">cbind</span>(mygene, tstat, pval)    
+} 
+ttest_allgene_results.df&lt;-<span class="kw">data.frame</span>(<span class="kw">t</span>(<span class="kw">sapply</span>(<span class="dv">1</span>:<span class="kw">nrow</span>(ALL.NoL.Data.filter), ttest_fn)))
+<span class="kw">colnames</span>(ttest_allgene_results.df) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ensmblID&quot;</span>, <span class="st">&quot;t-stat&quot;</span>, <span class="st">&quot;p-value&quot;</span>)
+<span class="co"># sort</span>
+ttest_allgene_sorted &lt;-<span class="st"> </span>ttest_allgene_results.df[<span class="kw">order</span>(<span class="kw">as.numeric</span>(<span class="kw">as.character</span>(ttest_allgene_results.df$<span class="st">&quot;p-value&quot;</span>))), ]
+<span class="co">#tested&lt;-topTable(fitE, adjust=&quot;fdr&quot;, sort.by=&quot;B&quot;, number=Inf)</span>
+<span class="co">#DE &lt;- tested[tested$adj.P.Val &lt; 0.01,]</span>
+knitr::<span class="kw">kable</span>(<span class="kw">head</span>(ttest_allgene_sorted), <span class="dt">row.names=</span><span class="ot">FALSE</span>, <span class="dt">digits=</span><span class="dv">6</span>)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">ensmblID</th>
+<th align="left">t-stat</th>
+<th align="left">p-value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ENSG00000163466</td>
+<td align="left">-9.0224379586479</td>
+<td align="left">2.53780239930866e-08</td>
+</tr>
+<tr class="even">
+<td align="left">ENSG00000108107</td>
+<td align="left">8.85232998448782</td>
+<td align="left">3.27888631166319e-08</td>
+</tr>
+<tr class="odd">
+<td align="left">ENSG00000001497</td>
+<td align="left">7.44197525639891</td>
+<td align="left">1.92012306932657e-07</td>
+</tr>
+<tr class="even">
+<td align="left">ENSG00000141720</td>
+<td align="left">7.06154947776373</td>
+<td align="left">4.79467949561688e-07</td>
+</tr>
+<tr class="odd">
+<td align="left">ENSG00000105372</td>
+<td align="left">7.07927322642996</td>
+<td align="left">5.18783951007681e-07</td>
+</tr>
+<tr class="even">
+<td align="left">ENSG00000022277</td>
+<td align="left">-6.98494916827748</td>
+<td align="left">5.25007762179886e-07</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="lookup-top-genes" class="section level1">
+<h1>Lookup Top Genes</h1>
+<pre class="sourceCode r"><code class="sourceCode r">top_cutoff &lt;-<span class="st"> </span><span class="dv">100</span>
+<span class="co"># grab top ensmblID </span>
+<span class="co"># convert output to character instead of factor</span>
+topFeatures &lt;-<span class="st"> </span><span class="kw">as.character</span>(ttest_allgene_sorted[<span class="dv">1</span>:top_cutoff,]$ensmblID)
+ensembl =<span class="st"> </span><span class="kw">useEnsembl</span>(<span class="dt">biomart=</span><span class="st">&quot;ensembl&quot;</span>, <span class="dt">dataset=</span><span class="st">&quot;hsapiens_gene_ensembl&quot;</span>)
+top_geneNames &lt;-<span class="st"> </span><span class="kw">getBM</span>(<span class="dt">attributes=</span><span class="kw">c</span>(<span class="st">'ensembl_gene_id'</span>,<span class="st">'hgnc_symbol'</span>), <span class="dt">filters=</span><span class="st">'ensembl_gene_id'</span>, 
+             <span class="dt">values=</span>topFeatures, <span class="dt">mart=</span>ensembl)
+knitr::<span class="kw">kable</span>(<span class="kw">head</span>(top_geneNames))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">ensembl_gene_id</th>
+<th align="left">hgnc_symbol</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ENSG00000001497</td>
+<td align="left">LAS1L</td>
+</tr>
+<tr class="even">
+<td align="left">ENSG00000009830</td>
+<td align="left">POMT2</td>
+</tr>
+<tr class="odd">
+<td align="left">ENSG00000011451</td>
+<td align="left">WIZ</td>
+</tr>
+<tr class="even">
+<td align="left">ENSG00000022277</td>
+<td align="left">RTFDC1</td>
+</tr>
+<tr class="odd">
+<td align="left">ENSG00000034510</td>
+<td align="left">TMSB10</td>
+</tr>
+<tr class="even">
+<td align="left">ENSG00000037241</td>
+<td align="left">RPL26L1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="reactome" class="section level1">
+<h1>Reactome</h1>
+<pre class="sourceCode r"><code class="sourceCode r">reactomeAnalysis &lt;-<span class="st"> </span><span class="kw">getReactomePathways</span>(top_geneNames$hgnc_symbol)
+knitr::<span class="kw">kable</span>(<span class="kw">summary</span>(reactomeAnalysis), <span class="dt">row.names=</span><span class="ot">FALSE</span>)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">ID</th>
+<th align="left">Description</th>
+<th align="left">GeneRatio</th>
+<th align="left">BgRatio</th>
+<th align="right">pvalue</th>
+<th align="right">p.adjust</th>
+<th align="right">qvalue</th>
+<th align="left">geneID</th>
+<th align="right">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">72766</td>
+<td align="left">Translation</td>
+<td align="left">18/42</td>
+<td align="left">146/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/8664/1936/6217/6223/6158/6143/8666/6205/6159/6227/8665/6232/6748/9045/6191/6147</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">72689</td>
+<td align="left">Formation of a pool of free 40S subunits</td>
+<td align="left">16/42</td>
+<td align="left">98/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/8664/6217/6223/6158/6143/8666/6205/6159/6227/8665/6232/9045/6191/6147</td>
+<td align="right">16</td>
+</tr>
+<tr class="odd">
+<td align="left">156827</td>
+<td align="left">L13a-mediated translational silencing of Ceruloplasmin expression</td>
+<td align="left">16/42</td>
+<td align="left">108/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/8664/6217/6223/6158/6143/8666/6205/6159/6227/8665/6232/9045/6191/6147</td>
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="left">157279</td>
+<td align="left">3’ -UTR-mediated translational regulation</td>
+<td align="left">16/42</td>
+<td align="left">108/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/8664/6217/6223/6158/6143/8666/6205/6159/6227/8665/6232/9045/6191/6147</td>
+<td align="right">16</td>
+</tr>
+<tr class="odd">
+<td align="left">72706</td>
+<td align="left">GTP hydrolysis and joining of the 60S ribosomal subunit</td>
+<td align="left">16/42</td>
+<td align="left">109/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/8664/6217/6223/6158/6143/8666/6205/6159/6227/8665/6232/9045/6191/6147</td>
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="left">72613</td>
+<td align="left">Eukaryotic Translation Initiation</td>
+<td align="left">16/42</td>
+<td align="left">116/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/8664/6217/6223/6158/6143/8666/6205/6159/6227/8665/6232/9045/6191/6147</td>
+<td align="right">16</td>
+</tr>
+<tr class="odd">
+<td align="left">72737</td>
+<td align="left">Cap-dependent Translation Initiation</td>
+<td align="left">16/42</td>
+<td align="left">116/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/8664/6217/6223/6158/6143/8666/6205/6159/6227/8665/6232/9045/6191/6147</td>
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="left">156842</td>
+<td align="left">Eukaryotic Translation Elongation</td>
+<td align="left">14/42</td>
+<td align="left">91/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/1936/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">14</td>
+</tr>
+<tr class="odd">
+<td align="left">1799339</td>
+<td align="left">SRP-dependent cotranslational protein targeting to membrane</td>
+<td align="left">14/42</td>
+<td align="left">109/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/6748/9045/6191/6147</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="left">192823</td>
+<td align="left">Viral mRNA Translation</td>
+<td align="left">13/42</td>
+<td align="left">86/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">13</td>
+</tr>
+<tr class="odd">
+<td align="left">156902</td>
+<td align="left">Peptide chain elongation</td>
+<td align="left">13/42</td>
+<td align="left">88/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">72764</td>
+<td align="left">Eukaryotic Translation Termination</td>
+<td align="left">13/42</td>
+<td align="left">88/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">13</td>
+</tr>
+<tr class="odd">
+<td align="left">975956</td>
+<td align="left">Nonsense Mediated Decay (NMD) independent of the Exon Junction Complex (EJC)</td>
+<td align="left">13/42</td>
+<td align="left">93/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">927802</td>
+<td align="left">Nonsense-Mediated Decay (NMD)</td>
+<td align="left">13/42</td>
+<td align="left">110/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">13</td>
+</tr>
+<tr class="odd">
+<td align="left">975957</td>
+<td align="left">Nonsense Mediated Decay (NMD) enhanced by the Exon Junction Complex (EJC)</td>
+<td align="left">13/42</td>
+<td align="left">110/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">168273</td>
+<td align="left">Influenza Viral RNA Transcription and Replication</td>
+<td align="left">13/42</td>
+<td align="left">113/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">13</td>
+</tr>
+<tr class="odd">
+<td align="left">168255</td>
+<td align="left">Influenza Life Cycle</td>
+<td align="left">13/42</td>
+<td align="left">117/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">168254</td>
+<td align="left">Influenza Infection</td>
+<td align="left">13/42</td>
+<td align="left">122/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">13</td>
+</tr>
+<tr class="odd">
+<td align="left">74160</td>
+<td align="left">Gene Expression</td>
+<td align="left">25/42</td>
+<td align="left">851/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/4670/8664/1936/6217/6223/6158/6143/6418/2971/8666/7295/6205/11128/10284/6159/6227/8665/6232/6748/200424/9045/6191/6147</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="left">72695</td>
+<td align="left">Formation of the ternary complex, and subsequently, the 43S complex</td>
+<td align="left">9/42</td>
+<td align="left">51/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">8664/6217/6223/8666/6205/6227/8665/6232/6191</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">72649</td>
+<td align="left">Translation initiation complex formation</td>
+<td align="left">9/42</td>
+<td align="left">58/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">8664/6217/6223/8666/6205/6227/8665/6232/6191</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">72702</td>
+<td align="left">Ribosomal scanning and start codon recognition</td>
+<td align="left">9/42</td>
+<td align="left">58/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">8664/6217/6223/8666/6205/6227/8665/6232/6191</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">72662</td>
+<td align="left">Activation of the mRNA upon binding of the cap-binding complex and eIFs, and subsequent binding to 43S</td>
+<td align="left">9/42</td>
+<td align="left">59/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">8664/6217/6223/8666/6205/6227/8665/6232/6191</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">392499</td>
+<td align="left">Metabolism of proteins</td>
+<td align="left">20/42</td>
+<td align="left">645/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/8664/7329/1936/6217/6223/6158/6143/8666/56886/6205/6159/6227/8665/6232/6748/9045/6191/6147</td>
+<td align="right">20</td>
+</tr>
+<tr class="odd">
+<td align="left">5663205</td>
+<td align="left">Infectious disease</td>
+<td align="left">14/42</td>
+<td align="left">360/6750</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000001</td>
+<td align="right">0.0000001</td>
+<td align="left">51121/6141/6217/6223/6158/6143/27183/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="left">1643685</td>
+<td align="left">Disease</td>
+<td align="left">15/42</td>
+<td align="left">669/6750</td>
+<td align="right">0.0000057</td>
+<td align="right">0.0000358</td>
+<td align="right">0.0000298</td>
+<td align="left">51121/6141/6217/6223/6158/6143/27183/6205/6159/6227/6777/6232/9045/6191/6147</td>
+<td align="right">15</td>
+</tr>
+<tr class="odd">
+<td align="left">76061</td>
+<td align="left">RNA Polymerase III Transcription Initiation From Type 1 Promoter</td>
+<td align="left">2/42</td>
+<td align="left">28/6750</td>
+<td align="right">0.0128970</td>
+<td align="right">0.0773821</td>
+<td align="right">0.0643594</td>
+<td align="left">2971/11128</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">74158</td>
+<td align="left">RNA Polymerase III Transcription</td>
+<td align="left">2/42</td>
+<td align="left">36/6750</td>
+<td align="right">0.0208325</td>
+<td align="right">0.1124955</td>
+<td align="right">0.0935635</td>
+<td align="left">2971/11128</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">749476</td>
+<td align="left">RNA Polymerase III Abortive And Retractive Initiation</td>
+<td align="left">2/42</td>
+<td align="left">36/6750</td>
+<td align="right">0.0208325</td>
+<td align="right">0.1124955</td>
+<td align="right">0.0935635</td>
+<td align="left">2971/11128</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">76046</td>
+<td align="left">RNA Polymerase III Transcription Initiation</td>
+<td align="left">2/42</td>
+<td align="left">36/6750</td>
+<td align="right">0.0208325</td>
+<td align="right">0.1124955</td>
+<td align="right">0.0935635</td>
+<td align="left">2971/11128</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">5221030</td>
+<td align="left">TET1,2,3 and TDG demethylate DNA</td>
+<td align="left">1/42</td>
+<td align="left">4/6750</td>
+<td align="right">0.0246630</td>
+<td align="right">0.1288840</td>
+<td align="right">0.1071940</td>
+<td align="left">200424</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">3065678</td>
+<td align="left">SUMO is transferred from E1 to E2 (UBE2I, UBC9)</td>
+<td align="left">1/42</td>
+<td align="left">6/6750</td>
+<td align="right">0.0367708</td>
+<td align="right">0.1805112</td>
+<td align="right">0.1501328</td>
+<td align="left">7329</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">901032</td>
+<td align="left">ER Quality Control Compartment (ERQC)</td>
+<td align="left">1/42</td>
+<td align="left">6/6750</td>
+<td align="right">0.0367708</td>
+<td align="right">0.1805112</td>
+<td align="right">0.1501328</td>
+<td align="left">56886</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">450520</td>
+<td align="left">HuR stabilizes mRNA</td>
+<td align="left">1/42</td>
+<td align="left">8/6750</td>
+<td align="right">0.0487318</td>
+<td align="right">0.2321929</td>
+<td align="right">0.1931169</td>
+<td align="left">6418</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">3215018</td>
+<td align="left">Processing and activation of SUMO</td>
+<td align="left">1/42</td>
+<td align="left">9/6750</td>
+<td align="right">0.0546579</td>
+<td align="right">0.2529878</td>
+<td align="right">0.2104122</td>
+<td align="left">7329</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">1855167</td>
+<td align="left">Synthesis of pyrophosphates in the cytosol</td>
+<td align="left">1/42</td>
+<td align="left">10/6750</td>
+<td align="right">0.0605478</td>
+<td align="right">0.2724653</td>
+<td align="right">0.2266118</td>
+<td align="left">3705</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">504046</td>
+<td align="left">RNA Polymerase I, RNA Polymerase III, and Mitochondrial Transcription</td>
+<td align="left">2/42</td>
+<td align="left">66/6750</td>
+<td align="right">0.0631310</td>
+<td align="right">0.2758237</td>
+<td align="right">0.2294050</td>
+<td align="left">2971/11128</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">193634</td>
+<td align="left">Axonal growth inhibition (RHOA activation)</td>
+<td align="left">1/42</td>
+<td align="left">11/6750</td>
+<td align="right">0.0664020</td>
+<td align="right">0.2758237</td>
+<td align="right">0.2294050</td>
+<td align="left">57142</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">901042</td>
+<td align="left">Calnexin/calreticulin cycle</td>
+<td align="left">1/42</td>
+<td align="left">11/6750</td>
+<td align="right">0.0664020</td>
+<td align="right">0.2758237</td>
+<td align="right">0.2294050</td>
+<td align="left">56886</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">193697</td>
+<td align="left">p75NTR regulates axonogenesis</td>
+<td align="left">1/42</td>
+<td align="left">12/6750</td>
+<td align="right">0.0722205</td>
+<td align="right">0.2853592</td>
+<td align="right">0.2373358</td>
+<td align="left">57142</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">844456</td>
+<td align="left">The NLRP3 inflammasome</td>
+<td align="left">1/42</td>
+<td align="left">12/6750</td>
+<td align="right">0.0722205</td>
+<td align="right">0.2853592</td>
+<td align="right">0.2373358</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">532668</td>
+<td align="left">N-glycan trimming in the ER and Calnexin/Calreticulin cycle</td>
+<td align="left">1/42</td>
+<td align="left">13/6750</td>
+<td align="right">0.0780037</td>
+<td align="right">0.3008713</td>
+<td align="right">0.2502373</td>
+<td align="left">56886</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">1170546</td>
+<td align="left">Prolactin receptor signaling</td>
+<td align="left">1/42</td>
+<td align="left">15/6750</td>
+<td align="right">0.0894646</td>
+<td align="right">0.3370525</td>
+<td align="right">0.2803296</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">1839117</td>
+<td align="left">Signaling by FGFR1 fusion mutants</td>
+<td align="left">1/42</td>
+<td align="left">16/6750</td>
+<td align="right">0.0951427</td>
+<td align="right">0.3502982</td>
+<td align="right">0.2913461</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">622312</td>
+<td align="left">Inflammasomes</td>
+<td align="left">1/42</td>
+<td align="left">17/6750</td>
+<td align="right">0.1007863</td>
+<td align="right">0.3627849</td>
+<td align="right">0.3017314</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">163210</td>
+<td align="left">Formation of ATP by chemiosmotic coupling</td>
+<td align="left">1/42</td>
+<td align="left">18/6750</td>
+<td align="right">0.1063956</td>
+<td align="right">0.3627849</td>
+<td align="right">0.3017314</td>
+<td align="left">517</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">3000480</td>
+<td align="left">Scavenging by Class A Receptors</td>
+<td align="left">1/42</td>
+<td align="left">19/6750</td>
+<td align="right">0.1119706</td>
+<td align="right">0.3627849</td>
+<td align="right">0.3017314</td>
+<td align="left">2512</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">499943</td>
+<td align="left">Synthesis and interconversion of nucleotide di- and triphosphates</td>
+<td align="left">1/42</td>
+<td align="left">19/6750</td>
+<td align="right">0.1119706</td>
+<td align="right">0.3627849</td>
+<td align="right">0.3017314</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">73780</td>
+<td align="left">RNA Polymerase III Chain Elongation</td>
+<td align="left">1/42</td>
+<td align="left">19/6750</td>
+<td align="right">0.1119706</td>
+<td align="right">0.3627849</td>
+<td align="right">0.3017314</td>
+<td align="left">11128</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">73980</td>
+<td align="left">RNA Polymerase III Transcription Termination</td>
+<td align="left">1/42</td>
+<td align="left">19/6750</td>
+<td align="right">0.1119706</td>
+<td align="right">0.3627849</td>
+<td align="right">0.3017314</td>
+<td align="left">11128</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">212165</td>
+<td align="left">Epigenetic regulation of gene expression</td>
+<td align="left">2/42</td>
+<td align="left">94/6750</td>
+<td align="right">0.1155515</td>
+<td align="right">0.3670460</td>
+<td align="right">0.3052754</td>
+<td align="left">10284/200424</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">2586552</td>
+<td align="left">Signaling by Leptin</td>
+<td align="left">1/42</td>
+<td align="left">21/6750</td>
+<td align="right">0.1230191</td>
+<td align="right">0.3832518</td>
+<td align="right">0.3187539</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">163200</td>
+<td align="left">Respiratory electron transport, ATP synthesis by chemiosmotic coupling, and heat production by uncoupling proteins.</td>
+<td align="left">2/42</td>
+<td align="left">99/6750</td>
+<td align="right">0.1258239</td>
+<td align="right">0.3845937</td>
+<td align="right">0.3198700</td>
+<td align="left">517/4715</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">982772</td>
+<td align="left">Growth hormone receptor signaling</td>
+<td align="left">1/42</td>
+<td align="left">23/6750</td>
+<td align="right">0.1339333</td>
+<td align="right">0.3995113</td>
+<td align="right">0.3322771</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">2122948</td>
+<td align="left">Activated NOTCH1 Transmits Signal to the Nucleus</td>
+<td align="left">1/42</td>
+<td align="left">25/6750</td>
+<td align="right">0.1447150</td>
+<td align="right">0.3995113</td>
+<td align="right">0.3322771</td>
+<td align="left">92737</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">162588</td>
+<td align="left">Budding and maturation of HIV virion</td>
+<td align="left">1/42</td>
+<td align="left">26/6750</td>
+<td align="right">0.1500565</td>
+<td align="right">0.3995113</td>
+<td align="right">0.3322771</td>
+<td align="left">27183</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">3238698</td>
+<td align="left">WNT ligand biogenesis and trafficking</td>
+<td align="left">1/42</td>
+<td align="left">26/6750</td>
+<td align="right">0.1500565</td>
+<td align="right">0.3995113</td>
+<td align="right">0.3322771</td>
+<td align="left">51699</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">1839124</td>
+<td align="left">FGFR1 mutant receptor activation</td>
+<td align="left">1/42</td>
+<td align="left">27/6750</td>
+<td align="right">0.1553655</td>
+<td align="right">0.3995113</td>
+<td align="right">0.3322771</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">1855204</td>
+<td align="left">Synthesis of IP3 and IP4 in the cytosol</td>
+<td align="left">1/42</td>
+<td align="left">27/6750</td>
+<td align="right">0.1553655</td>
+<td align="right">0.3995113</td>
+<td align="right">0.3322771</td>
+<td align="left">3705</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">2299718</td>
+<td align="left">Condensation of Prophase Chromosomes</td>
+<td align="left">1/42</td>
+<td align="left">27/6750</td>
+<td align="right">0.1553655</td>
+<td align="right">0.3995113</td>
+<td align="right">0.3322771</td>
+<td align="left">6418</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">432722</td>
+<td align="left">Golgi Associated Vesicle Biogenesis</td>
+<td align="left">1/42</td>
+<td align="left">27/6750</td>
+<td align="right">0.1553655</td>
+<td align="right">0.3995113</td>
+<td align="right">0.3322771</td>
+<td align="left">2512</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">70171</td>
+<td align="left">Glycolysis</td>
+<td align="left">1/42</td>
+<td align="left">27/6750</td>
+<td align="right">0.1553655</td>
+<td align="right">0.3995113</td>
+<td align="right">0.3322771</td>
+<td align="left">226</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">76066</td>
+<td align="left">RNA Polymerase III Transcription Initiation From Type 2 Promoter</td>
+<td align="left">1/42</td>
+<td align="left">27/6750</td>
+<td align="right">0.1553655</td>
+<td align="right">0.3995113</td>
+<td align="right">0.3322771</td>
+<td align="left">11128</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">3299685</td>
+<td align="left">Detoxification of Reactive Oxygen Species</td>
+<td align="left">1/42</td>
+<td align="left">28/6750</td>
+<td align="right">0.1606421</td>
+<td align="right">0.4066253</td>
+<td align="right">0.3381939</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">76071</td>
+<td align="left">RNA Polymerase III Transcription Initiation From Type 3 Promoter</td>
+<td align="left">1/42</td>
+<td align="left">29/6750</td>
+<td align="right">0.1658865</td>
+<td align="right">0.4071760</td>
+<td align="right">0.3386519</td>
+<td align="left">11128</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">917729</td>
+<td align="left">Endosomal Sorting Complex Required For Transport (ESCRT)</td>
+<td align="left">1/42</td>
+<td align="left">29/6750</td>
+<td align="right">0.1658865</td>
+<td align="right">0.4071760</td>
+<td align="right">0.3386519</td>
+<td align="left">27183</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">5663213</td>
+<td align="left">RHO GTPases Activate WASPs and WAVEs</td>
+<td align="left">1/42</td>
+<td align="left">30/6750</td>
+<td align="right">0.1710990</td>
+<td align="right">0.4079614</td>
+<td align="right">0.3393051</td>
+<td align="left">10109</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">983231</td>
+<td align="left">Factors involved in megakaryocyte development and platelet production</td>
+<td align="left">2/42</td>
+<td align="left">122/6750</td>
+<td align="right">0.1755033</td>
+<td align="right">0.4079614</td>
+<td align="right">0.3393051</td>
+<td align="left">832/3705</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">418990</td>
+<td align="left">Adherens junctions interactions</td>
+<td align="left">1/42</td>
+<td align="left">31/6750</td>
+<td align="right">0.1762796</td>
+<td align="right">0.4079614</td>
+<td align="right">0.3393051</td>
+<td align="left">4301</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">70263</td>
+<td align="left">Gluconeogenesis</td>
+<td align="left">1/42</td>
+<td align="left">31/6750</td>
+<td align="right">0.1762796</td>
+<td align="right">0.4079614</td>
+<td align="right">0.3393051</td>
+<td align="left">226</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">5655302</td>
+<td align="left">Signaling by FGFR1 in disease</td>
+<td align="left">1/42</td>
+<td align="left">33/6750</td>
+<td align="right">0.1865462</td>
+<td align="right">0.4197290</td>
+<td align="right">0.3490923</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">5655311</td>
+<td align="left">Signaling by FGFR1 mutants</td>
+<td align="left">1/42</td>
+<td align="left">33/6750</td>
+<td align="right">0.1865462</td>
+<td align="right">0.4197290</td>
+<td align="right">0.3490923</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">1251985</td>
+<td align="left">Nuclear signaling by ERBB4</td>
+<td align="left">1/42</td>
+<td align="left">37/6750</td>
+<td align="right">0.2067061</td>
+<td align="right">0.4534337</td>
+<td align="right">0.3771249</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">1428517</td>
+<td align="left">The citric acid (TCA) cycle and respiratory electron transport</td>
+<td align="left">2/42</td>
+<td align="left">136/6750</td>
+<td align="right">0.2071241</td>
+<td align="right">0.4534337</td>
+<td align="right">0.3771249</td>
+<td align="left">517/4715</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">2022090</td>
+<td align="left">Assembly of collagen fibrils and other multimeric structures</td>
+<td align="left">1/42</td>
+<td align="left">40/6750</td>
+<td align="right">0.2215051</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">667</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">2173782</td>
+<td align="left">Binding and Uptake of Ligands by Scavenger Receptors</td>
+<td align="left">1/42</td>
+<td align="left">40/6750</td>
+<td align="right">0.2215051</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">2512</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">3928662</td>
+<td align="left">EPHB-mediated forward signaling</td>
+<td align="left">1/42</td>
+<td align="left">40/6750</td>
+<td align="right">0.2215051</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">10109</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">451927</td>
+<td align="left">Interleukin-2 signaling</td>
+<td align="left">1/42</td>
+<td align="left">41/6750</td>
+<td align="right">0.2263779</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">199991</td>
+<td align="left">Membrane Trafficking</td>
+<td align="left">2/42</td>
+<td align="left">146/6750</td>
+<td align="right">0.2300921</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">2512/27183</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">1226099</td>
+<td align="left">Signaling by FGFR in disease</td>
+<td align="left">1/42</td>
+<td align="left">42/6750</td>
+<td align="right">0.2312210</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">917937</td>
+<td align="left">Iron uptake and transport</td>
+<td align="left">1/42</td>
+<td align="left">42/6750</td>
+<td align="right">0.2312210</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">2512</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">199992</td>
+<td align="left">trans-Golgi Network Vesicle Budding</td>
+<td align="left">1/42</td>
+<td align="left">43/6750</td>
+<td align="right">0.2360344</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">2512</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">421837</td>
+<td align="left">Clathrin derived vesicle budding</td>
+<td align="left">1/42</td>
+<td align="left">43/6750</td>
+<td align="right">0.2360344</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">2512</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">512988</td>
+<td align="left">Interleukin-3, 5 and GM-CSF signaling</td>
+<td align="left">1/42</td>
+<td align="left">43/6750</td>
+<td align="right">0.2360344</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">168643</td>
+<td align="left">Nucleotide-binding domain, leucine rich repeat containing receptor (NLR) signaling pathways</td>
+<td align="left">1/42</td>
+<td align="left">44/6750</td>
+<td align="right">0.2408185</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">3214815</td>
+<td align="left">HDACs deacetylate histones</td>
+<td align="left">1/42</td>
+<td align="left">44/6750</td>
+<td align="right">0.2408185</td>
+<td align="right">0.4536348</td>
+<td align="right">0.3772921</td>
+<td align="left">10284</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">1483249</td>
+<td align="left">Inositol phosphate metabolism</td>
+<td align="left">1/42</td>
+<td align="left">46/6750</td>
+<td align="right">0.2502990</td>
+<td align="right">0.4660740</td>
+<td align="right">0.3876379</td>
+<td align="left">3705</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">74159</td>
+<td align="left">Transcription</td>
+<td align="left">2/42</td>
+<td align="left">158/6750</td>
+<td align="right">0.2578888</td>
+<td align="right">0.4726466</td>
+<td align="right">0.3931044</td>
+<td align="left">2971/11128</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">1221632</td>
+<td align="left">Meiotic synapsis</td>
+<td align="left">1/42</td>
+<td align="left">48/6750</td>
+<td align="right">0.2596639</td>
+<td align="right">0.4726466</td>
+<td align="right">0.3931044</td>
+<td align="left">7329</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">421270</td>
+<td align="left">Cell-cell junction organization</td>
+<td align="left">1/42</td>
+<td align="left">50/6750</td>
+<td align="right">0.2689146</td>
+<td align="right">0.4840462</td>
+<td align="right">0.4025855</td>
+<td align="left">4301</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">2029482</td>
+<td align="left">Regulation of actin dynamics for phagocytic cup formation</td>
+<td align="left">1/42</td>
+<td align="left">52/6750</td>
+<td align="right">0.2780524</td>
+<td align="right">0.4949943</td>
+<td align="right">0.4116912</td>
+<td align="left">10109</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">3700989</td>
+<td align="left">Transcriptional Regulation by TP53</td>
+<td align="left">1/42</td>
+<td align="left">55/6750</td>
+<td align="right">0.2915504</td>
+<td align="right">0.5078619</td>
+<td align="right">0.4223933</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">5628897</td>
+<td align="left">TP53 Regulates Metabolic Genes</td>
+<td align="left">1/42</td>
+<td align="left">55/6750</td>
+<td align="right">0.2915504</td>
+<td align="right">0.5078619</td>
+<td align="right">0.4223933</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">1834949</td>
+<td align="left">Cytosolic sensors of pathogen-associated DNA</td>
+<td align="left">1/42</td>
+<td align="left">60/6750</td>
+<td align="right">0.3135015</td>
+<td align="right">0.5346025</td>
+<td align="right">0.4446337</td>
+<td align="left">11128</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">1980143</td>
+<td align="left">Signaling by NOTCH1</td>
+<td align="left">1/42</td>
+<td align="left">60/6750</td>
+<td align="right">0.3135015</td>
+<td align="right">0.5346025</td>
+<td align="right">0.4446337</td>
+<td align="left">92737</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">5653656</td>
+<td align="left">Vesicle-mediated transport</td>
+<td align="left">2/42</td>
+<td align="left">184/6750</td>
+<td align="right">0.3182183</td>
+<td align="right">0.5369934</td>
+<td align="right">0.4466222</td>
+<td align="left">2512/27183</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">1474290</td>
+<td align="left">Collagen formation</td>
+<td align="left">1/42</td>
+<td align="left">70/6750</td>
+<td align="right">0.3554300</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">667</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">2029480</td>
+<td align="left">Fcgamma receptor (FCGR) dependent phagocytosis</td>
+<td align="left">1/42</td>
+<td align="left">72/6750</td>
+<td align="right">0.3635105</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">10109</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">70326</td>
+<td align="left">Glucose metabolism</td>
+<td align="left">1/42</td>
+<td align="left">72/6750</td>
+<td align="right">0.3635105</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">226</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">194315</td>
+<td align="left">Signaling by Rho GTPases</td>
+<td align="left">3/42</td>
+<td align="left">349/6750</td>
+<td align="right">0.3709342</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">10109/392/6232</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">3108214</td>
+<td align="left">SUMOylation of DNA damage response and repair proteins</td>
+<td align="left">1/42</td>
+<td align="left">74/6750</td>
+<td align="right">0.3714921</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">7329</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">3108232</td>
+<td align="left">SUMO E3 ligases SUMOylate target proteins</td>
+<td align="left">1/42</td>
+<td align="left">74/6750</td>
+<td align="right">0.3714921</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">7329</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">427413</td>
+<td align="left">NoRC negatively regulates rRNA expression</td>
+<td align="left">1/42</td>
+<td align="left">74/6750</td>
+<td align="right">0.3714921</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">10284</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">611105</td>
+<td align="left">Respiratory electron transport</td>
+<td align="left">1/42</td>
+<td align="left">76/6750</td>
+<td align="right">0.3793760</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">4715</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">446728</td>
+<td align="left">Cell junction organization</td>
+<td align="left">1/42</td>
+<td align="left">77/6750</td>
+<td align="right">0.3832816</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">4301</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">5250941</td>
+<td align="left">Negative epigenetic regulation of rRNA expression</td>
+<td align="left">1/42</td>
+<td align="left">77/6750</td>
+<td align="right">0.3832816</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">10284</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">68875</td>
+<td align="left">Mitotic Prophase</td>
+<td align="left">1/42</td>
+<td align="left">77/6750</td>
+<td align="right">0.3832816</td>
+<td align="right">0.5802955</td>
+<td align="right">0.4826369</td>
+<td align="left">6418</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">15869</td>
+<td align="left">Metabolism of nucleotides</td>
+<td align="left">1/42</td>
+<td align="left">79/6750</td>
+<td align="right">0.3910210</td>
+<td align="right">0.5811505</td>
+<td align="right">0.4833480</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">2990846</td>
+<td align="left">SUMOylation</td>
+<td align="left">1/42</td>
+<td align="left">79/6750</td>
+<td align="right">0.3910210</td>
+<td align="right">0.5811505</td>
+<td align="right">0.4833480</td>
+<td align="left">7329</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">114608</td>
+<td align="left">Platelet degranulation</td>
+<td align="left">1/42</td>
+<td align="left">81/6750</td>
+<td align="right">0.3986656</td>
+<td align="right">0.5871257</td>
+<td align="right">0.4883177</td>
+<td align="left">226</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">1500620</td>
+<td align="left">Meiosis</td>
+<td align="left">1/42</td>
+<td align="left">84/6750</td>
+<td align="right">0.4099571</td>
+<td align="right">0.5879467</td>
+<td align="right">0.4890005</td>
+<td align="left">7329</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">2682334</td>
+<td align="left">EPH-Ephrin signaling</td>
+<td align="left">1/42</td>
+<td align="left">84/6750</td>
+<td align="right">0.4099571</td>
+<td align="right">0.5879467</td>
+<td align="right">0.4890005</td>
+<td align="left">10109</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">157118</td>
+<td align="left">Signaling by NOTCH</td>
+<td align="left">1/42</td>
+<td align="left">86/6750</td>
+<td align="right">0.4173695</td>
+<td align="right">0.5879467</td>
+<td align="right">0.4890005</td>
+<td align="left">92737</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">193704</td>
+<td align="left">p75 NTR receptor-mediated signalling</td>
+<td align="left">1/42</td>
+<td align="left">86/6750</td>
+<td align="right">0.4173695</td>
+<td align="right">0.5879467</td>
+<td align="right">0.4890005</td>
+<td align="left">57142</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">76005</td>
+<td align="left">Response to elevated platelet cytosolic Ca2+</td>
+<td align="left">1/42</td>
+<td align="left">86/6750</td>
+<td align="right">0.4173695</td>
+<td align="right">0.5879467</td>
+<td align="right">0.4890005</td>
+<td align="left">226</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">450531</td>
+<td align="left">Regulation of mRNA stability by proteins that bind AU-rich elements</td>
+<td align="left">1/42</td>
+<td align="left">87/6750</td>
+<td align="right">0.4210416</td>
+<td align="right">0.5880063</td>
+<td align="right">0.4890501</td>
+<td align="left">6418</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">2559580</td>
+<td align="left">Oxidative Stress Induced Senescence</td>
+<td align="left">1/42</td>
+<td align="left">88/6750</td>
+<td align="right">0.4246910</td>
+<td align="right">0.5880337</td>
+<td align="right">0.4890729</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">195258</td>
+<td align="left">RHO GTPase Effectors</td>
+<td align="left">2/42</td>
+<td align="left">234/6750</td>
+<td align="right">0.4305223</td>
+<td align="right">0.5890298</td>
+<td align="right">0.4899013</td>
+<td align="left">10109/6232</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">68886</td>
+<td align="left">M Phase</td>
+<td align="left">2/42</td>
+<td align="left">235/6750</td>
+<td align="right">0.4326824</td>
+<td align="right">0.5890298</td>
+<td align="right">0.4899013</td>
+<td align="left">6418/6232</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">2500257</td>
+<td align="left">Resolution of Sister Chromatid Cohesion</td>
+<td align="left">1/42</td>
+<td align="left">92/6750</td>
+<td align="right">0.4390656</td>
+<td align="right">0.5927385</td>
+<td align="right">0.4929859</td>
+<td align="left">6232</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">68877</td>
+<td align="left">Mitotic Prometaphase</td>
+<td align="left">1/42</td>
+<td align="left">100/6750</td>
+<td align="right">0.4667705</td>
+<td align="right">0.6249324</td>
+<td align="right">0.5197619</td>
+<td align="left">6232</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">5663220</td>
+<td align="left">RHO GTPases Activate Formins</td>
+<td align="left">1/42</td>
+<td align="left">102/6750</td>
+<td align="right">0.4734853</td>
+<td align="right">0.6287264</td>
+<td align="right">0.5229173</td>
+<td align="left">6232</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">449147</td>
+<td align="left">Signaling by Interleukins</td>
+<td align="left">1/42</td>
+<td align="left">107/6750</td>
+<td align="right">0.4899131</td>
+<td align="right">0.6452514</td>
+<td align="right">0.5366614</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">72163</td>
+<td align="left">mRNA Splicing - Major Pathway</td>
+<td align="left">1/42</td>
+<td align="left">115/6750</td>
+<td align="right">0.5151623</td>
+<td align="right">0.6676504</td>
+<td align="right">0.5552908</td>
+<td align="left">4670</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">72172</td>
+<td align="left">mRNA Splicing</td>
+<td align="left">1/42</td>
+<td align="left">115/6750</td>
+<td align="right">0.5151623</td>
+<td align="right">0.6676504</td>
+<td align="right">0.5552908</td>
+<td align="left">4670</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">446203</td>
+<td align="left">Asparagine N-linked glycosylation</td>
+<td align="left">1/42</td>
+<td align="left">117/6750</td>
+<td align="right">0.5212815</td>
+<td align="right">0.6702191</td>
+<td align="right">0.5574272</td>
+<td align="left">56886</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">72203</td>
+<td align="left">Processing of Capped Intron-Containing Pre-mRNA</td>
+<td align="left">1/42</td>
+<td align="left">119/6750</td>
+<td align="right">0.5273252</td>
+<td align="right">0.6726511</td>
+<td align="right">0.5594499</td>
+<td align="left">4670</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">109582</td>
+<td align="left">Hemostasis</td>
+<td align="left">3/42</td>
+<td align="left">450/6750</td>
+<td align="right">0.5377008</td>
+<td align="right">0.6775525</td>
+<td align="right">0.5635264</td>
+<td align="left">832/3705/226</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">1500931</td>
+<td align="left">Cell-Cell communication</td>
+<td align="left">1/42</td>
+<td align="left">125/6750</td>
+<td align="right">0.5450129</td>
+<td align="right">0.6775525</td>
+<td align="right">0.5635264</td>
+<td align="left">4301</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">194840</td>
+<td align="left">Rho GTPase cycle</td>
+<td align="left">1/42</td>
+<td align="left">125/6750</td>
+<td align="right">0.5450129</td>
+<td align="right">0.6775525</td>
+<td align="right">0.5635264</td>
+<td align="left">392</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">162599</td>
+<td align="left">Late Phase of HIV Life Cycle</td>
+<td align="left">1/42</td>
+<td align="left">126/6750</td>
+<td align="right">0.5478974</td>
+<td align="right">0.6775525</td>
+<td align="right">0.5635264</td>
+<td align="left">27183</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">1433557</td>
+<td align="left">Signaling by SCF-KIT</td>
+<td align="left">1/42</td>
+<td align="left">133/6750</td>
+<td align="right">0.5675946</td>
+<td align="right">0.6965934</td>
+<td align="right">0.5793629</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">162587</td>
+<td align="left">HIV Life Cycle</td>
+<td align="left">1/42</td>
+<td align="left">136/6750</td>
+<td align="right">0.5757775</td>
+<td align="right">0.7006197</td>
+<td align="right">0.5827116</td>
+<td align="left">27183</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">597592</td>
+<td align="left">Post-translational protein modification</td>
+<td align="left">2/42</td>
+<td align="left">309/6750</td>
+<td align="right">0.5795249</td>
+<td align="right">0.7006197</td>
+<td align="right">0.5827116</td>
+<td align="left">7329/56886</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">1236394</td>
+<td align="left">Signaling by ERBB4</td>
+<td align="left">1/42</td>
+<td align="left">143/6750</td>
+<td align="right">0.5942874</td>
+<td align="right">0.7079012</td>
+<td align="right">0.5887677</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">2559583</td>
+<td align="left">Cellular Senescence</td>
+<td align="left">1/42</td>
+<td align="left">143/6750</td>
+<td align="right">0.5942874</td>
+<td align="right">0.7079012</td>
+<td align="right">0.5887677</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">1640170</td>
+<td align="left">Cell Cycle</td>
+<td align="left">3/42</td>
+<td align="left">498/6750</td>
+<td align="right">0.6084025</td>
+<td align="right">0.7194249</td>
+<td align="right">0.5983521</td>
+<td align="left">7329/6418/6232</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">186763</td>
+<td align="left">Downstream signal transduction</td>
+<td align="left">1/42</td>
+<td align="left">151/6750</td>
+<td align="right">0.6144772</td>
+<td align="right">0.7213428</td>
+<td align="right">0.5999472</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">2467813</td>
+<td align="left">Separation of Sister Chromatids</td>
+<td align="left">1/42</td>
+<td align="left">153/6750</td>
+<td align="right">0.6193694</td>
+<td align="right">0.7218549</td>
+<td align="right">0.6003732</td>
+<td align="left">6232</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">68882</td>
+<td align="left">Mitotic Anaphase</td>
+<td align="left">1/42</td>
+<td align="left">161/6750</td>
+<td align="right">0.6383391</td>
+<td align="right">0.7360595</td>
+<td align="right">0.6121872</td>
+<td align="left">6232</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">2555396</td>
+<td align="left">Mitotic Metaphase and Anaphase</td>
+<td align="left">1/42</td>
+<td align="left">162/6750</td>
+<td align="right">0.6406444</td>
+<td align="right">0.7360595</td>
+<td align="right">0.6121872</td>
+<td align="left">6232</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">186797</td>
+<td align="left">Signaling by PDGF</td>
+<td align="left">1/42</td>
+<td align="left">177/6750</td>
+<td align="right">0.6735504</td>
+<td align="right">0.7684167</td>
+<td align="right">0.6390990</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">212436</td>
+<td align="left">Generic Transcription Pathway</td>
+<td align="left">1/42</td>
+<td align="left">189/6750</td>
+<td align="right">0.6977400</td>
+<td align="right">0.7817696</td>
+<td align="right">0.6502048</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">76002</td>
+<td align="left">Platelet activation, signaling and aggregation</td>
+<td align="left">1/42</td>
+<td align="left">189/6750</td>
+<td align="right">0.6977400</td>
+<td align="right">0.7817696</td>
+<td align="right">0.6502048</td>
+<td align="left">226</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">168249</td>
+<td align="left">Innate Immune System</td>
+<td align="left">3/42</td>
+<td align="left">569/6750</td>
+<td align="right">0.6997321</td>
+<td align="right">0.7817696</td>
+<td align="right">0.6502048</td>
+<td align="left">7295/11128/10109</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">69278</td>
+<td align="left">Cell Cycle, Mitotic</td>
+<td align="left">2/42</td>
+<td align="left">409/6750</td>
+<td align="right">0.7323302</td>
+<td align="right">0.8125855</td>
+<td align="right">0.6758346</td>
+<td align="left">6418/6232</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">3247509</td>
+<td align="left">Chromatin modifying enzymes</td>
+<td align="left">1/42</td>
+<td align="left">216/6750</td>
+<td align="right">0.7459460</td>
+<td align="right">0.8145684</td>
+<td align="right">0.6774838</td>
+<td align="left">10284</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">4839726</td>
+<td align="left">Chromatin organization</td>
+<td align="left">1/42</td>
+<td align="left">216/6750</td>
+<td align="right">0.7459460</td>
+<td align="right">0.8145684</td>
+<td align="right">0.6774838</td>
+<td align="left">10284</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">162906</td>
+<td align="left">HIV Infection</td>
+<td align="left">1/42</td>
+<td align="left">218/6750</td>
+<td align="right">0.7492018</td>
+<td align="right">0.8145684</td>
+<td align="right">0.6774838</td>
+<td align="left">27183</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">5663202</td>
+<td align="left">Diseases of signal transduction</td>
+<td align="left">1/42</td>
+<td align="left">235/6750</td>
+<td align="right">0.7752806</td>
+<td align="right">0.8373030</td>
+<td align="right">0.6963924</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">195721</td>
+<td align="left">Signaling by Wnt</td>
+<td align="left">1/42</td>
+<td align="left">245/6750</td>
+<td align="right">0.7893638</td>
+<td align="right">0.8415027</td>
+<td align="right">0.6998853</td>
+<td align="left">51699</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">71387</td>
+<td align="left">Metabolism of carbohydrates</td>
+<td align="left">1/42</td>
+<td align="left">247/6750</td>
+<td align="right">0.7920752</td>
+<td align="right">0.8415027</td>
+<td align="right">0.6998853</td>
+<td align="left">226</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">1474244</td>
+<td align="left">Extracellular matrix organization</td>
+<td align="left">1/42</td>
+<td align="left">249/6750</td>
+<td align="right">0.7947525</td>
+<td align="right">0.8415027</td>
+<td align="right">0.6998853</td>
+<td align="left">667</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">2262752</td>
+<td align="left">Cellular responses to stress</td>
+<td align="left">1/42</td>
+<td align="left">256/6750</td>
+<td align="right">0.8038607</td>
+<td align="right">0.8456197</td>
+<td align="right">0.7033095</td>
+<td align="left">7295</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">166520</td>
+<td align="left">Signalling by NGF</td>
+<td align="left">1/42</td>
+<td align="left">273/6750</td>
+<td align="right">0.8243693</td>
+<td align="right">0.8615989</td>
+<td align="right">0.7165994</td>
+<td align="left">57142</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">1280215</td>
+<td align="left">Cytokine Signaling in Immune system</td>
+<td align="left">1/42</td>
+<td align="left">284/6750</td>
+<td align="right">0.8365076</td>
+<td align="right">0.8686810</td>
+<td align="right">0.7224897</td>
+<td align="left">6777</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">422475</td>
+<td align="left">Axon guidance</td>
+<td align="left">1/42</td>
+<td align="left">292/6750</td>
+<td align="right">0.8448171</td>
+<td align="right">0.8717221</td>
+<td align="right">0.7250190</td>
+<td align="left">10109</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">168256</td>
+<td align="left">Immune System</td>
+<td align="left">4/42</td>
+<td align="left">942/6750</td>
+<td align="right">0.8567999</td>
+<td align="right">0.8784911</td>
+<td align="right">0.7306488</td>
+<td align="left">7295/11128/10109/6777</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">1266738</td>
+<td align="left">Developmental Biology</td>
+<td align="left">1/42</td>
+<td align="left">438/6750</td>
+<td align="right">0.9407901</td>
+<td align="right">0.9585408</td>
+<td align="right">0.7972269</td>
+<td align="left">10109</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">1430728</td>
+<td align="left">Metabolism</td>
+<td align="left">5/42</td>
+<td align="left">1465/6750</td>
+<td align="right">0.9664995</td>
+<td align="right">0.9732387</td>
+<td align="right">0.8094513</td>
+<td align="left">3705/517/7295/4715/226</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="left">382551</td>
+<td align="left">Transmembrane transport of small molecules</td>
+<td align="left">1/42</td>
+<td align="left">526/6750</td>
+<td align="right">0.9672311</td>
+<td align="right">0.9732387</td>
+<td align="right">0.8094513</td>
+<td align="left">2512</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">162582</td>
+<td align="left">Signal Transduction</td>
+<td align="left">7/42</td>
+<td align="left">2071/6750</td>
+<td align="right">0.9879240</td>
+<td align="right">0.9879240</td>
+<td align="right">0.8216652</td>
+<td align="left">51699/57142/10109/6777/392/6232/92737</td>
+<td align="right">7</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="kegg" class="section level1">
+<h1>KEGG</h1>
+<pre class="sourceCode r"><code class="sourceCode r">keggAnalysis &lt;-<span class="st"> </span><span class="kw">getKEGGAnalysis</span>(top_geneNames$hgnc_symbol)
+knitr::<span class="kw">kable</span>(<span class="kw">summary</span>(keggAnalysis), <span class="dt">row.names=</span><span class="ot">FALSE</span>)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">ID</th>
+<th align="left">Description</th>
+<th align="left">GeneRatio</th>
+<th align="left">BgRatio</th>
+<th align="right">pvalue</th>
+<th align="right">p.adjust</th>
+<th align="right">qvalue</th>
+<th align="left">geneID</th>
+<th align="right">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">hsa03010</td>
+<td align="left">Ribosome</td>
+<td align="left">13/37</td>
+<td align="left">92/5894</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6217/6223/6158/6143/6205/6159/6227/6232/9045/6191/6147</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">hsa03013</td>
+<td align="left">RNA transport</td>
+<td align="left">5/37</td>
+<td align="left">152/5894</td>
+<td align="right">0.0023908</td>
+<td align="right">0.0478166</td>
+<td align="right">0.0478166</td>
+<td align="left">8664/7329/8666/10284/8665</td>
+<td align="right">5</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="go" class="section level1">
+<h1>GO</h1>
+<pre class="sourceCode r"><code class="sourceCode r">goAnalysis &lt;-<span class="st"> </span><span class="kw">getGOAnalysis</span>(top_geneNames$hgnc_symbol)</code></pre>
+<pre><code>## Loading required package: GO.db</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">knitr::<span class="kw">kable</span>(<span class="kw">summary</span>(goAnalysis), <span class="dt">row.names=</span><span class="ot">FALSE</span>)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">ID</th>
+<th align="left">Description</th>
+<th align="left">GeneRatio</th>
+<th align="left">BgRatio</th>
+<th align="right">pvalue</th>
+<th align="right">p.adjust</th>
+<th align="right">qvalue</th>
+<th align="left">geneID</th>
+<th align="right">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><a href="GO:0003723" class="uri">GO:0003723</a></td>
+<td align="left">RNA binding</td>
+<td align="left">34/87</td>
+<td align="left">1562/18585</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">10284/10657/1936/226/23481/23518/2971/4670/4691/51441/55135/55661/56252/57142/6141/6143/6147/6158/6159/6191/6205/6217/6223/6227/6232/7178/7295/7329/81887/8664/8665/8666/9045/9987</td>
+<td align="right">34</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="GO:0044822" class="uri">GO:0044822</a></td>
+<td align="left">poly(A) RNA binding</td>
+<td align="left">29/87</td>
+<td align="left">1162/18585</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">10284/10657/226/23481/23518/4670/4691/51441/55661/56252/57142/6143/6147/6158/6159/6191/6205/6217/6223/6227/6232/7178/7295/7329/81887/8664/8666/9045/9987</td>
+<td align="right">29</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="GO:0003735" class="uri">GO:0003735</a></td>
+<td align="left">structural constituent of ribosome</td>
+<td align="left">13/87</td>
+<td align="left">150/18585</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+<td align="left">51121/6141/6143/6147/6158/6159/6191/6205/6217/6223/6227/6232/9045</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="GO:0003676" class="uri">GO:0003676</a></td>
+<td align="left">nucleic acid binding</td>
+<td align="left">44/87</td>
+<td align="left">3901/18585</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000001</td>
+<td align="right">0.0000001</td>
+<td align="left">10284/10657/11128/1936/200424/226/23070/23481/23518/2971/4666/4670/4691/51441/54531/54932/55135/55661/56252/57142/6141/6143/6147/6158/6159/6191/6205/6217/6223/6227/6232/6418/6777/7178/7295/7329/7629/79744/81887/8664/8665/8666/9045/9987</td>
+<td align="right">44</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="GO:0005198" class="uri">GO:0005198</a></td>
+<td align="left">structural molecule activity</td>
+<td align="left">16/87</td>
+<td align="left">629/18585</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000017</td>
+<td align="right">0.0000016</td>
+<td align="left">10109/1421/374454/51121/6141/6143/6147/6158/6159/6191/6205/6217/6223/6227/6232/9045</td>
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="GO:1901363" class="uri">GO:1901363</a></td>
+<td align="left">heterocyclic compound binding</td>
+<td align="left">48/87</td>
+<td align="left">5766/18585</td>
+<td align="right">0.0000025</td>
+<td align="right">0.0001128</td>
+<td align="right">0.0001048</td>
+<td align="left">10284/10657/11128/1936/200424/226/23070/23481/23518/27183/2971/3705/4666/4670/4691/51441/54531/54676/54932/55135/55661/56252/57142/5754/6141/6143/6147/6158/6159/6191/6205/6217/6223/6227/6232/6418/6777/7178/7295/7329/7629/79744/81887/8664/8665/8666/9045/9987</td>
+<td align="right">48</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="GO:0097159" class="uri">GO:0097159</a></td>
+<td align="left">organic cyclic compound binding</td>
+<td align="left">48/87</td>
+<td align="left">5839/18585</td>
+<td align="right">0.0000037</td>
+<td align="right">0.0001433</td>
+<td align="right">0.0001331</td>
+<td align="left">10284/10657/11128/1936/200424/226/23070/23481/23518/27183/2971/3705/4666/4670/4691/51441/54531/54676/54932/55135/55661/56252/57142/5754/6141/6143/6147/6158/6159/6191/6205/6217/6223/6227/6232/6418/6777/7178/7295/7329/7629/79744/81887/8664/8665/8666/9045/9987</td>
+<td align="right">48</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="GO:0005488" class="uri">GO:0005488</a></td>
+<td align="left">binding</td>
+<td align="left">81/87</td>
+<td align="left">13788/18585</td>
+<td align="right">0.0000057</td>
+<td align="right">0.0001931</td>
+<td align="right">0.0001794</td>
+<td align="left">10109/10284/10657/11006/11128/11132/11337/1421/159371/1936/200424/226/23070/23085/23481/23518/23576/2512/27183/2971/29954/30000/3257/3705/392/3954/4301/4666/4670/4691/4715/51441/51699/517/54531/54676/54918/54932/55135/55661/55670/55680/56252/56886/57142/5754/5757/58525/6141/6143/6147/6158/6159/6191/6205/6217/6223/6227/6232/6418/65258/667/6777/7178/7295/7329/7629/79744/8019/81887/832/83440/8664/8665/8666/9045/9168/92105/92737/9802/9987</td>
+<td align="right">81</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="GO:0003674" class="uri">GO:0003674</a></td>
+<td align="left">molecular_function</td>
+<td align="left">87/87</td>
+<td align="left">16480/18585</td>
+<td align="right">0.0000280</td>
+<td align="right">0.0008489</td>
+<td align="right">0.0007888</td>
+<td align="left">10109/10284/10657/11006/11128/11132/11280/11337/1421/159371/1936/200424/226/23070/23085/23094/23481/23518/23576/2512/27183/2971/29954/30000/3257/3705/374454/392/3954/4301/440400/4666/4670/4691/4715/51121/51441/51507/51699/517/54531/54676/54918/54932/55135/55661/55670/55680/56252/56886/57142/5754/5757/58525/6141/6143/6147/6158/6159/6191/6205/6217/6223/6227/6232/6418/65258/667/6777/7178/7295/7329/7629/79744/8019/81887/832/83440/8664/8665/8666/9045/9168/92105/92737/9802/9987</td>
+<td align="right">87</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="GO:0008022" class="uri">GO:0008022</a></td>
+<td align="left">protein C-terminus binding</td>
+<td align="left">6/87</td>
+<td align="left">166/18585</td>
+<td align="right">0.0001289</td>
+<td align="right">0.0035184</td>
+<td align="right">0.0032695</td>
+<td align="left">27183/4301/4691/55670/667/7329</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="GO:0008135" class="uri">GO:0008135</a></td>
+<td align="left">translation factor activity, nucleic acid binding</td>
+<td align="left">4/87</td>
+<td align="left">83/18585</td>
+<td align="right">0.0006211</td>
+<td align="right">0.0154144</td>
+<td align="right">0.0143238</td>
+<td align="left">1936/8664/8665/8666</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="GO:0019843" class="uri">GO:0019843</a></td>
+<td align="left">rRNA binding</td>
+<td align="left">3/87</td>
+<td align="left">38/18585</td>
+<td align="right">0.0007425</td>
+<td align="right">0.0168919</td>
+<td align="right">0.0156967</td>
+<td align="left">6147/6191/6205</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="GO:0008143" class="uri">GO:0008143</a></td>
+<td align="left">poly(A) binding</td>
+<td align="left">2/87</td>
+<td align="left">13/18585</td>
+<td align="right">0.0016340</td>
+<td align="right">0.0343135</td>
+<td align="right">0.0318857</td>
+<td align="left">10657/9987</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="GO:0003743" class="uri">GO:0003743</a></td>
+<td align="left">translation initiation factor activity</td>
+<td align="left">3/87</td>
+<td align="left">52/18585</td>
+<td align="right">0.0018555</td>
+<td align="right">0.0361826</td>
+<td align="right">0.0336226</td>
+<td align="left">8664/8665/8666</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="GO:0070717" class="uri">GO:0070717</a></td>
+<td align="left">poly-purine tract binding</td>
+<td align="left">2/87</td>
+<td align="left">16/18585</td>
+<td align="right">0.0024910</td>
+<td align="right">0.0453358</td>
+<td align="right">0.0421281</td>
+<td align="left">10657/9987</td>
+<td align="right">2</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="plots" class="section level1">
+<h1>Plots</h1>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># hmm, not doing anything</span>
+<span class="kw">barplot</span>(keggAnalysis)</code></pre>
+<p><img src="data:image/png;base64,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" /></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">barplot</span>(goAnalysis)</code></pre>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAEgCAIAAACb4TnXAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAOaUlEQVR4nO3dT68VSRnH8epz7yUMTia6URkS/4yJLkxcyXpegG5duHcM74B5B/geZsXCsHBpZG+IuDIxgYSMZiYBAgiBC6gxwnBvuzhjT1PVVf10VT3d1dXfz4Jwzunqru5zfreqq8/patq2NQB07JauAFAzAgYoImCAIgIGKCJggCICBigiYIAiAgYoImCAIgIGKCJggCICBigiYIAiAgYoImCAIgIGKCJggCICBigiYIAiAgYoImCAIgIGKCJggCICBigiYIAiAgYoImCAIgIGKCJggCICBigiYIAiAgYoImCAIgIGKCJggCICBigiYIAiAgYoImCAIgIGKCJggCIChqJdvXr1zp07S9ciHgFD0R4+fPjgwYOlaxGPgAGKCBigiIABiggYoIiAAYoIGKCIgAGKCBigiIABiggYoIiAAYoIGKCIgAGKCBigiIABigjYYhqHu4CvoG9tko1GvCRZYVzx6h0uXYFNa9u2/7BpmtFnsC60YAVp29ZqB9xnBu1zKFw4sPXosunFa0ULtkVdDvup6FrL/X/6WXXb1VzFq2+iCVhBBj9t2T+F/bX51mw97ysSOEtMKV4TArYkt0M4uFg4Y/2XJGnsv+pbXrIt4+/BphS/dOnS8fFx9/Dp06cXL14c3pM1IGBLYkjD9fLly+fPn3cPX716tWBl0hGwggTaH99L+xbAagdWHdRr1671H165cmWpmmRBwFZD3p3bwrnNWjBMDygiYGtijQqE+5O+lUjWIK+AvGx68TWii1iW0WHAxKvJ1hoiTtWs4ikZS9+X8hGwxQQG5RMXGC3ra/d8Za1nrKH2lOLVo4uI+VTfXrkIGBaz6ssJQnQRMZ/wdxQLtK9tSj0JGGZVfqjyImCoVtf+9Bsiq1FyX9ob/AWAu4bRBplzMFSu/zua8GLGmP3P6kYXlhchYKjc4EWC/nc4u0sXGt1XuojAlxLvSjKIgGFz9mdlwpMxydoCr9JFROXyXt0O/IibczBskTWK2D05+Mw+J74RQvcX2aYXrcGmjC4i6hf+7uXgM4FXw4tZaMEARQQMUEQXEdUq4WtZBAyIIfzRKgFDnd68Nv+4m9qCHZ0x3/ru8FQbozdv3SNgqNO9T09/9ZPUeyqe/6D57Wdn3ecDd1a1FiBgQCT3uyDu/wkY6nRwaD76zVH38M+/P7n9p1NJwZ99dPj+D/7fLQz2MQevPlsIGOp08sZ88vEXEQX/8Mmb7v/nP2h++fGEjLi3WCZgqFNjzIERNVkBB0Y0fUzH/WkMAUOdGmPOJAfsKPabGJyDoXKNaY+SA+aLx+DNWwefJGDSm4cFJjcZfH50ne6vG4SzGU2qibxicTdRsya2nFpcT2NMesCO/C8Jv0BMwETi7uE+WmQ0UaV9alckS8AOPedgU9aAWNn/eLuxFAY1S00Sd6G0PwSZuogErKd5e/ptXz/K99J2Wo/B42CldPQeZlmKqx7kI3OSvIZUVQXMBL8kJv/+WGCdchGfHt/8enk/hZLjIDx0gd/PpxTPghZMha9/Ndr1sp4Z/Uz3F4jOgPUJ860hvP6pNZF0QYUDIa1n/qGU4rkmQc90HSz1B5O1BWxdttMplcs1CXpjzGGGgGkN9G9R9+dc0nwZp/1Jj0dg076XlGqyoHyToLc5WjACtpDACIreFoXdOe2arEJjzEH4u7oCu+Q1EDAbn85qpHcRDwmYxTdQIRzDEPYPo8smskYF4moSPZrqrnnqH6PE4pM0ObqIO7qIlsB1sPAlskKMptQ3cDd1E93/E4vHZSy6+CScg6kIfzrDT0quRAnXP2m4fPD56AVGy4aPw+hpnjXUnlJcT5ZRxBxrAOYy7/Bmm97BazgHy0X4bXRkpJq3JscZFOdg2Yx252b4dlX1rJMu7UN0kPxdxPQ1VBUw7RG8QmqyarMdmYYuIqCKUURAS5YWjHMwwIsLzYCiHC0Y52DAELqIgK4co4gEDBiS6UIzXURgGF1EQBMBA7Rk6SJyDgb4ZOkicg4GeKS3P7RggFd6+0MLBgzL9G167xqEt10gYKhWji5i6o2DCBiqpTdMH7hjl7UAAUOd5vkuYmBei/3/CRjq1Bw03//197qHxzef/fP2S0nBb//8/Nn339n//+DsQWgTghtDEDDUqT1tH/3uXvfw5D9vhA3a8R8fN4dfTqryznfO+RYLTBXQf0jAUKembU+e/7f/jHAmotN/vf7q/98YDkjgnsrWw2UCVtRNl4qqTMDUac7Xsl96FrzQPO0crL63Sjiz42zb1Su4ZaqDHO795wbvSU4XsbZbrFW2Owna9Juu+W6cP3pX886hO52utWh/irfB+28Ozn7dPSOplr1Xnmvkgbm3fbezHHzet0fyPY2rj7V++b6HC1qHXVLJ8EuBe4MGirh/vye9j9mV+G36wYH8STe1DV/hlqxn9MKCux7fQ9/zvj3KtadTtzu6zkkFIyqZvpj7qnn7L4twJXmV9WVfa2+n3iy6KzX4fyFfHcJ1m79TpFGflOMv6bFYbfXUbY0WcQfQIlZijLl8+fKLFy+6h3fv3o2bBH0Fv2jO+8G1uotCiXVYNocrtexBu3Xr1pMnT7qHKRXQ+y6inO4gh9Wbj8tYtP6ZQPYPysz7MhvVg2YEx+369ev9h9GToNc/u0ohI8tKn5gSdk2PXsxmPG5tegtmVANWQkJS6uCOE+SrV2hbqzbnQTPKx62sQQ7rjFO45/I3QLKkrw5xdcvL7e7mrY/GOoXDkpJtZanezO9jcffkaJ1LGdbzbdu2zkUeX3IGlxw9pqN1MOJuhluBwT0aLDK6pxH1CWw3ZZ2SzbkrlBznwEvR1cu+jz5Nji5ihhZMMrpqnAM9+JJbVr7k1DoEngxUVVIZ+dBzRH3CVQq8KtkR62HX+Otta7QOkod6ighYYnmgWOkdvNKH6YHlZOkiEjDAgy4ioKUhYICmMkYRE8sDxeIcDFBU+XcRgQVludCs+11EYNU4BwMUcQ4G6GEUEdBEwAAtmSZ/oIsIeDCKCCiiiwjoYZAD0MQwPaCIFgzQ0uRof2jBAB/1czDJXbEIGKqldw4mv1shAUOtFL9N37/zcZ97RzoChmrNPMgxeE9VAoY6NQe7r/3ip93D13+99+bvjyUFz374o90339v/f/fu2cRqELAYU2cSnL8akin55C9J6lDc3flP29d/+fyrR8/+Lfze0xd/e9Tcf7r//8H5r0/aptVpbJqGgKFS7enJ5281WcJxidNHx70i0/5kuPcwJmBaZvhznncTiWsrq/kyxix6oXlz52DdVLTdM4E5Ptx5iq0i7srdBaauxDgdDLdW4ZrLJ1UIVzhwrLIXr2n6osF5LbYSMDP0cZS8taPT7Ujm45m6TLiUpBope+Q+H6jJ6CYiimeifuvs0Yk+zKYClnIG360hnNLBP8mSZcLVi6uGb20plRFuKKV4vknQ+T3YCmXpzwhbTu1qlCnXJOilzA+WWB4Z+znCmQ3rlmsSdMO36euQqzEp7jrS+vF7sPUZjcE816BJowBdxCJNmux8dAHhMtmrEV7z1MrEbSh78akIWBHcizaTJjsfXSBime5h93GcWo3wKGLKNOTyDWkUn4hRxLmER6LdBkFednAB4TKTikyqRiDGoxWO21BccU1MIYuNmfPUkRkusXXaeeNCM7bFPc9U3RotGDZnzqsLnIMBimjBAD0tw/SAlkyjiHQRAQ+6iIAeRhEBXZyDAVraxpwkr4SAAR50EQE9rcnQgqWugYChWgzTA1oaY9LPwdLXQMBQK77JAWjK0YIRMGBYW8IczbvE8gACCBigiIABijgHQ52aH//wzMvbqWvZpd5VjoChUrudee/dpStBFxHQRMDeonqjWaWVLzIJy+hGtzk1jGvWgGU/6LyLc4o+2lt+m2jBEGP07mtM/rKnMsjhm2u8+7ebZcN6aK3EmiVVssLBNVjbMs7fVOF0J+60Cb5ZFCSzKwSWGdzZ8PGZtGkzdgSER3v0mFsFBzdUdxTzB8w3fbD7fsgP7uCMO4Nv8KQ1TK2JO/XO4Dol8wMFlkmZXkhYNnwE0o92X7/gBvuKSw7TR2TDxL7TkplHJq3Etx5JbQPLpOysvGy4XZVXwHp1tKqS5TNOgl4CrS5iYDKbdHnXWfif1Rl6UOEjMHMX7saNG48fP+4enjt3bs6tZ5c/YP3OQLHd68CMe/NXYJHVLnUEAudvezdv3uw/TJkEvQRaXcSSY1bCibVSBeI6k4lbDAdm4/IP088wP03hnboIgT1K2dksB0rjaNf3DvoUeh0s0IGRj/hFbCudpLaBZYQ7O1jnuANl5j3aJjiNbX1UzsF8jZh1MSpcyvfQt8LwGka3lb3X5NZWuMzgS8K9k2zatzZrRN5die/tG+0fBt736qmcg4WPtW+Z8CB44JM6WkS+LUnNo2sr3KOpxeWrlVdm9GiPLh9YYFNna4V2EYE68HswzGeDHUUChvlsKlp7dBEBRQQMUETAAEUEDFBEwABFBAxQRMAARQQMUETAAEUEDFBEwABFBAxQtKFf5mCNdrvdhQsX7t+/v3RFItGCoWht2z579mzpWsQjYIAiAgYoImCAIgIGKGIUEVBECwYoImCAIgIGKOK2bShL/67d1h28JXcFLw2DHChIfw5o48wQLZ9Ksxx0EVEKdyrnCmY5ImAoSL+lks8OUzIChlJYuVpLhMIY5EApuqlou2fWcqIVQAuGsuznUly6FtkQMBShP8JhjSWuGl1ElMKKUwXpMrRgKEQ3wiHpInIdDIhhtVprSVHAav4SoHqBPiFflQIwgC4ioIiAAYoIGKCIgAGKCBigiIABiggYoIiAAYoIGKCIgAGKCBigiIABiggYoIiAAYoIGKCIgAGKCBigiIABiggYoIiAAYoIGKCIgAGKCBigiIABiggYoIiAAYoIGKCIgAGKCBigiIABiv4HESRtjjQ3hawAAAAASUVORK5CYII=" /></p>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
