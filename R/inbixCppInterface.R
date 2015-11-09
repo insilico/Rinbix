@@ -8,9 +8,18 @@
 #' 
 #' \code{dcgainInbix} 
 #' 
-#' @param regressionData Data frame with sample rows, gene columns 
+#' @references 
+#' \itemize{
+#'   \item \url{http://www.biodatamining.org/content/8/1/5}
+#'   {Differential co-expression network centrality and machine learning feature selection for identifying susceptibility hubs in networks with scale-free structure}
+#'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+#' }
+#' @family inbix interface functions
+#' @family GAIN functions
+#' @seealso \code{\link{dcgain}}
+#' @param regressionData \code{data.frame} with sample rows, gene columns 
 #' plus phenotype column.
-#' @param outPrefix String file output prefix.
+#' @param outPrefix \code{string} file output prefix.
 #' @return List of gene scores and associated p-values.
 #' @examples
 #' data(testdata10)
@@ -42,7 +51,7 @@ dcgainInbix <- function(regressionData, outPrefix="Rinbix") {
 #' 
 #' \code{inbixExists} 
 #' 
-#' @return TRUE if found, else exits with error
+#' @return \code{logical} TRUE if found, else exits with error
 #' @export
 inbixExists <- function() {
   if(Sys.which("inbix") == "") {
@@ -56,9 +65,15 @@ inbixExists <- function() {
 #' 
 #' \code{modularityInbix} 
 #' 
-#' @param gainMatrix GAIN matrix.
-#' @param outPrefix String file output prefix.
-#' @return list of gene module assignments.
+#' @references 
+#' \itemize{
+#'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+#' }
+#' @family inbix interface functions
+#' @seealso \code{\link{modularity}}
+#' @param gainMatrix \code{matrix} GAIN matrix.
+#' @param outPrefix \code{string} file output prefix.
+#' @return \code{list} of gene module assignments.
 #' @examples
 #' data(testdata10)
 #' corMatrix <- cor(testdata10[, -ncol(testdata10)])
@@ -87,14 +102,19 @@ modularityInbix <- function(gainMatrix, outPrefix="Rinbix") {
 #' 
 #' \code{permuteGainInbix} 
 #' 
-#' @param regressionData Data frame with sample rows, gene columns
+#' @references 
+#' \itemize{
+#'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+#' }
+#' @family inbix interface functions
+#' @param regressionData \code{data.frame} with sample rows, gene columns
 #' plus phenotype column.
-#' @param method String regain or dcgain.
-#' @param numPerms Numeric number of permutation runs.
-#' @param pThresh Numeric p-value threshold for GAIN method.
-#' @param threshold Numeric permute GAIN threshold.
-#' @param outPrefix String file output prefix.
-#' @return list of gene thresholds.
+#' @param method \code{string} regain or dcgain.
+#' @param numPerms \code{numeric} number of permutation runs.
+#' @param pThresh \code{numeric} p-value threshold for GAIN method.
+#' @param threshold \code{numeric} permute GAIN threshold.
+#' @param outPrefix \code{string} file output prefix.
+#' @return \code{list} of gene thresholds.
 #' @examples 
 #' data(testdata10)
 #' inbixRegainThresholds <- permuteGainInbix(testdata10)
@@ -146,8 +166,13 @@ permuteGainInbix <- function(regressionData, method="regain", numPerms=100,
 #' 
 #' \code{readInbixNumericAsRegressionData} 
 #' 
-#' @param baseInbixName String base filename.
-#' @return data frame with numeric data in first m columns and phenotye in m+1 column.
+#' @references 
+#' \itemize{
+#'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+#' }
+#' @family inbix interface functions
+#' @param baseInbixName \code{string} base filename.
+#' @return \code{data.frame} with numeric data in first m columns and phenotye in m+1 column.
 #' @export
 readInbixNumericAsRegressionData <- function(baseInbixName) {
   inbixNumericFile <- paste(baseInbixName, ".num", sep="")
@@ -167,14 +192,23 @@ readInbixNumericAsRegressionData <- function(baseInbixName) {
 #' 
 #' \code{regainInbix} 
 #' 
-#' @param regressionData Data frame with sample rows, gene columns 
+#' @references 
+#' \itemize{
+#'   \item \url{http://www.nature.com/gene/journal/v11/n8/full/gene201037a.html}
+#'   {Genes & Immunity Paper}
+#'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+#' }
+#' @family inbix interface functions
+#' @family GAIN functions
+#' @seealso \code{\link{regainParallel}}
+#' @param regressionData \code{data.frame} with sample rows, gene columns 
 #' plus phenotype column.
-#' @param stdBetas Flag use standardized beta coefficients.
-#' @param absBetas Flag take absolute value of beta coefficients.
-#' @param outPrefix String file output prefix.
-#' @param pThreshold Numeric p-value threshold for GAIN method.
-#' @param verbose Flag to send verbose messages to stdout.
-#' @return list of gene scores and associated p-values.
+#' @param stdBetas \code{logical} use standardized beta coefficients (coef/stderr).
+#' @param absBetas \code{logical} take absolute value of beta coefficients.
+#' @param outPrefix \code{string} file output prefix.
+#' @param pThreshold \code{numeric} p-value threshold for GAIN method.
+#' @param verbose \code{logical} to send verbose messages to stdout.
+#' @return \code{list} of gene scores and associated p-values.
 #' @examples
 #' data(testdata10)
 #' inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
@@ -233,10 +267,20 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
 #' 
 #' \code{snprankInbix} 
 #' 
-#' @param gainMatrix GAIN matrix.
-#' @param outPrefix String file output prefix.
-#' @param gamma Numeric gamma damping parameter (see paper).
-#' @return data frame of gene snpranks.
+#' @references 
+#' \itemize{
+#'   \item \url{http://www.nature.com/gene/journal/v11/n8/full/gene201037a.html}
+#'   {Genes & Immunity Paper}
+#'   \item \url{http://insilico.utulsa.edu/index.php/snprank/}{SNPrank Software}
+#'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+#' }
+#' @family inbix interface functions
+#' @family feature selection functions
+#' @seealso \code{\link{snprank}}
+#' @param gainMatrix \code{matrix} GAIN matrix.
+#' @param outPrefix \code{string} file output prefix.
+#' @param gamma \code{numeric} gamma damping parameter (see paper).
+#' @return \code{data.frame} of gene snpranks.
 #' @examples
 #' data(testdata10)
 #' inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
@@ -271,9 +315,10 @@ snprankInbix <- function(gainMatrix, outPrefix="Rinbix", gamma=0.85) {
 #' 
 #' \code{writeRegressionDataAsInbixNumeric} 
 #' 
-#' @param regressionData Data frame with sample rows, gene columns 
+#' @family inbix interface functions
+#' @param regressionData \code{data.frame} with sample rows, gene columns 
 #' plus phenotype column.
-#' @param baseInbixName String base filename to write.
+#' @param baseInbixName \code{string} base filename to write.
 #' @export
 writeRegressionDataAsInbixNumeric <- function(regressionData, baseInbixName) {
   numSamples <- nrow(regressionData)

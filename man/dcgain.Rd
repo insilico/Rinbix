@@ -2,18 +2,18 @@
 % Please edit documentation in R/inbixGAIN.R
 \name{dcgain}
 \alias{dcgain}
-\title{Differential coexpression genetic association interaction network algorithm.}
+\title{Differential coexpression genetic association interaction network (dcGAIN) algorithm.}
 \usage{
 dcgain(inbixData, verbose = FALSE)
 }
 \arguments{
-\item{inbixData}{Data frame with samples in rows, genes in columns
+\item{inbixData}{\code{data.frame} with samples in rows, genes in columns
 and phenotype in the last column.}
 
-\item{verbose}{Flag to send messages to stdout.}
+\item{verbose}{\code{logical} to send messages to stdout.}
 }
 \value{
-results Matrix of gene by gene differential coexpression values.
+results \code{matrix} of gene by gene differential coexpression values.
 }
 \description{
 \code{dcgain}
@@ -22,7 +22,31 @@ results Matrix of gene by gene differential coexpression values.
 data(testdata10)
 rinbixDcgain <- dcgain(testdata10)
 }
-\seealso{
-\code{\link{dmgain}} for differential modularity.
+\references{
+\itemize{
+  \item \url{http://www.biodatamining.org/content/8/1/5}
+  {Differential co-expression network centrality and machine learning feature selection for identifying susceptibility hubs in networks with scale-free structure}
+  \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
 }
+}
+\seealso{
+\code{\link{dmgain}} for differential modularity. 
+\code{\link{dcgainInbix}} for inbix differential coexpression GAIN.
+
+Other GAIN functions: \code{\link{dcgainInbix}},
+  \code{\link{dmgain}}, \code{\link{fitInteractionModel}},
+  \code{\link{fitMainEffectModel}},
+  \code{\link{getInteractionEffects}},
+  \code{\link{getMainEffects}}, \code{\link{regainInbix}},
+  \code{\link{regainParallel}}, \code{\link{regain}}
+
+Other inbix synonym functions: \code{\link{geneLowValueFilter}},
+  \code{\link{geneLowVarianceFilter}},
+  \code{\link{getMainEffects}},
+  \code{\link{modularityBestSplit}},
+  \code{\link{modularity}}, \code{\link{regainParallel}},
+  \code{\link{regain}}
+}
+\keyword{array}
+\keyword{models}
 

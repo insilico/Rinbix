@@ -7,12 +7,17 @@
 modularity(G, verbose = FALSE)
 }
 \arguments{
-\item{G}{Matrix Adjacency matrix.}
+\item{G}{\code{matrix} Adjacency matrix.}
 
-\item{verbose}{Flag to output messages to stdout.}
+\item{verbose}{\code{logical} to output messages to stdout.}
 }
 \value{
-list of groups, Q and module assignments.
+\code{list} with:
+\itemize{
+  \item \code{list} \code{groups} group assignments
+  \item \code{numeric} \code{q} modularity
+  \item \code{data.frame} \code{modules} modules
+}
 }
 \description{
 \code{modularity}
@@ -22,4 +27,23 @@ data(testdata10)
 rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
 rinbixModulesDF <- Rinbix::modularity(rinbixRegain)
 }
+\seealso{
+Other cluster functions: \code{\link{loadRipmResultsFromRdata}},
+  \code{\link{mergeSumPowers}},
+  \code{\link{modularityBestSplit}},
+  \code{\link{ripMKernelStack}}, \code{\link{ripM}},
+  \code{\link{ripmVariableModuleAssignments}},
+  \code{\link{saveModuleListGmt}},
+  \code{\link{saveRipmModules}},
+  \code{\link{saveRipmResultsToRdata}}
+
+Other inbix synonym functions: \code{\link{dcgain}},
+  \code{\link{geneLowValueFilter}},
+  \code{\link{geneLowVarianceFilter}},
+  \code{\link{getMainEffects}},
+  \code{\link{modularityBestSplit}},
+  \code{\link{regainParallel}}, \code{\link{regain}}
+}
+\keyword{cluster}
+\keyword{math}
 

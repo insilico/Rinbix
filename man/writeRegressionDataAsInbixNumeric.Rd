@@ -7,12 +7,21 @@
 writeRegressionDataAsInbixNumeric(regressionData, baseInbixName)
 }
 \arguments{
-\item{regressionData}{Data frame with sample rows, gene columns 
+\item{regressionData}{\code{data.frame} with sample rows, gene columns 
 plus phenotype column.}
 
-\item{baseInbixName}{String base filename to write.}
+\item{baseInbixName}{\code{string} base filename to write.}
 }
 \description{
 \code{writeRegressionDataAsInbixNumeric}
+}
+\seealso{
+Other inbix interface functions: \code{\link{dcgainInbix}},
+  \code{\link{modularityInbix}},
+  \code{\link{permuteGainInbix}},
+  \code{\link{rankDcgainSnprank}},
+  \code{\link{rankRegainSnprank}},
+  \code{\link{readInbixNumericAsRegressionData}},
+  \code{\link{regainInbix}}, \code{\link{snprankInbix}}
 }
 

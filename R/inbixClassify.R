@@ -8,8 +8,9 @@
 #' 
 #' \code{classifyConfusionMatrix} 
 #' 
-#' @param confusionMatrix Matrix of classification counts.
-#' @return data frame of classifier stats.
+#' @family classification functions
+#' @param confusionMatrix \code{matrix} of classification counts.
+#' @return \code{data.frame} of classifier stats.
 #' @examples
 #' testValues <- c(0,0,0,0,0,1,1,1,1,1)
 #' trueValues <- c(0,1,0,1,0,1,0,1,0,0)
@@ -48,10 +49,11 @@ classifyConfusionMatrix <- function(confusionMatrix) {
 #' 
 #' \code{classifyOneVarWeka} 
 #' 
-#' @param varName String variable name.
-#' @param trainData Data frame with class column.
-#' @param testData Data frame with class column.
-#' @return list of classifier stats.
+#' @family classification functions
+#' @param varName \code{string} variable name.
+#' @param trainData \code{data.frame} with class column.
+#' @param testData \code{data.frame} with class column.
+#' @return \code{list} of classifier stats.
 #' @examples
 #' data(testdata100ME4)
 #' testdata100ME4$Class <- factor(testdata100ME4$Class)
@@ -73,11 +75,12 @@ classifyOneVarWeka <- function(varName, trainData, testData) {
 #' 
 #' \code{classifyPairWeka} 
 #' 
-#' @param var1Name String variable name.
-#' @param var2Name String variable name.
-#' @param trainData Data frame with class column.
-#' @param testData Data frame with class column.
-#' @return list of classifier stats.
+#' @family classification functions
+#' @param var1Name \code{string} variable name.
+#' @param var2Name \code{string} variable name.
+#' @param trainData \code{data.frame} with class column.
+#' @param testData \code{data.frame} with class column.
+#' @return \code{list} of classifier stats.
 #' @examples
 #' data(testdata100ME4)
 #' testdata100ME4$Class <- factor(testdata100ME4$Class)
@@ -102,10 +105,11 @@ classifyPairWeka <- function(var1Name, var2Name, trainData, testData) {
 #' 
 #' \code{classifyPredictedValues} 
 #' 
-#' @param someClassification Vector of predicted values.
-#' @param trueClassification Vector of true values.
-#' @param classLevels Vector of class levels.
-#' @return data frame of classifier stats.
+#' @family classification functions
+#' @param someClassification \code{vector} of predicted values.
+#' @param trueClassification \code{vector} of true values.
+#' @param classLevels \code{vector} of class levels.
+#' @return \code{data.frame} of classifier stats.
 #' @examples
 #' testValues <- c(0,0,0,0,0,1,1,1,1,1)
 #' trueValues <- c(0,1,0,1,0,1,0,1,0,0)
@@ -124,14 +128,14 @@ classifyPredictedValues <- function(someClassification,
 #' 
 #' \code{classifyPredictFold} 
 #' 
-#' @param foldIdx Numeric fold index.
-#' @param trainData Data frame with class column.
-#' @param testData Data frame with class column.
-#' @param my_seed Numeric random generator seed.
-#' @param samp_method String over, under or none sampling.
-#' @param wrapper String feature slection algorithm.
-#' @param top_n Numeric top n features to select.
-#' @return data frame of classification and prediction statistics.
+#' @param foldIdx \code{numeric} fold index.
+#' @param trainData \code{data.frame} with class column.
+#' @param testData \code{data.frame} with class column.
+#' @param my_seed \code{numeric} random generator seed.
+#' @param samp_method \code{string} over, under or none sampling.
+#' @param wrapper \code{string} feature slection algorithm.
+#' @param top_n \code{numeric} top n features to select.
+#' @return \code{data.frame} of classification and prediction statistics.
 #' @export
 classifyPredictFold <- function(foldIdx, trainData, testData, 
                                 my_seed=5627, samp_method="orig",
@@ -257,14 +261,15 @@ classifyPredictFold <- function(foldIdx, trainData, testData,
 #' 
 #' \code{crossValidate} 
 #' 
-#' @param classData Data frame of subject by variable plus 'Class' column.
-#' @param k_folds Numeric number of cross validation folds.
-#' @param repeat_cv Numeric number of times to repeat k-folds cross validation.
-#' @param my_seed Numeric random number generator seed.
-#' @param samp_method String over, under or none sampling.
-#' @param wrapper String feature slection algorithm.
-#' @param top_n Numeric top n features to select.
-#' @return list of all results and averaged results.
+#' @family classification functions
+#' @param classData \code{data.frame} of subject by variable plus 'Class' column.
+#' @param k_folds \code{numeric} number of cross validation folds.
+#' @param repeat_cv \code{numeric} number of times to repeat k-folds cross validation.
+#' @param my_seed \code{numeric} random number generator seed.
+#' @param samp_method \code{string} over, under or none sampling.
+#' @param wrapper \code{string} feature slection algorithm.
+#' @param top_n \code{numeric} top n features to select.
+#' @return \code{list} of all results and averaged results.
 #' @examples
 #' data(testdata100ME4)
 #' cv_res <- crossValidate(testdata100ME4, k_folds=10, repeat_cv=1, my_seed=5627, 
@@ -306,10 +311,12 @@ crossValidate <- function(classData, k_folds=10, repeat_cv=1, my_seed=5627,
 #' 
 #' \code{glmMainEffect} 
 #' 
-#' @param varName String variable name.
-#' @param trainData Data frame with class column.
-#' @param testData Data frame with class column.
-#' @return data frame of model fit information.
+#' @keywords models regression array
+#' @family classification functions
+#' @param varName \code{string} variable name.
+#' @param trainData \code{data.frame} with class column.
+#' @param testData \code{data.frame} with class column.
+#' @return \code{data.frame} of model fit information.
 #' @examples
 #' data(testdata100ME4)
 #' testdata100ME4$Class <- factor(testdata100ME4$Class)
@@ -343,10 +350,12 @@ glmMainEffect <- function(varName, trainData, testData) {
 #' 
 #' \code{glmVarList} 
 #' 
-#' @param varIdx String variable name.
-#' @param trainData Data frame with class column.
-#' @param testData Data frame with class column.
-#' @return data frame of classification results.
+#' @keywords models regression array
+#' @family classification functions
+#' @param varIdx \code{string} variable name.
+#' @param trainData \code{data.frame} with class column.
+#' @param testData \code{data.frame} with class column.
+#' @return \code{data.frame} of classification results.
 #' @examples
 #' data(testdata100ME4)
 #' testdata100ME4$Class <- factor(testdata100ME4$Class)
@@ -378,11 +387,13 @@ glmVarList <- function(varIdx, trainData, testData) {
 #' 
 #' \code{glmWithInteractionTerm} 
 #' 
-#' @param var1Name String variable name.
-#' @param var2Name String variable name.
-#' @param trainData Data frame with class column.
-#' @param testData Data frame with class column.
-#' @return data frame of classification results.
+#' @keywords models regression array
+#' @family classification functions
+#' @param var1Name \code{string} variable name.
+#' @param var2Name \code{string} variable name.
+#' @param trainData \code{data.frame} with class column.
+#' @param testData \code{data.frame} with class column.
+#' @return \code{data.frame} of classification results.
 #' @examples
 #' data(testdata100ME4)
 #' testdata100ME4$Class <- factor(testdata100ME4$Class)
@@ -428,11 +439,13 @@ glmWithInteractionTerm <- function(var1Name, var2Name, trainData, testData) {
 #' 
 #' \code{glmWithSquaredTerms} 
 #' 
-#' @param var1Name String variable name.
-#' @param var2Name String variable name.
-#' @param trainData Data frame with class column.
-#' @param testData Data frame with class column.
-#' @return data frame of classification results.
+#' @keywords models regression array
+#' @family classification functions
+#' @param var1Name \code{string} variable name.
+#' @param var2Name \code{string} variable name.
+#' @param trainData \code{data.frame} with class column.
+#' @param testData \code{data.frame} with class column.
+#' @return \code{data.frame} of classification results.
 #' @examples
 #' data(testdata100ME4)
 #' testdata100ME4$Class <- factor(testdata100ME4$Class)

@@ -1,8 +1,12 @@
 ---
-title: "Network Visualization"
+title: "Rinbix Network Visualization"
 author: "Bill White"
 date: "October 31, 2015"
-output: html_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Rinbix Network Visualization}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 This document demonstrates the use of Rinbix network visualization functions.

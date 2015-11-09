@@ -9,7 +9,7 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-The Rinbix package is a collection of functions that support the In silico research group's bioinformatics toolbox for network and machine learning analysis in bioinformatics. These functions are grouped roughly into the categories:
+The Rinbix package is a collection of functions that support the In silico research group's bioinformatics toolbox for network and machine learning analysis in bioinformatics. These functions are grouped roughly into the following categories:
 
 - Feature Selection and Ranking
 - Classification and Prediction
@@ -18,6 +18,8 @@ The Rinbix package is a collection of functions that support the In silico resea
 - Data Simulation
 - Interfacing with the C++ inbix Program for Performance
 - RNA-Seq Classification and Prediction Pipeline
+
+These functions are documented in the package vignettes and reference manual.
 
 ## Installation
 
@@ -38,7 +40,7 @@ Variable and function names are in camelCase. Data frames for case-control data 
 - columns of X, variables. predictors, attributes, SNPs, genes
 - last column, y, response, phenotype
 
-## Example
+## Quick Start Example
 
 This simple example demonstrates a workflow from data simulation to ranked genes. Simulate a differential co-expression data set with 10 genes and 40 subjects.
 

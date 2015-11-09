@@ -2,16 +2,16 @@
 % Please edit documentation in R/inbixGAIN.R
 \name{dmgain}
 \alias{dmgain}
-\title{Differential modularity genetic association network algorithm.}
+\title{Differential modularity genetic association network algorithm (dmGAIN) algorithm.}
 \usage{
 dmgain(inbixData)
 }
 \arguments{
-\item{inbixData}{Data frame with samples in rows, genes in columns
+\item{inbixData}{\code{data.frame} with samples in rows, genes in columns
 and phenotype in the last column.}
 }
 \value{
-results Matrix of gene by gene differential modularity values.
+results \code{matrix} of gene by gene differential modularity values.
 }
 \description{
 \code{dmgain}
@@ -20,4 +20,19 @@ results Matrix of gene by gene differential modularity values.
 data(testdata10)
 rinbixDmgain <- dmgain(testdata10)
 }
+\references{
+\itemize{
+  \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+}
+}
+\seealso{
+Other GAIN functions: \code{\link{dcgainInbix}},
+  \code{\link{dcgain}}, \code{\link{fitInteractionModel}},
+  \code{\link{fitMainEffectModel}},
+  \code{\link{getInteractionEffects}},
+  \code{\link{getMainEffects}}, \code{\link{regainInbix}},
+  \code{\link{regainParallel}}, \code{\link{regain}}
+}
+\keyword{array}
+\keyword{models}
 

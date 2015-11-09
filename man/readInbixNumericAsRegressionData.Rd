@@ -7,12 +7,26 @@
 readInbixNumericAsRegressionData(baseInbixName)
 }
 \arguments{
-\item{baseInbixName}{String base filename.}
+\item{baseInbixName}{\code{string} base filename.}
 }
 \value{
-data frame with numeric data in first m columns and phenotye in m+1 column.
+\code{data.frame} with numeric data in first m columns and phenotye in m+1 column.
 }
 \description{
 \code{readInbixNumericAsRegressionData}
+}
+\references{
+\itemize{
+  \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+}
+}
+\seealso{
+Other inbix interface functions: \code{\link{dcgainInbix}},
+  \code{\link{modularityInbix}},
+  \code{\link{permuteGainInbix}},
+  \code{\link{rankDcgainSnprank}},
+  \code{\link{rankRegainSnprank}},
+  \code{\link{regainInbix}}, \code{\link{snprankInbix}},
+  \code{\link{writeRegressionDataAsInbixNumeric}}
 }
 

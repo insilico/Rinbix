@@ -4,16 +4,26 @@
 # Rinbix package genetic association network (GAIN) functions.
 
 # -----------------------------------------------------------------------------
-#' Differential coexpression genetic association interaction network algorithm.
+#' Differential coexpression genetic association interaction network (dcGAIN) algorithm.
 #' 
 #' \code{dcgain} 
 #' 
-#' @param inbixData Data frame with samples in rows, genes in columns
-#' and phenotype in the last column.
-#' @param verbose Flag to send messages to stdout.
-#' @return results Matrix of gene by gene differential coexpression values.
+#' @references 
+#' \itemize{
+#'   \item \url{http://www.biodatamining.org/content/8/1/5}
+#'   {Differential co-expression network centrality and machine learning feature selection for identifying susceptibility hubs in networks with scale-free structure}
+#'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+#' }
+#' @keywords models array
+#' @family GAIN functions
+#' @family inbix synonym functions
 #' @family Genetic Association Interaction Network functions
-#' @seealso \code{\link{dmgain}} for differential modularity.
+#' @seealso \code{\link{dmgain}} for differential modularity. 
+#' \code{\link{dcgainInbix}} for inbix differential coexpression GAIN.
+#' @param inbixData \code{data.frame} with samples in rows, genes in columns
+#' and phenotype in the last column.
+#' @param verbose \code{logical} to send messages to stdout.
+#' @return results \code{matrix} of gene by gene differential coexpression values.
 #' @examples
 #' data(testdata10)
 #' rinbixDcgain <- dcgain(testdata10)
@@ -85,13 +95,21 @@ dcgain <- function(inbixData, verbose=FALSE) {
 }
 
 # -----------------------------------------------------------------------------
-#' Differential modularity genetic association network algorithm.
+#' Differential modularity genetic association network algorithm (dmGAIN) algorithm.
 #' 
 #' \code{dmgain} 
 #' 
-#' @param inbixData Data frame with samples in rows, genes in columns
+#' @references 
+#' \itemize{
+#'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+#' }
+#' @keywords models array
+#' @family GAIN functions
+#' @family inbix synonym functions
+#' \code{\link{dcgain}} for differential correlation GAIN. 
+#' @param inbixData \code{data.frame} with samples in rows, genes in columns
 #' and phenotype in the last column.
-#' @return results Matrix of gene by gene differential modularity values.
+#' @return results \code{matrix} of gene by gene differential modularity values.
 #' @examples
 #' data(testdata10)
 #' rinbixDmgain <- dmgain(testdata10)
@@ -162,382 +180,23 @@ dmgain <- function(inbixData) {
 }
 
 # -----------------------------------------------------------------------------
-#' Get interaction effects from generalized linear model regression.
+#' Get the interaction effect of a pair of variables using generalized linear regression.
 #' 
-#' \code{getInteractionEffects} 
+#' \code{fitInteractionModel} 
 #' 
-#' @param data Data frame with genes in columns and samples in rows.
-#' @param regressionFamily String glm regression family name.
-#' @param numCovariates Number of included covariates.
-#' @param writeBetas Flag indicating whether to write beta values to separate file.
-#' @param excludeMainEffects Flag indicating whether to exclude main effect terms.
-#' @param useBetas Flag indicating betas rather than standardized betas used.
-#' @param transformMethod String optional transform method.
-#' @param verbose Flag to send verbose messages to stdout.
-#' @param numCores Number of processor cores to use in mclapply
-#' @return results Matrix of gene by gene regression coefficients.
-#' @keywords internal
-getInteractionEffects <- function(data, regressionFamily="binomial", numCovariates=0,
-                                  writeBetas=FALSE, excludeMainEffects=FALSE, useBetas=FALSE, 
-                                  transformMethod="", verbose=FALSE, numCores=2) {
-  allColumnNames <- colnames(data)
-  numColumnNames <- length(allColumnNames)
-  depVarName <- "Class"
-  endVariableNames <- ncol(data) - numCovariates - 1
-  variableNames <- allColumnNames[1:endVariableNames]
-  numVariables <- length(variableNames)
-  if(verbose) {
-    cat("From", numVariables ,"generating", choose(numVariables,2), 
-        "variable index pairs for reGAIN upper triangular matrix\n")
-  }
-  idxCombList <- combn(numVariables, 2, list)
-  #print(idxCombList)
-  if(verbose) { 
-    cat("Computing GLM interaction models for each index pair, in parallel\n") 
-  }
-#  lastIdx <- length(idxCombList)
-#  numSplits <- 10
-#  splitSize <- as.integer(lastIdx / numSplits) + 1
-  results <- NULL
-  # for(i in 1:numSplits) {
-  #   startIdx <- (i - 1) * splitSize + 1
-  #   endIdx <- i *  splitSize
-  #   if(endIdx > lastIdx) {
-  #     endIdx <- lastIdx
-  #   }
-  #   if(startIdx < lastIdx) {
-  #     # cat("Running chunk", i, "split size:", splitSize, "start:", startIdx, 
-  #     #     "end:", endIdx, "\n")
-  results <- c(results, 
-               parallel::mclapply(idxCombList, mc.cores=numCores,
-                                 function(x) runInteractionEffectsTest(data, x, 
-                                                                       depVarName, 
-                                                                       regressionFamily, 
-                                                                       numCovariates, 
-                                                                       excludeMainEffects)))
-  #   }
-  # }
-  if(verbose) {
-    #print(results)
-    cat("Loading the reGAIN matrix upper and lower triangulars with",
-        "GLM interaction coefficients\n")
-  }
-  if(writeBetas) {
-    betaInfo <- NULL
-    betaRows <- NULL
-  }
-  interactionValues <- matrix(nrow=numVariables, ncol=numVariables)
-  for(i in 1:length(idxCombList)) {
-    thisComb <- idxCombList[[i]]
-    variable1Idx <- thisComb[1]
-    variable2Idx <- thisComb[2]
-    interactionName <- paste(variableNames[variable1Idx], "x", 
-                             variableNames[variable2Idx])
-    
-    regressionModel <- results[[i]]
-    glmConverged <- regressionModel$converged
-    if(!glmConverged) {
-      if(verbose) {
-        cat("WARNING: Regression model failed to converge for", interactionName, "\n")
-      }
-    }
-    interactionCoeff <- regressionModel$coef
-    interactionStdErr <- regressionModel$se
-    interactionPval <- regressionModel$pval
-    interactionStat <- regressionModel$stdbeta
-    
-    interactionValue <- NA
-#    if(glmConverged) {
-      if(useBetas) {
-        interactionValue <- interactionCoeff
-      }
-      else {
-        interactionValue <- interactionStat
-      }
- #   } else {
-  #    interactionValue <- 0
-   # }
-    if(interactionPval > 0.99) {
-      if(verbose) {
-        cat("WARNING: Interaction effect p-value > 0.99", interactionName, "\n")
-      }
-      #interactionValue <- 0
-    }
-    if(interactionPval < 2e-16) {
-      if(verbose) {
-        cat("WARNING: Interaction effect p-value < 2e-16", interactionName, "\n")
-      }
-      #interactionValue <- 0
-    }
-    
-    interactionValueTransformed <- interactionValue
-    if(!is.na(interactionValue)) {
-      if(transformMethod == "abs") {
-        interactionValueTransformed <- abs(interactionValue)
-      }
-      if(transformMethod == "threshold") {
-        interactionValueTransformed <- ifelse(interactionValue < 0, 0, interactionValue)
-      }
-    }
-
-    # -------------------------------------------------------------------------
-    interactionValues[variable1Idx, variable2Idx] <- interactionValueTransformed
-    interactionValues[variable2Idx, variable1Idx] <- interactionValueTransformed
-    # -------------------------------------------------------------------------
-    if(verbose) {
-      cat("Interaction z value:", variable1Idx, variable2Idx, interactionStat, "\n")
-      if(abs(interactionStat) > 4) {
-        print(regressionModel)
-        print(summary(regressionModel))
-      }
-    }
-
-    if(writeBetas) {
-      allBetas <- NULL
-      for(colIdx in 1:length(names(regressionModel$coefficients))) {
-        varCoef <- summary(regressionModel)$coefficients[colIdx, "Estimate"]
-        if(regressionFamily == "binomial") {
-          varPval <- summary(regressionModel)$coefficients[colIdx, "Pr(>|z|)"]
-        }
-        else {
-          varPval <- summary(regressionModel)$coefficients[colIdx, "Pr(>|t|)"]
-        }
-        #cat(colIdx, varCoef, varPval, "\n")
-        allBetas <- c(allBetas, varCoef, varPval)
-      }
-      betaInfo <- rbind(betaInfo, allBetas)
-      betaRows <- c(betaRows, interactionName)
-    }
-  }
-  if(writeBetas) {
-    if(verbose) cat("Writing betas to intbetas.tab\n") 
-    # always
-    betaCols <- c("Intercept", "Pval")
-    # if main effects included
-    if(!excludeMainEffects) {
-      betaCols <- c(betaCols, paste(c("Main Effect 1", "Pval", "Main Effect 2", "Pval"), sep="\t"))
-    }
-    # if covariates
-    if(numCovariates > 0) {
-      for(cn in 1:numCovariates) {
-        betaCols <- c(betaCols, c(paste("COV", cn, sep=""), "Pval"))
-      }
-    }
-    # always
-    betaCols <- c(betaCols, c("Interaction", "Pval"))
-    # print(betaCols)
-    colnames(betaInfo) <- betaCols
-    rownames(betaInfo) <- betaRows
-    write.table(betaInfo, file="intbetas.tab", quote=FALSE, sep="\t")
-    rm(betaInfo)
-  }
-  
-  # clean up memory
-  rm(idxCombList)
-  rm(results)
-  
-  interactionValues
-}
-
-# -----------------------------------------------------------------------------
-#' Get main effects from generalized linear model regression (parallel).
-#' 
-#' \code{getMainEffects} 
-#' 
-#' @param data Data frame with genes in columns and samples in rows.
-#' @param regressionFamily String glm regression family name.
-#' @param numCovariates Number of included covariates.
-#' @param writeBetas Flag indicating whther to write beta values to separate file.
-#' @param useBetas Flag indicating betas rather than standardized betas used.
-#' @param transformMethod String optional transform method.
-#' @param verbose Flag to send verbose messages to stdout.
-#' @param numCores Number of processor cores to use in mclapply.
-#' @return mainEffectValues Vector of main effect values.
-#' @keywords internal
-# -----------------------------------------------------------------------------
-getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0, 
-                           writeBetas=FALSE, useBetas=FALSE, transformMethod="", 
-                           verbose=FALSE, numCores=2) {
-  allColumnNames <- colnames(data)
-  numColumnNames <- length(allColumnNames)
-  depVarName <- "Class"
-  endVariableNames <- ncol(data) - numCovariates - 1
-  variableNames <- allColumnNames[1:endVariableNames]
-  numVariables <- length(variableNames)
-  if(verbose) {
-    cat(paste("Computing GLM main effect models for each variable (", 
-              numVariables, "), in parallel", sep=""), "\n")
-  }
-  results <- parallel::mclapply(variableNames, mc.cores=numCores, 
-                      function(x) runMainEffectsTest(data=data, 
-                                                     variableName=x, 
-                                                     depVarName=depVarName, 
-                                                     regressionFamily=regressionFamily, 
-                                                     numCovariates=numCovariates))
-  if(verbose) {
-    cat("Loading the reGAIN matrix diagonal with GLM main effect coefficients\n")
-  }
-  if(writeBetas) {
-    betaInfo <- NULL
-  }
-  mainEffectValues <- vector(mode="numeric", length=numVariables)
-  for(i in 1:numVariables) {
-    regressionModel <- results[[i]]
-    glmConverged <- regressionModel$converged
-    if(!glmConverged) {
-      if(verbose) {
-        cat("WARNING: Regression model failed to converge for", variableNames[i], "\n")
-      }
-    }
-    mainCoeff <- regressionModel$coef
-    mainStdErr <- regressionModel$se
-    mainPval <- regressionModel$pval
-    mainStat <- regressionModel$stdbeta
-    mainEffectValue <- NA
-    if(glmConverged) {
-      if(useBetas) {
-        mainEffectValue <- mainCoeff
-      }
-      else {
-        mainEffectValue <- mainStat
-      }
-    }
-    else {
-      mainEffectValue <- 0
-    }
-    if(mainPval > 0.99) {
-      if(verbose) {
-        cat("WARNING: Main effect p-value > 0.99", variableNames[i], "\n")
-      }
-    }
-    if(mainPval < 2e-16) {
-      if(verbose) {
-        cat("WARNING: Main effect p-value < 2e-16", variableNames[i], "\n")
-      }
-    }
-    
-    mainEffectValueTransformed <- mainEffectValue
-    if(!is.na(mainEffectValue)) {
-      if(transformMethod == "abs") {
-        mainEffectValueTransformed <- abs(mainEffectValue)
-      }
-      if(transformMethod == "threshold") {
-        mainEffectValueTransformed <- ifelse(mainEffectValue < 0, 0, mainEffectValue)
-      }
-    }
-    mainEffectValues[i] <- mainEffectValueTransformed
-    if(writeBetas) {
-      thisBetas <- c(mainCoeff, mainPval)
-      if(numCovariates > 0) {
-        for(cn in 1:numCovariates) {
-          covBeta <- summary(regressionModel)$coefficients[2+cn, "Estimate"]
-          covPval <- summary(regressionModel)$coefficients[2+cn, "Pr(>|z|)"]
-          thisBetas <- c(thisBetas, covBeta, covPval)
-        }
-      }
-      betaInfo <- rbind(betaInfo, thisBetas)
-    }
-  }
-  if(writeBetas) {
-    cat("Writing betas to mebetas.tab\n") 
-    colNames <- c("Main Effect", "Pval")
-    if(numCovariates > 0) {
-      for(cn in 1:numCovariates) {
-        colNames <- c(colNames, c(paste("COV", cn, sep=""), "Pval"))
-      }
-    }
-    colnames(betaInfo) <- colNames
-    rownames(betaInfo) <- variableNames
-    write.table(betaInfo, file="mebetas.tab", quote=FALSE, sep="\t")
-    rm(betaInfo)
-  }
-  
-  # clean up memory
-  rm(results)
-  
-  mainEffectValues
-}
-
-# -----------------------------------------------------------------------------
-#' Front end to the reGAIN algorithm.
-#' 
-#' Tests number of variables/columns and runs either parallel R or parallel C++.
-#' 
-#' \code{regain}
-#' 
-#' @param regressionData Data frame with gene in columns and samples in rows;
-#' the last column should be labeled 'Class' and be 0 or 1 values.
-#' @param stdBetas Flag to use standardized beta coefficients.
-#' @param absBetas Flag to use absolute value of beta coefficients.
-#' @param verbose Flag to send verbose messages to stdout.
-#' @return regainMatrix Matrix of gene by gene regression coefficients.
-#' @examples
-#' data(testdata10)
-#' rinbixRegain <- regain(testdata10, stdBetas=TRUE, absBetas=TRUE)
-#' @export
-regain <- function(regressionData, stdBetas=FALSE, absBetas=FALSE, verbose=FALSE) {
-  numVars <- ncol(regressionData) - 1  
-  regainMatrix <- NULL
-  if(numVars <= 5000) {
-    if(verbose) cat("[", numVars, "] Running parallel R reGAIN\n")
-    regainMatrix <- regainParallel(regressionData, stdBetas, absBetas, verbose)
-  } else {
-    cat("WARNING: More than 5000 genes, attempting to run reGAIN in C++\n")
-    if(verbose) cat("[", numVars, "] Running C++ inbix reGAIN\n")
-    regainMatrix <- regainInbix(regressionData, stdBetas, absBetas)$reGAIN
-  }
-  regainMatrix
-}
-
-# -----------------------------------------------------------------------------
-#' Parallel execution of the regression genetic association interaction network algorithm.
-#' 
-#' \code{regainParallel}
-#' 
-#' @param regressionData Data frame with gene in columns and samples in rows;
-#' the last column should be labeled 'Class' and be 0 or 1 values.
-#' @param stdBetas Flag to use standardized beta coefficients.
-#' @param absBetas Flag to use absolute value of beta coefficients.
-#' @param verbose Flag to send verbose messages to stdout.
-#' @return regainMatrix Matrix of gene by gene regression coefficients.
-#' @examples
-#' data(testdata10)
-#' rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
-#' @export
-regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE, verbose=FALSE) {
-  transform <- ifelse(absBetas, "abs", "")
-  rawBetas <- ifelse(stdBetas, FALSE, TRUE)
-  mainEffects <- getMainEffects(regressionData, 
-                                useBetas=rawBetas,
-                                transformMethod=transform,
-                                verbose=verbose)
-  regainMatrix <- getInteractionEffects(regressionData, 
-                                        useBetas=rawBetas,
-                                        transformMethod=transform,
-                                        verbose=verbose)
-  diag(regainMatrix) <- mainEffects
-  colnames(regainMatrix) <- colnames(regressionData)[1:(ncol(regressionData)-1)]
-  # replace NAs with zero
-  regainMatrix[is.na(regainMatrix)] <- 0
-  regainMatrix
-}
-
-# -----------------------------------------------------------------------------
-#' Get the interaction effect of a pair of variables using generalized linear regression - glm.
-#' 
-#' \code{runInteractionEffectsTest} 
-#' 
-#' @param data Data frame with genes in columns and samples in rows.
-#' @param variableIndices Vector of column indices of variable pairs.
-#' @param depVarName String name of the phenotype variable.
-#' @param regressionFamily String glm regression family name.
-#' @param numCovariates Number of covariates included.
-#' @param excludeMainEffects Flag indicating whether to exclude main effect terms.
-#' @return Data frame with gene, convergence status, beta coefficient,
+#' @keywords models regression array
+#' @family GAIN functions
+#' @param data \code{data.frame} with genes in columns and samples in rows.
+#' @param variableIndices \code{vector} of column indices of variable pairs.
+#' @param depVarName \code{string} name of the phenotype variable.
+#' @param regressionFamily \code{string} glm regression family name.
+#' @param numCovariates \code{numeric}  of covariates included.
+#' @param excludeMainEffects \code{logical} indicating whether to exclude main effect terms.
+#' @return \code{data.frame} with gene, convergence status, beta coefficient,
 #' p-value, standard error and standardized beta columns.
 #' @keywords internal
-runInteractionEffectsTest <- function(data, variableIndices, depVarName, 
-                                      regressionFamily, numCovariates, excludeMainEffects) {
+fitInteractionModel <- function(data, variableIndices, depVarName, 
+                                regressionFamily, numCovariates, excludeMainEffects) {
   variable1Idx <- variableIndices[1]
   variable2Idx <- variableIndices[2]
   variableNames <- colnames(data)[1:(ncol(data)-1)]
@@ -546,8 +205,7 @@ runInteractionEffectsTest <- function(data, variableIndices, depVarName,
   if(excludeMainEffects) {
     interactionTerm <- paste("`", variable1Name, "`", ":", "`", 
                              variable2Name, "`", sep="")
-  }
-  else {
+  } else {
     interactionTerm <- paste("`", variable1Name, "`", "*", "`", 
                              variable2Name, "`", sep="")
   }
@@ -603,19 +261,21 @@ runInteractionEffectsTest <- function(data, variableIndices, depVarName,
 }
 
 # -----------------------------------------------------------------------------
-#' Get the main effect of a variable using generalized linear regression - glm.
+#' Get the main effect of a variable using generalized linear regression .
 #' 
-#' \code{runMainEffectsTest}
+#' \code{fitMainEffectModel}
 #' 
-#' @param data Data frame with genes in columns and samples in rows.
-#' @param variableName String name of the variable to consider.
-#' @param depVarName String name of the phenotype variable.
-#' @param regressionFamily String glm regression family name.
-#' @param numCovariates Number of included covariates.
-#' @return Data frame with gene, convergence status, beta coefficient, 
+#' @keywords models regression array internal
+#' @family GAIN functions
+#' @param data \code{data.frame} with genes in columns and samples in rows.
+#' @param variableName \code{string} name of the variable to consider.
+#' @param depVarName \code{string} name of the phenotype variable.
+#' @param regressionFamily \code{string} glm regression family name.
+#' @param numCovariates \code{numeric}  of included covariates.
+#' @return \code{data.frame} with gene, convergence status, beta coefficient, 
 #' p-value, standard error and standardized beta columns.
-#' @keywords internal
-runMainEffectsTest <- function(data, variableName, depVarName, regressionFamily, numCovariates) {
+fitMainEffectModel <- function(data, variableName, depVarName, regressionFamily, 
+                               numCovariates) {
   if(numCovariates > 0) {
     covarsStart <- ncol(data) - numCovariates
     covarNames <- colnames(data)[covarsStart:(ncol(data)-1)]
@@ -630,7 +290,6 @@ runMainEffectsTest <- function(data, variableName, depVarName, regressionFamily,
     regressionFormula <- as.formula(paste(depVarName, "~", 
                                           paste("`", variableName, "`", sep=""), sep=" "))
   }
-  #print(formulaString)
   regressionModel <- glm2::glm2(regressionFormula, family=regressionFamily, data=data)
   
   #interceptCoeff <- summary(regressionModel)$coefficients[1, "Estimate"]
@@ -649,4 +308,383 @@ runMainEffectsTest <- function(data, variableName, depVarName, regressionFamily,
 
   data.frame(converged=regressionModel$converged, coef=mainCoeff, se=mainStdErr, 
              pval=mainPval, stdbeta=mainStat)
+}
+
+# -----------------------------------------------------------------------------
+#' Get interaction effects from generalized linear model regression.
+#' 
+#' \code{getInteractionEffects} 
+#' 
+#' @keywords models regression array internal
+#' @family GAIN functions
+#' @param data \code{data.frame} with genes in columns and samples in rows.
+#' @param regressionFamily \code{string} glm regression family name.
+#' @param numCovariates \code{numeric}  of included covariates.
+#' @param writeBetas \code{logical} indicating whether to write beta values to separate file.
+#' @param excludeMainEffects \code{logical} indicating whether to exclude main effect terms.
+#' @param useBetas \code{logical} indicating betas rather than standardized betas used.
+#' @param transformMethod \code{string} optional transform method.
+#' @param numCores \code{numeric} number of processor cores to use in mclapply
+#' @param verbose \code{logical} to send verbose messages to stdout.
+#' @return results \code{matrix} of gene by gene regression coefficients.
+getInteractionEffects <- function(data, regressionFamily="binomial", numCovariates=0,
+                                  writeBetas=FALSE, excludeMainEffects=FALSE, useBetas=FALSE, 
+                                  transformMethod="", numCores=2, verbose=FALSE) {
+  allColumnNames <- colnames(data)
+  numColumnNames <- length(allColumnNames)
+  depVarName <- "Class"
+  endVariableNames <- ncol(data) - numCovariates - 1
+  variableNames <- allColumnNames[1:endVariableNames]
+  numVariables <- length(variableNames)
+  if(verbose) {
+    cat("From", numVariables ,"generating", choose(numVariables,2), 
+        "variable index pairs for reGAIN upper triangular matrix\n")
+  }
+  idxCombList <- combn(numVariables, 2, list)
+  if(verbose) { 
+    cat("Computing GLM interaction models for each index pair, in parallel\n") 
+  }
+  #startTime <- proc.time()
+  results <- parallel::mclapply(idxCombList, 
+                                mc.cores=numCores,
+                                function(x) 
+                                  fitInteractionModel(data, x, 
+                                                      depVarName, 
+                                                      regressionFamily, 
+                                                      numCovariates, 
+                                                      excludeMainEffects))
+  #endTime <- proc.time()
+  #cat("getInteractionEffects mclapply GLMFIT runtime:", (endTime - startTime)[3], "\n")
+  if(verbose) {
+    cat("Loading the reGAIN matrix upper and lower triangulars with",
+        "GLM interaction coefficients\n")
+  }
+  if(writeBetas) {
+    betaInfo <- NULL
+    betaRows <- NULL
+  }
+  #startTime <- proc.time()
+  interactionValues <- matrix(nrow=numVariables, ncol=numVariables)
+  for(i in 1:length(idxCombList)) {
+    thisComb <- idxCombList[[i]]
+    variable1Idx <- thisComb[1]
+    variable2Idx <- thisComb[2]
+    interactionName <- paste(variableNames[variable1Idx], "x", 
+                             variableNames[variable2Idx])
+    
+    regressionModel <- results[[i]]
+    glmConverged <- regressionModel$converged
+    if(!glmConverged) {
+      if(verbose) {
+        cat("WARNING: Regression model failed to converge for", interactionName, "\n")
+      }
+    }
+    interactionCoeff <- regressionModel$coef
+    interactionStdErr <- regressionModel$se
+    interactionPval <- regressionModel$pval
+    interactionStat <- regressionModel$stdbeta
+    
+    interactionValue <- NA
+    if(useBetas) {
+      interactionValue <- interactionCoeff
+    } else {
+      interactionValue <- interactionStat
+    }
+    if(interactionPval > 0.99) {
+      if(verbose) {
+        cat("WARNING: Interaction effect p-value > 0.99", interactionName, "\n")
+      }
+    }
+    if(interactionPval < 2e-16) {
+      if(verbose) {
+        cat("WARNING: Interaction effect p-value < 2e-16", interactionName, "\n")
+      }
+    }
+    
+    interactionValueTransformed <- interactionValue
+    if(!is.na(interactionValue)) {
+      if(transformMethod == "abs") {
+        interactionValueTransformed <- abs(interactionValue)
+      }
+      if(transformMethod == "threshold") {
+        interactionValueTransformed <- ifelse(interactionValue < 0, 0, interactionValue)
+      }
+    }
+
+    # -------------------------------------------------------------------------
+    interactionValues[variable1Idx, variable2Idx] <- interactionValueTransformed
+    interactionValues[variable2Idx, variable1Idx] <- interactionValueTransformed
+    # -------------------------------------------------------------------------
+    if(verbose) {
+      cat("Interaction z value:", variable1Idx, variable2Idx, interactionStat, "\n")
+      if(abs(interactionStat) > 4) {
+        print(regressionModel)
+        print(summary(regressionModel))
+      }
+    }
+
+    if(writeBetas) {
+      allBetas <- NULL
+      for(colIdx in 1:length(names(regressionModel$coefficients))) {
+        varCoef <- summary(regressionModel)$coefficients[colIdx, "Estimate"]
+        if(regressionFamily == "binomial") {
+          varPval <- summary(regressionModel)$coefficients[colIdx, "Pr(>|z|)"]
+        } else {
+          varPval <- summary(regressionModel)$coefficients[colIdx, "Pr(>|t|)"]
+        }
+        allBetas <- c(allBetas, varCoef, varPval)
+      }
+      betaInfo <- rbind(betaInfo, allBetas)
+      betaRows <- c(betaRows, interactionName)
+    }
+  }
+  #endTime <- proc.time()
+  #cat("getInteractionEffects mclapply PROCESSING runtime:", (endTime - startTime)[3], "\n")
+  
+  if(writeBetas) {
+    if(verbose) cat("Writing interaction betas to intbetas.tab\n") 
+    # always
+    betaCols <- c("Intercept", "Pval")
+    # if main effects included
+    if(!excludeMainEffects) {
+      betaCols <- c(betaCols, paste(c("Main Effect 1", "Pval", "Main Effect 2", "Pval"), sep="\t"))
+    }
+    # if covariates
+    if(numCovariates > 0) {
+      for(cn in 1:numCovariates) {
+        betaCols <- c(betaCols, c(paste("COV", cn, sep=""), "Pval"))
+      }
+    }
+    # always
+    betaCols <- c(betaCols, c("Interaction", "Pval"))
+    colnames(betaInfo) <- betaCols
+    rownames(betaInfo) <- betaRows
+    write.table(betaInfo, file="intbetas.tab", quote=FALSE, sep="\t")
+    rm(betaInfo)
+  }
+  
+  # clean up memory
+  rm(idxCombList)
+  rm(results)
+  
+  interactionValues
+}
+
+# -----------------------------------------------------------------------------
+#' Get main effects from generalized linear model regression (parallel).
+#' 
+#' \code{getMainEffects} 
+#' 
+#' @keywords models regression univar array internal
+#' @family GAIN functions
+#' @family inbix synonym functions
+#' @seealso \code{\link{rankUnivariateRegression}}
+#' @param data \code{data.frame} with genes in columns and samples in rows.
+#' @param regressionFamily \code{string} glm regression family name.
+#' @param numCovariates \code{numeric}  of included covariates.
+#' @param writeBetas \code{logical} indicating whther to write beta values to separate file.
+#' @param useBetas \code{logical} indicating betas rather than standardized betas used.
+#' @param transformMethod \code{string} optional transform method.
+#' @param numCores \code{numeric} number of processor cores to use in mclapply
+#' @param verbose \code{logical} to send verbose messages to stdout.
+#' @return mainEffectValues \code{vector} of main effect values.
+# -----------------------------------------------------------------------------
+getMainEffects <- function(data, regressionFamily="binomial", numCovariates=0, 
+                           writeBetas=FALSE, useBetas=FALSE, transformMethod="", 
+                           numCores=2, verbose=FALSE) {
+  allColumnNames <- colnames(data)
+  numColumnNames <- length(allColumnNames)
+  depVarName <- "Class"
+  endVariableNames <- ncol(data) - numCovariates - 1
+  variableNames <- allColumnNames[1:endVariableNames]
+  numVariables <- length(variableNames)
+  if(verbose) {
+    cat(paste("Computing GLM main effect models for each variable (", 
+              numVariables, "), in parallel", sep=""), "\n")
+  }
+  #startTime <- proc.time()
+  results <- parallel::mclapply(variableNames, 
+                                mc.cores=numCores, 
+                                function(x) 
+                                  fitMainEffectModel(data=data, 
+                                                     variableName=x, 
+                                                     depVarName=depVarName, 
+                                                     regressionFamily=regressionFamily, 
+                                                     numCovariates=numCovariates))
+  #endTime <- proc.time()
+  #cat("getMainEffects mclapply GLMFIT runtime:", (endTime - startTime)[3], "\n")
+  if(verbose) {
+    cat("Loading the reGAIN matrix diagonal with GLM main effect coefficients\n")
+  }
+  if(writeBetas) {
+    betaInfo <- NULL
+  }
+  #startTime <- proc.time()
+  mainEffectValues <- vector(mode="numeric", length=numVariables)
+  for(i in 1:length(results)) {
+    regressionModel <- results[[i]]
+    glmConverged <- regressionModel$converged
+    if(!glmConverged) {
+      if(verbose) {
+        cat("WARNING: Regression model failed to converge for", variableNames[i], "\n")
+      }
+    }
+    mainCoeff <- regressionModel$coef
+    mainStdErr <- regressionModel$se
+    mainPval <- regressionModel$pval
+    mainStat <- regressionModel$stdbeta
+    mainEffectValue <- NA
+    if(glmConverged) {
+      if(useBetas) {
+        mainEffectValue <- mainCoeff
+      }
+      else {
+        mainEffectValue <- mainStat
+      }
+    }
+    else {
+      mainEffectValue <- 0
+    }
+    if(mainPval > 0.99) {
+      if(verbose) {
+        cat("WARNING: Main effect p-value > 0.99", variableNames[i], "\n")
+      }
+    }
+    if(mainPval < 2e-16) {
+      if(verbose) {
+        cat("WARNING: Main effect p-value < 2e-16", variableNames[i], "\n")
+      }
+    }
+    
+    mainEffectValueTransformed <- mainEffectValue
+    if(!is.na(mainEffectValue)) {
+      if(transformMethod == "abs") {
+        mainEffectValueTransformed <- abs(mainEffectValue)
+      }
+      if(transformMethod == "threshold") {
+        mainEffectValueTransformed <- ifelse(mainEffectValue < 0, 0, mainEffectValue)
+      }
+    }
+    mainEffectValues[i] <- mainEffectValueTransformed
+    if(writeBetas) {
+      thisBetas <- c(mainCoeff, mainPval)
+      if(numCovariates > 0) {
+        for(cn in 1:numCovariates) {
+          covBeta <- summary(regressionModel)$coefficients[2 + cn, "Estimate"]
+          covPval <- summary(regressionModel)$coefficients[2 + cn, "Pr(>|z|)"]
+          thisBetas <- c(thisBetas, covBeta, covPval)
+        }
+      }
+      betaInfo <- rbind(betaInfo, thisBetas)
+    }
+  }
+  #endTime <- proc.time()
+  #cat("getMainEffects mclapply PROCESSING runtime:", (endTime - startTime)[3], "\n")
+  if(writeBetas) {
+    cat("Writing betas to mebetas.tab\n") 
+    colNames <- c("Main Effect", "Pval")
+    if(numCovariates > 0) {
+      for(cn in 1:numCovariates) {
+        colNames <- c(colNames, c(paste("COV", cn, sep=""), "Pval"))
+      }
+    }
+    colnames(betaInfo) <- colNames
+    rownames(betaInfo) <- variableNames
+    write.table(betaInfo, file="mebetas.tab", quote=FALSE, sep="\t")
+    rm(betaInfo)
+  }
+  
+  # clean up memory
+  rm(results)
+  
+  mainEffectValues
+}
+
+# -----------------------------------------------------------------------------
+#' Front end to the reGAIN algorithm.
+#' 
+#' Tests number of variables/columns and runs either parallel R or parallel C++.
+#' 
+#' \code{regain}
+#' 
+#' @references 
+#' \itemize{
+#'   \item \url{http://www.nature.com/gene/journal/v11/n8/full/gene201037a.html}
+#'   {Genes & Immunity Paper}
+#'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+#' }
+#' @keywords models regression array
+#' @family GAIN functions
+#' @family inbix synonym functions
+#' @param regressionData \code{data.frame} with genes in columns and samples in rows;
+#' the last column should be labeled 'Class' coded 0 or 1.
+#' @param stdBetas \code{logical} to use standardized beta coefficients.
+#' @param absBetas \code{logical} to use absolute value of beta coefficients.
+#' @param numCores \code{numeric} number of processor cores to use in mclapply
+#' @param verbose \code{logical} to send verbose messages to stdout.
+#' @return regainMatrix \code{matrix} of gene by gene regression coefficients.
+#' @examples
+#' data(testdata10)
+#' rinbixRegain <- regain(testdata10, stdBetas=TRUE, absBetas=TRUE)
+#' @export
+regain <- function(regressionData, stdBetas=FALSE, absBetas=FALSE, numCores=2, 
+                   verbose=FALSE) {
+  numVars <- ncol(regressionData) - 1  
+  regainMatrix <- NULL
+  if(numVars <= 5000) {
+    if(verbose) cat("[", numVars, "] Running parallel R reGAIN\n")
+    regainMatrix <- regainParallel(regressionData, stdBetas, absBetas,
+                                   numCores=numCores, verbose)
+  } else {
+    cat("WARNING: More than 5000 genes, attempting to run reGAIN in C++\n")
+    if(verbose) cat("[", numVars, "] Running C++ inbix reGAIN\n")
+    regainMatrix <- regainInbix(regressionData, stdBetas, absBetas)$reGAIN
+  }
+  regainMatrix
+}
+
+# -----------------------------------------------------------------------------
+#' Parallel execution of the regression genetic association interaction network (reGAIN) algorithm.
+#' 
+#' \code{regainParallel}
+#' 
+#' @references 
+#' \itemize{
+#'   \item \url{http://www.nature.com/gene/journal/v11/n8/full/gene201037a.html}
+#'   {Genes & Immunity Paper}
+#'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+#' }
+#' @keywords models array regression
+#' @family GAIN functions
+#' @family inbix synonym functions
+#' @param regressionData \code{data.frame} with gene in columns and samples in rows;
+#' the last column should be labeled 'Class' and be 0 or 1 values.
+#' @param stdBetas \code{logical} to use standardized beta coefficients.
+#' @param absBetas \code{logical} to use absolute value of beta coefficients.
+#' @param numCores \code{numeric} number of processor cores to use in mclapply
+#' @param verbose \code{logical} to send verbose messages to stdout.
+#' @return regainMatrix \code{matrix} of gene by gene regression coefficients.
+#' @examples
+#' data(testdata10)
+#' rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
+#' @export
+regainParallel <- function(regressionData, stdBetas=FALSE, absBetas=FALSE, 
+                           numCores=2, verbose=FALSE) {
+  transform <- ifelse(absBetas, "abs", "")
+  rawBetas <- ifelse(stdBetas, FALSE, TRUE)
+  mainEffects <- getMainEffects(regressionData, 
+                                useBetas=rawBetas,
+                                transformMethod=transform,
+                                numCores=numCores,
+                                verbose=verbose)
+  regainMatrix <- getInteractionEffects(regressionData, 
+                                        useBetas=rawBetas,
+                                        transformMethod=transform,
+                                        numCores=numCores,
+                                        verbose=verbose)
+  diag(regainMatrix) <- mainEffects
+  colnames(regainMatrix) <- colnames(regressionData)[1:(ncol(regressionData)-1)]
+  # replace NAs with zero
+  regainMatrix[is.na(regainMatrix)] <- 0
+  regainMatrix
 }

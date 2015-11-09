@@ -7,12 +7,12 @@
 snprank(G, gamma = 0.85)
 }
 \arguments{
-\item{G}{Matrix genetic association interaction network.}
+\item{G}{\code{matrix} genetic association interaction network.}
 
-\item{gamma}{Numeric weighting, interactions (closer to 1) versus main effects (closer to 0).}
+\item{gamma}{\code{numeric} weighting, interactions (closer to 1) versus main effects (closer to 0).}
 }
 \value{
-sortedTable Data frame with gene, SNPrank, diagonal and degree columns.
+sortedTable \code{data.frame} with gene, SNPrank, diagonal and degree columns.
 }
 \description{
 \code{snprank}
@@ -21,5 +21,26 @@ sortedTable Data frame with gene, SNPrank, diagonal and degree columns.
 data(testdata10)
 rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
 rinbixSnpranksDF <- snprank(rinbixRegain)
+}
+\references{
+\itemize{
+  \item \url{http://www.nature.com/gene/journal/v11/n8/full/gene201037a.html}
+  {Genes & Immunity Paper}
+  \item \url{http://insilico.utulsa.edu/index.php/snprank/}{SNPrank Software}
+}
+}
+\seealso{
+Other feature selection functions: \code{\link{geneRank}},
+  \code{\link{r2VIMorig}}, \code{\link{rankDcgainSnprank}},
+  \code{\link{rankDeseq2}}, \code{\link{rankDeseq}},
+  \code{\link{rankEdgeRGlm}}, \code{\link{rankEdgeR}},
+  \code{\link{rankGeneRank}}, \code{\link{rankGlmnet}},
+  \code{\link{rankLasso}}, \code{\link{rankLimma}},
+  \code{\link{rankRandomForest}},
+  \code{\link{rankRegainSnprank}},
+  \code{\link{rankReliefSeq}}, \code{\link{rankSam}},
+  \code{\link{rankTTest}},
+  \code{\link{rankUnivariateRegression}},
+  \code{\link{snprankInbix}}
 }
 

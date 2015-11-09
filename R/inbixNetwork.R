@@ -8,8 +8,9 @@
 #' 
 #' \code{getIGraphStats}
 #' 
+#' @family network functions
 #' @param g IGraph graph object.
-#' @return data frame of graph statistics.
+#' @return \code{data.frame} of graph statistics.
 #' @examples
 #' require(igraph)
 #' g <- erdos.renyi.game(1000, 1/1000)
@@ -34,6 +35,7 @@ getIGraphStats <- function(g) {
 #' 
 #' \code{printIGraphStats}
 #' 
+#' @family network functions
 #' @param g IGraph graph object.
 #' @export
 printIGraphStats <- function(g) {
@@ -57,16 +59,18 @@ printIGraphStats <- function(g) {
 #' 
 #' \code{randomNetworkSim}
 #' 
-#' @param n Numeric number of nodes.
-#' @param p Numeric probability of attachment.
-#' @param doFitPlot Flag plot sclae-free fit.
-#' @param doNetworkPlot Flag plot the network.
-#' @param doHistPlot Flag plot histogram of node degree.
-#' @param useIgraph Flag use the IGraph library to generate the graph.
-#' @param numBins Numeric number of bins to use in the degree histogram.
-#' @param filePrefix String file prefix for output files.
-#' @param verbose Flag to send runtime messages to stdout.
-#' @return network adjacency matrix.
+#' @family network functions
+#' @family simulation functions
+#' @param n \code{numeric} number of nodes.
+#' @param p \code{numeric} probability of attachment.
+#' @param doFitPlot \code{logical} plot sclae-free fit.
+#' @param doNetworkPlot \code{logical} plot the network.
+#' @param doHistPlot \code{logical} plot histogram of node degree.
+#' @param useIgraph \code{logical} use the IGraph library to generate the graph.
+#' @param numBins \code{numeric} number of bins to use in the degree histogram.
+#' @param filePrefix \code{string} file prefix for output files.
+#' @param verbose \code{logical} to send runtime messages to stdout.
+#' @return network adjacency \code{matrix}.
 #' @examples
 #' net <- randomNetworkSim(n=1000)
 #' @export
@@ -137,14 +141,16 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
 #' 
 #' \code{scaleFreeSim}
 #' 
-#' @param n Numeric number of nodes.
-#' @param doFitPlot Flag plot sclae-free fit.
-#' @param doNetworkPlot Flag plot the network.
-#' @param useIgraph Flag use the IGraph library to generate the graph.
-#' @param numBins Numeric number of bins to use in the degree histogram.
-#' @param filePrefix String file prefix for output files.
-#' @param verbose Flag to send runtime messages to stdout.
-#' @return network adjacency matrix.
+#' @family network functions
+#' @family simulation functions
+#' @param n \code{numeric} number of nodes.
+#' @param doFitPlot \code{logical} plot sclae-free fit.
+#' @param doNetworkPlot \code{logical} plot the network.
+#' @param useIgraph \code{logical} use the IGraph library to generate the graph.
+#' @param numBins \code{numeric} number of bins to use in the degree histogram.
+#' @param filePrefix \code{string} file prefix for output files.
+#' @param verbose \code{logical} to send runtime messages to stdout.
+#' @return network adjacency \code{matrix}.
 #' @examples
 #' net <- scaleFreeSim(n=1000)
 #' @export

@@ -13,16 +13,18 @@
 #' 
 #' \code{predictRnaseq} 
 #' 
-#' @param rnaseqCountsTrain Matrix RNASeq counts.
-#' @param groupLabelsTrain Vector group labels.
-#' @param rnaseqCountsTest Matrix RNASeq counts.
-#' @param groupLabelsTest Vector group labels.
-#' @param preprocessMethod String pre-processing method: none, scale, log2, log2scale.
-#' @param filterMethod String filtering method to reduce the dimensions for classification.
-#' @param topN Numeric top number of genes to keep in the filter step.
-#' @param classifierMethod String classifier used to build a model and predict new data.
-#' @param verbose Flag verbose for more output set TRUE.
-#' @return List with ranked genes, classification metrics.
+#' @family RNA-Seq functions
+#' @family classification functions
+#' @param rnaseqCountsTrain \code{matrix} RNASeq counts.
+#' @param groupLabelsTrain \code{vector} group labels.
+#' @param rnaseqCountsTest \code{matrix} RNASeq counts.
+#' @param groupLabelsTest \code{vector} group labels.
+#' @param preprocessMethod \code{string} pre-processing method: none, scale, log2, log2scale.
+#' @param filterMethod \code{string} filtering method to reduce the dimensions for classification.
+#' @param topN \code{numeric} top number of genes to keep in the filter step.
+#' @param classifierMethod \code{string} classifier used to build a model and predict new data.
+#' @param verbose \code{logical} verbose for more output set TRUE.
+#' @return \code{list} with ranked genes, classification metrics.
 #' @examples
 #' data(simrnaseq)
 #' predictResult <- predictRnaseq(rnaseqCountsTrain=predictorsTrain, 
@@ -73,11 +75,13 @@ predictRnaseq <- function(rnaseqCountsTrain=NULL,
 #' 
 #' \code{preprocessRnaseq} 
 #' 
-#' @param method Pre-processing method: none, scale, log2, log2scale.
-#' @param countsTrain RNASeq counts matrix for training.
-#' @param countsTest RNASeq counts matrix for testing.
-#' @param verbose Verbose flag for more output set TRUE
-#' @return List with preprocessed training and testing matrices.
+#' @family RNA-Seq functions
+#' @family classification functions
+#' @param method \code{string} Pre-processing method: none, scale, log2, log2scale.
+#' @param countsTrain RNASeq counts \code{matrix} for training.
+#' @param countsTest RNASeq counts \code{matrix} for testing.
+#' @param verbose \code{logical} Verbose flag for more output set TRUE
+#' @return \code{list} with preprocessed training and testing matrices.
 #' @examples
 #' data(simrnaseq)
 #' preprocessResult <- preprocessRnaseq(method="none", 
@@ -117,14 +121,16 @@ preprocessRnaseq <- function(method="none", countsTrain, countsTest, verbose=FAL
 #' 
 #' \code{filterRnaseq} 
 #' 
-#' @param method String filtering method: none, relieff, edger, deseq2, randomforests.
-#' @param dataTrain Matrix RNASeq counts.
-#' @param labelsTrain Vector group labels.
-#' @param dataTest Matrix RNASeq counts.
-#' @param labelsTest Vector group labels.
-#' @param nTopGenes Numeric number of top genes to remain after filtering.
-#' @param verbose Flag verbose for more output set TRUE.
-#' @return List with filtered training and testing data sets.
+#' @family RNA-Seq functions
+#' @family classification functions
+#' @param method \code{string} filtering method: none, relieff, edger, deseq2, randomforests.
+#' @param dataTrain \code{matrix} RNASeq counts.
+#' @param labelsTrain \code{vector} group labels.
+#' @param dataTest \code{matrix} RNASeq counts.
+#' @param labelsTest \code{vector} group labels.
+#' @param nTopGenes \code{numeric} number of top genes to remain after filtering.
+#' @param verbose \code{logical} verbose for more output set TRUE.
+#' @return \code{list} with filtered training and testing data sets.
 #' @examples
 #' data(simrnaseq)
 #' filteredGenes <- filterRnaseq(method="none", 
@@ -183,13 +189,15 @@ filterRnaseq <- function(method="none", dataTrain, labelsTrain, dataTest,
 #' 
 #' \code{classifyRnaseq} 
 #' 
-#' @param method String filtering method: none, relieff, edger, deseq2, randomforests.
-#' @param dataTrain Matrix RNASeq counts.
-#' @param labelsTrain Vector group labels.
-#' @param dataTest Matrix RNASeq counts.
-#' @param labelsTest Vector group labels.
-#' @param verbose Flag verbose for more output set TRUE.
-#' @return List with classifier stats for method.
+#' @family RNA-Seq functions
+#' @family classification functions
+#' @param method \code{string} filtering method: none, relieff, edger, deseq2, randomforests.
+#' @param dataTrain \code{matrix} RNASeq counts.
+#' @param labelsTrain \code{vector} group labels.
+#' @param dataTest \code{matrix} RNASeq counts.
+#' @param labelsTest \code{vector} group labels.
+#' @param verbose \code{logical} verbose for more output set TRUE.
+#' @return \code{list} with classifier stats for method.
 #' @examples
 #' data(simrnaseq)
 #' classifyStats <- classifyRnaseq(method="none", 

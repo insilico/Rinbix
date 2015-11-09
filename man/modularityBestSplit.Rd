@@ -7,15 +7,36 @@
 modularityBestSplit(B, m)
 }
 \arguments{
-\item{B}{Matrix modularity matrix.}
+\item{B}{\code{matrix} modularity matrix.}
 
-\item{m}{Numeric average degree?}
+\item{m}{\code{numeric} average degree?}
 }
 \value{
-List with modularity value Q and best split vector.
+\code{list} with:
+\itemize{
+  \item \code{numeric} \code{Q} modularity Q
+  \item \code{vector} \code{s_out} module split assignments
+}
 }
 \description{
 \code{modularityBestSplit}
 }
+\seealso{
+Other cluster functions: \code{\link{loadRipmResultsFromRdata}},
+  \code{\link{mergeSumPowers}}, \code{\link{modularity}},
+  \code{\link{ripMKernelStack}}, \code{\link{ripM}},
+  \code{\link{ripmVariableModuleAssignments}},
+  \code{\link{saveModuleListGmt}},
+  \code{\link{saveRipmModules}},
+  \code{\link{saveRipmResultsToRdata}}
+
+Other inbix synonym functions: \code{\link{dcgain}},
+  \code{\link{geneLowValueFilter}},
+  \code{\link{geneLowVarianceFilter}},
+  \code{\link{getMainEffects}}, \code{\link{modularity}},
+  \code{\link{regainParallel}}, \code{\link{regain}}
+}
+\keyword{cluster}
 \keyword{internal}
+\keyword{math}
 

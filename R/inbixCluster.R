@@ -8,8 +8,9 @@
 #' 
 #' \code{loadRipmResultsFromRdata} 
 #' 
-#' @param rdataFilename String filename of saved module object.
-#' @return ripM module object.
+#' @family cluster functions
+#' @param rdataFilename \code{string} filename of saved module object.
+#' @return \code{list} ripM module object.
 #' @export
 loadRipmResultsFromRdata <- function(rdataFilename) {
   # save modules to separate files
@@ -21,14 +22,21 @@ loadRipmResultsFromRdata <- function(rdataFilename) {
 #' 
 #' \code{mergeSumPowers} 
 #' 
-#' @param Aadj Matrix adjacency matrix.
-#' @param startOrder Numeric starting order for merging.
-#' @param maxOrder Numeric maximum order for merging.
-#' @param minModuleSize Numeric minimum allowed size of module.
-#' @param maxModuleSize Numeric maximum allowed size of module.
-#' @param verbose Flag send verbose messages to standard out.
-#' @param indentLevel Numeric tab indent level (recursion level).
-#' @return list with list of modules (lists of variable names) and number of iterations.
+#' @family cluster functions
+#' @param Aadj \code{matrix} adjacency matrix.
+#' @param startOrder \code{numeric} starting order for merging.
+#' @param maxOrder \code{numeric} maximum order for merging.
+#' @param minModuleSize \code{numeric} minimum allowed size of module.
+#' @param maxModuleSize \code{numeric} maximum allowed size of module.
+#' @param verbose \code{logical} send verbose messages to standard out.
+#' @param indentLevel \code{numeric} tab indent level (recursion level).
+#' @return \code{list} with:
+#' \itemize{
+#'   \item \code{logical} \code{success} merge success
+#'   \item \code{list} \code{modules.obj} best modules list
+#'   \item \code{numeric} \code{q} best module Q value
+#'   \item \code{numeric} \code{order} best module merge order
+#' }
 #' @export
 #' @keywords internal
 mergeSumPowers <- function(Aadj, startOrder=2, maxOrder=4, 
@@ -119,9 +127,17 @@ mergeSumPowers <- function(Aadj, startOrder=2, maxOrder=4,
 #' 
 #' \code{modularity}
 #' 
-#' @param G Matrix Adjacency matrix.
-#' @param verbose Flag to output messages to stdout.
-#' @return list of groups, Q and module assignments.
+#' @keywords math cluster
+#' @family cluster functions
+#' @family inbix synonym functions
+#' @param G \code{matrix} Adjacency matrix.
+#' @param verbose \code{logical} to output messages to stdout.
+#' @return \code{list} with:
+#' \itemize{
+#'   \item \code{list} \code{groups} group assignments
+#'   \item \code{numeric} \code{q} modularity
+#'   \item \code{data.frame} \code{modules} modules
+#' }
 #' @examples
 #' data(testdata10)
 #' rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
@@ -173,7 +189,7 @@ modularity <- function(G, verbose=FALSE) {
     # get the best split of the modules based on eigenvector decomposition
     sub_modules <- modularityBestSplit(Bg, m)
     deltaQ <- sub_modules$Q
-    s <- sub_modules$s_out
+    s <- sub_modules$s_out 
     # assign indices based on two groups
     s1 <- thisModule[s==-1]
     s2 <- thisModule[s==1]
@@ -225,9 +241,16 @@ modularity <- function(G, verbose=FALSE) {
 #' 
 #' \code{modularityBestSplit} 
 #' 
-#' @param B Matrix modularity matrix.
-#' @param m Numeric average degree?
-#' @return List with modularity value Q and best split vector.
+#' @keywords math cluster
+#' @family cluster functions
+#' @family inbix synonym functions
+#' @param B \code{matrix} modularity matrix.
+#' @param m \code{numeric} average degree?
+#' @return \code{list} with:
+#' \itemize{
+#'   \item \code{numeric} \code{Q} modularity Q
+#'   \item \code{vector} \code{s_out} module split assignments
+#' }
 #' @export
 #' @keywords internal
 modularityBestSplit <- function(B, m) {
@@ -240,14 +263,14 @@ modularityBestSplit <- function(B, m) {
   maxeig_val <- eigval[1];
   maxeig_vec <- eigvec[,1];
   # use the sign of the eigenvector values to assign group status +/-1
-  s_out <- ifelse(maxeig_vec < 0, -1, 1)
+  s_out  <- ifelse(maxeig_vec < 0, -1, 1)
   # calculate Q for this split
-  Q_mat <- t(s_out) %*% B %*% s_out
+  Q_mat <- t(s_out) %*% B %*% s_out 
   Q <- Q_mat[1,1]
   Q <- Q * (1.0 / (m * 4.0))
   
   # return Q and list assignments
-  list(Q=Q, s_out=s_out)
+  list(Q=Q, s_out=s_out )
 }
 
 # ----------------------------------------------------------------------------
@@ -255,19 +278,29 @@ modularityBestSplit <- function(B, m) {
 #' 
 #' \code{ripM} 
 #' 
-#' @param Acorr Matrix correlation matrix.
-#' @param thresholdType String threshold type: "hard" or "soft".
-#' @param thresholdValue Numeric hard threshold correlation value or soft threshold power.
-#' @param startMergeOrder Numeric power n to raise adjacencyMatrix^n in first merge attempt.
-#' @param maxMergeOrder Numeric power n to raise adjacencyMatrix^n in final merge attempt.
-#' @param maxModuleSize Numeric maximum allowed size of module.
-#' @param minModuleSize Numeric minimum allowed size of module.
-#' @param useAbs Flag take absolute value of the correlation matrix.
-#' @param useWeighted Flag use weighted adjacency matrix versus binary.
-#' @param hubSelection String how to choose the hub for each module (weighted, posthresh).
-#' @param simpleModularity Flag perform simple modularity without split/merge.
-#' @param verbose Flag send verbose messages to standard out .
-#' @return list with: list of modules (list of lists of variable names), list of hubs, 
+#' @keywords cluster
+#' @family cluster functions
+#' @param Acorr \code{matrix} correlation matrix.
+#' @param thresholdType \code{string} threshold type: "hard" or "soft".
+#' @param thresholdValue \code{numeric} hard threshold correlation value or soft threshold power.
+#' @param startMergeOrder \code{numeric} power n to raise adjacencyMatrix^n in first merge attempt.
+#' @param maxMergeOrder \code{numeric} power n to raise adjacencyMatrix^n in final merge attempt.
+#' @param maxModuleSize \code{numeric} maximum allowed size of module.
+#' @param minModuleSize \code{numeric} minimum allowed size of module.
+#' @param useAbs \code{logical} take absolute value of the correlation matrix.
+#' @param useWeighted \code{logical} use weighted adjacency matrix versus binary.
+#' @param hubSelection \code{string} how to choose the hub for each module (weighted, posthresh).
+#' @param simpleModularity \code{logical} perform simple modularity without split/merge.
+#' @param verbose \code{logical} send verbose messages to standard out .
+#' @return \code{list} with: 
+#' \itemize{
+#'   \item \code{list} \code{module_list} of modules (list of character vectors of variable names)
+#'   \item \code{numeric} \code{iterations} number of iterations required
+#'   \item \code{vector} \code{hubs} nodes hubs
+#'   \item \code{vector} \code{sizes} nodes sizes
+#'   \item \code{vector} \code{degrees} nodes degrees
+#'   \item \code{matrix} \code{adj} adjacency matrix
+#' }
 #' list of node degrees.
 #' @examples
 #' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
@@ -376,16 +409,21 @@ ripM <- function(Acorr, thresholdType="hard", thresholdValue=0.8,
 #' 
 #' \code{ripMKernelStack} 
 #' 
-#' @param Aadj Matrix adjacency matrix.
-#' @param startOrder Numeric starting order for merging.
-#' @param maxOrder Numeric maximum order for merging.
-#' @param minModuleSize Numeric minimum allowed size of module.
-#' @param maxModuleSize Numeric maximum allowed size of module.
-#' @param verbose Flag send verbose messages to standard out .
-#' @param indentLevel Flag tab indent level (recursion level).
-#' @return list with list of modules (lists of variable names) and number of iterations.
+#' @family cluster functions
+#' @param Aadj \code{matrix} adjacency matrix.
+#' @param startOrder \code{numeric} starting order for merging.
+#' @param maxOrder \code{numeric} maximum order for merging.
+#' @param minModuleSize \code{numeric} minimum allowed size of module.
+#' @param maxModuleSize \code{numeric} maximum allowed size of module.
+#' @param verbose \code{logical} send verbose messages to standard out .
+#' @param indentLevel \code{logical} tab indent level (recursion level).
+#' @return \code{list} with: 
+#' \itemize{
+#'   \item \code{list} \code{module_list} of modules (list of character vectors of variable names)
+#'   \item \code{numeric} \code{iterations} number of iterations required
+#' }
 #' @export
-#' @keywords internal
+#' @keywords internal cluster
 ripMKernelStack <- function(Aadj, startOrder=2, maxOrder=4, 
                             minModuleSize=30, maxModuleSize=200, 
                             verbose=FALSE, indentLevel=1) {
@@ -562,8 +600,9 @@ ripMKernelStack <- function(Aadj, startOrder=2, maxOrder=4,
 #' 
 #' \code{ripmVariableModuleAssignments} 
 #' 
-#' @param ripmResult Rip-M result object.
-#' @return data frame with two columns: var(iable) and module (integer).
+#' @family cluster functions
+#' @param ripmResult \code{list} Rip-M results object.
+#' @return \code{data.frame} with two columns: var(iable) and module (integer).
 #' @examples
 #' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
 #' modListRipm <- ripM(simMatrix, 
@@ -596,8 +635,9 @@ ripmVariableModuleAssignments <- function(ripmResult) {
 #' 
 #' \code{saveModuleListGmt} 
 #' 
-#' @param moduleObj Module object from ripM call.
-#' @param outputPrefix String filename prefix for output GMT file.
+#' @family cluster functions
+#' @param moduleObj \code{list} Rip-M results object.
+#' @param outputPrefix \code{string} filename prefix for output GMT file.
 #' @examples
 #' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
 #' modListRipm <- ripM(simMatrix, 
@@ -634,9 +674,10 @@ saveModuleListGmt <- function(moduleObj, outputPrefix) {
 #' 
 #' \code{saveRipmResultsToRdata} 
 #' 
-#' @param resultsList list returned by ripM.
-#' @param outputPrefix String filename prefix for module output files.
-#' @param verbose FLag send messages to stdout.
+#' @family cluster functions
+#' @param resultsList \code{list} Rip-M results object.
+#' @param outputPrefix \code{string} filename prefix for module output files.
+#' @param verbose \code{logical} send messages to stdout.
 #' @examples
 #' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
 #' modListRipm <- ripM(simMatrix, 
@@ -661,8 +702,9 @@ saveRipmResultsToRdata <- function(resultsList, outputPrefix, verbose=FALSE) {
 #' 
 #' \code{saveRipmModules} 
 #' 
-#' @param moduleObj Module object from ripM call.
-#' @param outputPrefix String filename prefix for module output files.
+#' @family cluster functions
+#' @param moduleObj \code{list} Rip-M results object.
+#' @param outputPrefix \code{string} filename prefix for module output files.
 #' @examples
 #' simMatrix <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.8, lower_true_corr=0.2) 
 #' modListRipm <- ripM(simMatrix, 

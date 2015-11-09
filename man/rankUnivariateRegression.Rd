@@ -7,11 +7,11 @@
 rankUnivariateRegression(regressionData)
 }
 \arguments{
-\item{regressionData}{Data frame with gene in columns and samples in rows;
+\item{regressionData}{\code{data.frame} with gene in columns and samples in rows;
 the last column should be labeled 'Class' and be 0 or 1 values.}
 }
 \value{
-Data frame with gene, convergence status, beta coefficient, 
+\code{data.frame} with gene, convergence status, beta coefficient, 
 p-value, standard error and standardized beta columns.
 }
 \description{
@@ -21,4 +21,20 @@ p-value, standard error and standardized beta columns.
 data(testdata100ME4)
 rankUnivariateRegressionResults <- rankUnivariateRegression(testdata100ME4)
 }
+\seealso{
+Other feature selection functions: \code{\link{geneRank}},
+  \code{\link{r2VIMorig}}, \code{\link{rankDcgainSnprank}},
+  \code{\link{rankDeseq2}}, \code{\link{rankDeseq}},
+  \code{\link{rankEdgeRGlm}}, \code{\link{rankEdgeR}},
+  \code{\link{rankGeneRank}}, \code{\link{rankGlmnet}},
+  \code{\link{rankLasso}}, \code{\link{rankLimma}},
+  \code{\link{rankRandomForest}},
+  \code{\link{rankRegainSnprank}},
+  \code{\link{rankReliefSeq}}, \code{\link{rankSam}},
+  \code{\link{rankTTest}}, \code{\link{snprankInbix}},
+  \code{\link{snprank}}
+}
+\keyword{models}
+\keyword{regression}
+\keyword{univar}
 

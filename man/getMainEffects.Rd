@@ -6,30 +6,52 @@
 \usage{
 getMainEffects(data, regressionFamily = "binomial", numCovariates = 0,
   writeBetas = FALSE, useBetas = FALSE, transformMethod = "",
-  verbose = FALSE, numCores = 2)
+  numCores = 2, verbose = FALSE)
 }
 \arguments{
-\item{data}{Data frame with genes in columns and samples in rows.}
+\item{data}{\code{data.frame} with genes in columns and samples in rows.}
 
-\item{regressionFamily}{String glm regression family name.}
+\item{regressionFamily}{\code{string} glm regression family name.}
 
-\item{numCovariates}{Number of included covariates.}
+\item{numCovariates}{\code{numeric}  of included covariates.}
 
-\item{writeBetas}{Flag indicating whther to write beta values to separate file.}
+\item{writeBetas}{\code{logical} indicating whther to write beta values to separate file.}
 
-\item{useBetas}{Flag indicating betas rather than standardized betas used.}
+\item{useBetas}{\code{logical} indicating betas rather than standardized betas used.}
 
-\item{transformMethod}{String optional transform method.}
+\item{transformMethod}{\code{string} optional transform method.}
 
-\item{verbose}{Flag to send verbose messages to stdout.}
+\item{numCores}{\code{numeric} number of processor cores to use in mclapply}
 
-\item{numCores}{Number of processor cores to use in mclapply.}
+\item{verbose}{\code{logical} to send verbose messages to stdout.}
 }
 \value{
-mainEffectValues Vector of main effect values.
+mainEffectValues \code{vector} of main effect values.
 }
 \description{
 \code{getMainEffects}
 }
+\seealso{
+\code{\link{rankUnivariateRegression}}
+
+Other GAIN functions: \code{\link{dcgainInbix}},
+  \code{\link{dcgain}}, \code{\link{dmgain}},
+  \code{\link{fitInteractionModel}},
+  \code{\link{fitMainEffectModel}},
+  \code{\link{getInteractionEffects}},
+  \code{\link{regainInbix}}, \code{\link{regainParallel}},
+  \code{\link{regain}}
+
+Other inbix synonym functions: \code{\link{dcgain}},
+  \code{\link{geneLowValueFilter}},
+  \code{\link{geneLowVarianceFilter}},
+  \code{\link{modularityBestSplit}},
+  \code{\link{modularity}}, \code{\link{regainParallel}},
+  \code{\link{regain}}
+}
+\keyword{array}
 \keyword{internal}
+\keyword{models}
+\keyword{regression}
+\keyword{univar}
 

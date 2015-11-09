@@ -7,10 +7,10 @@
 fisherRtoZ(x)
 }
 \arguments{
-\item{x}{Correlation value -1 to 1.}
+\item{x}{\code{numeric} Correlation value -1 to 1.}
 }
 \value{
-Transformed correlation value.
+\code{numeric} Transformed correlation value.
 }
 \description{
 \code{fisherRtoZ}
@@ -18,4 +18,11 @@ Transformed correlation value.
 \examples{
 fisherRtoZ(seq(from=-1, to=1, by=0.25))
 }
+\seealso{
+Other utility functions: \code{\link{geneLowValueFilter}},
+  \code{\link{geneLowVarianceFilter}},
+  \code{\link{logSpiral}}, \code{\link{scaleAB}},
+  \code{\link{sumOfPowers}}
+}
+\keyword{math}
 

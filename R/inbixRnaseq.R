@@ -8,9 +8,11 @@
 #' 
 #' \code{rankDeseq} 
 #' 
-#' @param rnaExpr matrix of rna transcripts: gene rows by subject columns
-#' @param groups vector of case-control groups 0/1
-#' @return differentially expressed genes ordered by p-value
+#' @family RNA-Seq functions
+#' @family feature selection functions
+#' @param rnaExpr \code{matrix} of rna transcripts: gene rows by subject columns
+#' @param groups \code{vector} of case-control groups 0/1
+#' @return \code{data.frame} differentially expressed genes ordered by p-value
 #' @examples
 #' data(simrnaseq)
 #' X <- t(predictorsTrain)
@@ -33,9 +35,11 @@ rankDeseq <- function(rnaExpr, groups) {
 #' 
 #' \code{rankDeseq2} 
 #' 
-#' @param rnaExpr matrix of rna transcripts: gene rows by subject columns
-#' @param groups vector of case-control groups 0/1
-#' @return differentially expressed genes ordered by p-value
+#' @family RNA-Seq functions
+#' @family feature selection functions
+#' @param rnaExpr \code{matrix} of rna transcripts: gene rows by subject columns
+#' @param groups \code{vector} of case-control groups 0/1
+#' @return \code{data.frame} differentially expressed genes ordered by p-value
 #' @examples
 #' data(simrnaseq)
 #' X <- t(predictorsTrain)
@@ -55,9 +59,11 @@ rankDeseq2 <- function(rnaExpr, groups) {
 #' 
 #' \code{rankEdgeR} 
 #' 
-#' @param rnaExpr matrix of rna transcripts: gene rows by subject columns
-#' @param groups vector of case-control groups 0/1
-#' @return differentially expressed genes ordered by p-value
+#' @family RNA-Seq functions
+#' @family feature selection functions
+#' @param rnaExpr \code{matrix} of rna transcripts: gene rows by subject columns
+#' @param groups \code{vector} of case-control groups 0/1
+#' @return \code{data.frame} differentially expressed genes ordered by p-value
 #' @examples
 #' data(simrnaseq)
 #' X <- t(predictorsTrain)
@@ -78,10 +84,12 @@ rankEdgeR <- function(rnaExpr, groups) {
 #' 
 #' \code{rankEdgeR}Glm 
 #' 
-#' @param rnaExpr matrix of rna transcripts: gene rows by subject columns
-#' @param groups vector of case-control groups 0/1
-#' @param covariates covariates to add to the GLM model
-#' @return differentially expressed genes ordered by p-value
+#' @family RNA-Seq functions
+#' @family feature selection functions
+#' @param rnaExpr \code{matrix} of rna transcripts: gene rows by subject columns
+#' @param groups \code{vector} of case-control groups 0/1
+#' @param covariates \code{vector} of covariates to add to the GLM model
+#' @return \code{data.frame} differentially expressed genes ordered by p-value
 #' @examples
 #' data(simrnaseq)
 #' X <- t(predictorsTrain)

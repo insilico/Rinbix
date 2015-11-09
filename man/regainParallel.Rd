@@ -2,23 +2,25 @@
 % Please edit documentation in R/inbixGAIN.R
 \name{regainParallel}
 \alias{regainParallel}
-\title{Parallel execution of the regression genetic association interaction network algorithm.}
+\title{Parallel execution of the regression genetic association interaction network (reGAIN) algorithm.}
 \usage{
 regainParallel(regressionData, stdBetas = FALSE, absBetas = FALSE,
-  verbose = FALSE)
+  numCores = 2, verbose = FALSE)
 }
 \arguments{
-\item{regressionData}{Data frame with gene in columns and samples in rows;
+\item{regressionData}{\code{data.frame} with gene in columns and samples in rows;
 the last column should be labeled 'Class' and be 0 or 1 values.}
 
-\item{stdBetas}{Flag to use standardized beta coefficients.}
+\item{stdBetas}{\code{logical} to use standardized beta coefficients.}
 
-\item{absBetas}{Flag to use absolute value of beta coefficients.}
+\item{absBetas}{\code{logical} to use absolute value of beta coefficients.}
 
-\item{verbose}{Flag to send verbose messages to stdout.}
+\item{numCores}{\code{numeric} number of processor cores to use in mclapply}
+
+\item{verbose}{\code{logical} to send verbose messages to stdout.}
 }
 \value{
-regainMatrix Matrix of gene by gene regression coefficients.
+regainMatrix \code{matrix} of gene by gene regression coefficients.
 }
 \description{
 \code{regainParallel}
@@ -27,4 +29,30 @@ regainMatrix Matrix of gene by gene regression coefficients.
 data(testdata10)
 rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
 }
+\references{
+\itemize{
+  \item \url{http://www.nature.com/gene/journal/v11/n8/full/gene201037a.html}
+  {Genes & Immunity Paper}
+  \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
+}
+}
+\seealso{
+Other GAIN functions: \code{\link{dcgainInbix}},
+  \code{\link{dcgain}}, \code{\link{dmgain}},
+  \code{\link{fitInteractionModel}},
+  \code{\link{fitMainEffectModel}},
+  \code{\link{getInteractionEffects}},
+  \code{\link{getMainEffects}}, \code{\link{regainInbix}},
+  \code{\link{regain}}
+
+Other inbix synonym functions: \code{\link{dcgain}},
+  \code{\link{geneLowValueFilter}},
+  \code{\link{geneLowVarianceFilter}},
+  \code{\link{getMainEffects}},
+  \code{\link{modularityBestSplit}},
+  \code{\link{modularity}}, \code{\link{regain}}
+}
+\keyword{array}
+\keyword{models}
+\keyword{regression}
 

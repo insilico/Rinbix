@@ -8,9 +8,11 @@
 #' 
 #' \code{createRandomRegressionDataset} 
 #' 
-#' @param numRows Numeric number of rows (samples).
-#' @param numCols Numeric number of columns (independent variables),
-#' @return data frame with class column.
+#' @keywords datagen
+#' @family simulation functions
+#' @param numRows \code{numeric} number of rows (samples).
+#' @param numCols \code{numeric} number of columns (independent variables),
+#' @return \code{data.frame} with class column.
 #' @examples
 #' ds <- createRandomRegressionDataset(100, 100)
 #' @export
@@ -27,11 +29,13 @@ createRandomRegressionDataset <- function(numRows, numCols) {
 #' 
 #' \code{createRandomMatrix} 
 #' 
-#' @param M Numeric number of genes.
-#' @param N Numeric number of subjects.
-#' @param meanExpression Numeric mean gene expression.
-#' @param randSdNoise Numeric standard deviation of random normal (rnorm) noise.
-#' @return list with subject by gene data frame with class column.
+#' @keywords datagen
+#' @family simulation functions
+#' @param M \code{numeric} number of genes.
+#' @param N \code{numeric} number of subjects.
+#' @param meanExpression \code{numeric} mean gene expression.
+#' @param randSdNoise \code{numeric} standard deviation of random normal (rnorm) noise.
+#' @return \code{list} with subject by gene \code{data.frame} with class column.
 #' @examples
 #' ds <- createRandomMatrix(100, 100, 7, 0.05)$regressionData
 #' @export
@@ -55,19 +59,21 @@ createRandomMatrix <- function(M, N, meanExpression, randSdNoise) {
 #' 
 #' \code{createDiffCoexpMatrix} 
 #' 
-#' @param M genes
-#' @param N subjects
-#' @param meanExpression mean gene expression
-#' @param A network model adjacency matrix
-#' @param randSdNoise standard deviation of random normal (rnorm) noise
-#' @param sdNoise standard deviation of noise in differential correlation
-#' @param mGenesToPerturb number of genes to perturb
-#' @param sampleIndicesInteraction interaction gene indices
-#' @param sampleIndicesMainEffects main effects indices
-#' @param mainEffectMode 1=use interaction indices, else use main effects indices
-#' @param mainEffect desired fold change
-#' @param verbose verbose output to stdout
-#' @return list with subject by gene data frame with class column and fold changes.
+#' @keywords datagen
+#' @family simulation functions
+#' @param M \code{numeric} genes
+#' @param N \code{numeric} subjects
+#' @param meanExpression \code{numeric} mean gene expression
+#' @param A network model adjacency \code{matrix}
+#' @param randSdNoise \code{numeric} standard deviation of random normal (rnorm) noise
+#' @param sdNoise \code{numeric} standard deviation of noise in differential correlation
+#' @param mGenesToPerturb \code{numeric} number of genes to perturb
+#' @param sampleIndicesInteraction \code{vector} interaction gene indices
+#' @param sampleIndicesMainEffects \code{vector} main effects indices
+#' @param mainEffectMode \code{numeric} 1=use interaction indices, else use main effects indices
+#' @param mainEffect \code{numeric} desired fold change
+#' @param verbose \code{logical} verbose output to stdout
+#' @return \code{list} with subject by gene \code{data.frame} with class column and fold changes.
 #' @examples
 #' data("scaleFreeNetwork")
 #' dsobj <- createDiffCoexpMatrix(M=100, 
@@ -199,14 +205,16 @@ createDiffCoexpMatrix <- function(M, N, meanExpression, A,
 #' 
 #' \code{createDiffCoexpMatrixNoME} 
 #' 
-#' @param M Numeric number of genes.
-#' @param N Numeric number of subjects.
-#' @param meanExpression Numeric mean gene expression.
-#' @param A Matrix network adjacency matrix.
-#' @param randSdNoise Numeric standard deviation of random normal (rnorm) noise.
-#' @param sdNoise Numeric standard deviation of noise in differential correlation.
-#' @param sampleIndicesInteraction Vector interaction gene indices.
-#' @return list with subject by gene data frame with class column.
+#' @keywords datagen
+#' @family simulation functions
+#' @param M \code{numeric} number of genes.
+#' @param N \code{numeric} number of subjects.
+#' @param meanExpression \code{numeric} mean gene expression.
+#' @param A \code{matrix} network adjacency matrix.
+#' @param randSdNoise \code{numeric} standard deviation of random normal (rnorm) noise.
+#' @param sdNoise \code{numeric} standard deviation of noise in differential correlation.
+#' @param sampleIndicesInteraction \code{vector} interaction gene indices.
+#' @return \code{list} with subject by gene \code{data.frame} with class column.
 #' @examples
 #' data("scaleFreeNetwork")
 #' dsobj <- createDiffCoexpMatrixNoME(M=100, 
@@ -275,13 +283,15 @@ createDiffCoexpMatrixNoME <- function(M, N, meanExpression, A, randSdNoise,
 #' 
 #' \code{createDiffCoexpMatrixNull} 
 #' 
-#' @param M Numeric number of genes.
-#' @param N Numeric number of subjects.
-#' @param meanExpression Numeric mean gene expression.
-#' @param A Matrix network adjacency matrix.
-#' @param randSdNoise Numeric standard deviation of random normal (rnorm) noise.
-#' @param sdNoise Numeric standard deviation of noise in differential correlation.
-#' @return list with subject by gene data frame with class column.
+#' @keywords datagen
+#' @family simulation functions
+#' @param M \code{numeric} number of genes.
+#' @param N \code{numeric} number of subjects.
+#' @param meanExpression \code{numeric} mean gene expression.
+#' @param A \code{matrix} network adjacency matrix.
+#' @param randSdNoise \code{numeric} standard deviation of random normal (rnorm) noise.
+#' @param sdNoise \code{numeric} standard deviation of noise in differential correlation.
+#' @return \code{list} with subject by gene \code{data.frame} with class column.
 #' @examples
 #' data("scaleFreeNetwork")
 #' dsobj <- createDiffCoexpMatrixNull(M=100, 
@@ -333,15 +343,17 @@ createDiffCoexpMatrixNull <- function(M, N, meanExpression, A, randSdNoise, sdNo
 #' 
 #' \code{createMainEffectsMatrix} 
 #' 
-#' @param M Numeric number of genes.
-#' @param N Numeric number of subjects.
-#' @param meanExpression Numeric mean gene expression.
-#' @param randSdNoise Numeric standard deviation of random normal (rnorm) noise.
-#' @param sampleIndicesMainEffects main effects indices
-#' @param mainEffect Numeric desired fold change.
-#' @param doScale Flag scale the resulting matrix.
-#' @param doLog Flag log2 transform resulting matrix.
-#' @return list with subject by gene data frame with class column and fold changes.
+#' @keywords datagen
+#' @family simulation functions
+#' @param M \code{numeric} number of genes.
+#' @param N \code{numeric} number of subjects.
+#' @param meanExpression \code{numeric} mean gene expression.
+#' @param randSdNoise \code{numeric} standard deviation of random normal (rnorm) noise.
+#' @param sampleIndicesMainEffects \code{vector} main effects indices
+#' @param mainEffect \code{numeric} desired fold change.
+#' @param doScale \code{logical} scale the resulting matrix.
+#' @param doLog \code{logical} log2 transform resulting matrix.
+#' @return \code{list} with subject by gene \code{data.frame} with class column and fold changes.
 #' @examples
 #' dsobj <- createMainEffectsMatrix(M=100, 
 #'                                  N=100, 
@@ -426,11 +438,12 @@ createMainEffectsMatrix <- function(M, N, meanExpression, randSdNoise,
 #' 
 #' \code{getFoldChange} 
 #' 
-#' @param D Matrix data matrix.
-#' @param idx Numeric index of variable to get fold change.
-#' @param n1 Numeric size of group 1.
-#' @param N Numeric number of subjects.
-#' @return numeric fold change.
+#' @family simulation functions
+#' @param D \code{matrix} data matrix.
+#' @param idx \code{numeric} index of variable to get fold change.
+#' @param n1 \code{numeric} size of group 1.
+#' @param N \code{numeric} number of subjects.
+#' @return \code{numeric} fold change.
 #' @examples
 #' dsobj <- createMainEffectsMatrix(M=100, 
 #'                                  N=100, 
@@ -458,12 +471,14 @@ getFoldChangeME <- function(D, idx, n1, N) {
 #' 
 #' \code{simCorrMatrix} 
 #' 
-#' @param n Numeric dim of matrix, number of genes.
-#' @param num_clust Numeric number of clusters.
-#' @param max_noise_corr Numeric background noise correlation.
-#' @param lower_true_corr Numeric minimum strength of correlation within clusters
+#' @keywords datagen array
+#' @family simulation functions
+#' @param n \code{numeric} dim of matrix, number of genes.
+#' @param num_clust \code{numeric} number of clusters.
+#' @param max_noise_corr \code{numeric} background noise correlation.
+#' @param lower_true_corr \code{numeric} minimum strength of correlation within clusters
 #' lower limit for a "true" correlation.
-#' @return n x n correlation matrix.
+#' @return n x n correlation \code{matrix}.
 #' @examples
 #' mat <- simCorrMatrix(n=400, num_clust=20, max_noise_corr=0.5, lower_true_corr=0.5)
 #' @export
@@ -502,12 +517,14 @@ simCorrMatrix <- function(n=4000, num_clust=20, max_noise_corr=0.2, lower_true_c
 #' 
 #' \code{simCorrMatrixNonUniform} 
 #' 
-#' @param n Numeric dim of matrix, number of genes.
-#' @param num_clust Numeric number of clusters.
-#' @param max_noise_corr Numeric background noise correlation.
-#' @param lower_true_corr Numeric minimum strength of correlation within clusters
+#' @keywords datagen array
+#' @family simulation functions
+#' @param n \code{numeric} dim of matrix, number of genes.
+#' @param num_clust \code{numeric} number of clusters.
+#' @param max_noise_corr \code{numeric} background noise correlation.
+#' @param lower_true_corr \code{numeric} minimum strength of correlation within clusters
 #' lower limit for a "true" correlation.
-#' @return n x n correlation matrix
+#' @return n x n correlation \code{matrix}.
 #' @examples
 #' mat <- simCorrMatrixNonUniform(n=400, num_clust=20, max_noise_corr=0.5, lower_true_corr=0.5)
 #' @export

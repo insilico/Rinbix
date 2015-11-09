@@ -6,32 +6,43 @@
 \usage{
 getInteractionEffects(data, regressionFamily = "binomial",
   numCovariates = 0, writeBetas = FALSE, excludeMainEffects = FALSE,
-  useBetas = FALSE, transformMethod = "", verbose = FALSE, numCores = 2)
+  useBetas = FALSE, transformMethod = "", numCores = 2, verbose = FALSE)
 }
 \arguments{
-\item{data}{Data frame with genes in columns and samples in rows.}
+\item{data}{\code{data.frame} with genes in columns and samples in rows.}
 
-\item{regressionFamily}{String glm regression family name.}
+\item{regressionFamily}{\code{string} glm regression family name.}
 
-\item{numCovariates}{Number of included covariates.}
+\item{numCovariates}{\code{numeric}  of included covariates.}
 
-\item{writeBetas}{Flag indicating whether to write beta values to separate file.}
+\item{writeBetas}{\code{logical} indicating whether to write beta values to separate file.}
 
-\item{excludeMainEffects}{Flag indicating whether to exclude main effect terms.}
+\item{excludeMainEffects}{\code{logical} indicating whether to exclude main effect terms.}
 
-\item{useBetas}{Flag indicating betas rather than standardized betas used.}
+\item{useBetas}{\code{logical} indicating betas rather than standardized betas used.}
 
-\item{transformMethod}{String optional transform method.}
+\item{transformMethod}{\code{string} optional transform method.}
 
-\item{verbose}{Flag to send verbose messages to stdout.}
+\item{numCores}{\code{numeric} number of processor cores to use in mclapply}
 
-\item{numCores}{Number of processor cores to use in mclapply}
+\item{verbose}{\code{logical} to send verbose messages to stdout.}
 }
 \value{
-results Matrix of gene by gene regression coefficients.
+results \code{matrix} of gene by gene regression coefficients.
 }
 \description{
 \code{getInteractionEffects}
 }
+\seealso{
+Other GAIN functions: \code{\link{dcgainInbix}},
+  \code{\link{dcgain}}, \code{\link{dmgain}},
+  \code{\link{fitInteractionModel}},
+  \code{\link{fitMainEffectModel}},
+  \code{\link{getMainEffects}}, \code{\link{regainInbix}},
+  \code{\link{regainParallel}}, \code{\link{regain}}
+}
+\keyword{array}
 \keyword{internal}
+\keyword{models}
+\keyword{regression}
 

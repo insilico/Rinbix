@@ -2,68 +2,145 @@
 title: "Rinbix Microarray Pipeline"
 author: "Bill White"
 date: "October 27, 2015"
-output: html_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Rinbix Microarray Pipeline}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
-```{r, echo=FALSE, message=FALSE}
+```{r libraries, echo=FALSE, message=FALSE}
 library(affy)
 library(affyPLM)
 library(leukemiasEset)
 library(ggplot2)
 library(clusterProfiler)
 library(broom)
-library(biomaRt)
+library(org.Hs.eg.db)
+library(AnnotationDbi)
 library(Rinbix)
+library(biomaRt)
 ```
 
-#Get Leukemias Data
+#Get Leukemias Eset
 
-```{r}
+```{r dataset}
 data(leukemiasEset)  # load bone marrow samples
-# quantiles function needs eset to operate on
-leukExprData_quantile <- normalize.ExpressionSet.quantiles(leukemiasEset, transfn="log")
-leukExprData_quantileLog2 <- log2(exprs(leukExprData_quantile))
-#dim(leukemiasEset) # 20172 genes x 60 samples
-#sampleNames(leukemiasEset) # cell file names
-#featureNames(leukemiasEset)[1:5] # first 5 gene ensemble ids
+# objects in the data
+#str(leukemiasEset)
+#slotNames(leukemiasEset) # phenoData, etc
+dim(leukemiasEset) # 20172 genes x 60 samples
+sampleNames(leukemiasEset) # cell file names
 allPheno <- pData(leukemiasEset)
-# abbreviated leukemia types
-leukPheno <- allPheno$LeukemiaType  
+#head(allPheno)  # look at phenotype info
+leukPheno <- allPheno$LeukemiaType  # abbreviated leukemia types
+summary(leukPheno)
 # ALL AML CLL CML NoL 
 # 12  12  12  12  12 
-colnames(leukExprData_quantileLog2) <- leukPheno
+#featureNames(leukemiasEset)[1:5] # first 5 gene ensemble ids
+leukExprData <- exprs(leukemiasEset) # exprs is an affy function to extract expression data from eset
+colnames(leukExprData) <- leukPheno  # add phenotype names to matrix
 ```
 
-#Gene Filters
+#Preprocess
+
+```{r preprocess}
+# quantiles function needs eset to operate on
+leukExprData_quantile <- normalize.quantiles(leukExprData)
+boxplot(leukExprData_quantile,range=0,ylab="raw intensity", main="Quantile Normalized")
+#leukExprData_quantileLog2 <- log2(exprs(leukExprData_quantile))
+leukExprData_quantileLog2 <- log2(leukExprData_quantile)
+colnames(leukExprData_quantileLog2) <- leukPheno  # add phenotype names to matrix
+boxplot(leukExprData_quantileLog2,range=0,ylab="log2 intensity", 
+        main="Quantile Normalized Log2")
+# compare the ALL and NoL groups; find genes that are differentially expressed between groups
+# use t.test
+# 1. create subset of data for the two groups
+ALL.NoL.mask <- colnames(leukExprData) == "ALL" | colnames(leukExprData) == "NoL"
+ALL.NoL.Data <- leukExprData[,ALL.NoL.mask]
+```
+
+#2. coefficient of variation filter sd(x)/abs(mean(x))
+
+```{r cov}
+# there are a lot of genes that have very low signal to noise that we can get rid of.
+coef.of.vars <- apply(ALL.NoL.Data,1,function(x) {sd(x)/abs(mean(x))})
+# the smaller the threshold, the higher the experimental effect relative to the measurement precision
+sum(coef.of.vars<.05)  # 5,378 genes
+# filter the data matrix
+ALL.NoL.Data.filter <- ALL.NoL.Data[coef.of.vars<.05,]
+dim(ALL.NoL.Data.filter)
+```
+
+#3. create factor variable for the two groups for the t-test
+
+```{r groups}
+test.groups <- as.factor(colnames(ALL.NoL.Data.filter))
+test.groups
+str(test.groups)
+levels(test.groups)
+```
+
+#t-test
+
+```{r ttest}
+# put it all together. apply to all genes
+# i is the data row or gene index
+ttest_fn <- function(i){
+      mygene<-rownames(ALL.NoL.Data.filter)[i]
+      t.result <- t.test(ALL.NoL.Data.filter[i,] ~ test.groups)
+      tidy.result <- tidy(t.result)
+      tstat <- tidy.result$statistic
+      pval <- tidy.result$p.value
+      cbind(mygene, tstat, pval)    
+} 
+ttest_allgene_results.df<-data.frame(t(sapply(1:nrow(ALL.NoL.Data.filter), ttest_fn)))
+colnames(ttest_allgene_results.df) <- c("ensmblID", "t-stat", "p-value")
+# sort
+ttest_allgene_sorted <- ttest_allgene_results.df[order(as.numeric(as.character(ttest_allgene_results.df$"p-value"))), ]
+#tested<-topTable(fitE, adjust="fdr", sort.by="B", number=Inf)
+#DE <- tested[tested$adj.P.Val < 0.01,]
+knitr::kable(head(ttest_allgene_sorted), row.names=FALSE, digits=6)
+```
+
+#Lookup Top Genes
 
 ```{r}
-lvalf <- geneLowValueFilter(leukExprData_quantileLog2, 0.8)
-lvarf <- geneLowVarianceFilter(lvalf$fdata, 0.8)
-geneFilteredData <- as.data.frame(t(lvarf$fdata))
-geneFilteredData$Class <- ifelse(leukPheno == "NoL", 0, 1)
+top_cutoff <- 100
+# grab top ensmblID 
+# convert output to character instead of factor
+topFeatures <- as.character(ttest_allgene_sorted[1:top_cutoff,]$ensmblID)
+ensembl = useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+top_geneNames <- getBM(attributes=c('ensembl_gene_id','hgnc_symbol'), filters='ensembl_gene_id', 
+             values=topFeatures, mart=ensembl)
+knitr::kable(head(top_geneNames))
 ```
 
-#Rankers
+#Reactome
 
-```{r}
-ttestResults <- rankTTest(geneFilteredData)
-print(head(ttestResults))
-
-dcgainSnprankResults <- rankDcgainSnprank(geneFilteredData)
-print(head(dcgainSnprankResults))
-
-reliefseqRanks <- rankReliefSeq(geneFilteredData)
-print(head(reliefseqRanks))
+```{r reactome, echo=TRUE}
+reactomeAnalysis <- getReactomePathways(top_geneNames$hgnc_symbol)
+knitr::kable(summary(reactomeAnalysis), row.names=FALSE)
 ```
 
-```{r, echo=FALSE}
-allResults <- data.frame(ttest=sort(1-ttestResults), 
-                         dcgain=sort(dcgainSnprankResults$snprank), 
-                         relieff=sort(reliefseqRanks$score))
-x <- 1:nrow(allResults)
-plot(x, allResults$ttest, col="red", pch=16, main="Rankers")
-points(x, allResults$dcgain, pch=16, col="blue")
-points(x, allResults$relieff, pch=16, col="magenta")
-legend("topleft", c("1 - t-test", "dcGAIN+SNPrank", "ReliefSeq"), 
-       col=c("red", "blue", "magenta"), pch=rep(16, 3))
+#KEGG
+
+```{r kegg, echo=TRUE}
+keggAnalysis <- getKEGGAnalysis(top_geneNames$hgnc_symbol)
+knitr::kable(summary(keggAnalysis), row.names=FALSE)
+```
+
+#GO
+
+```{r go, echo=TRUE}
+goAnalysis <- getGOAnalysis(top_geneNames$hgnc_symbol)
+knitr::kable(summary(goAnalysis), row.names=FALSE)
+```
+
+#Plots
+
+```{r pathplots, echo=TRUE}
+# hmm, not doing anything
+barplot(keggAnalysis)
+barplot(goAnalysis)
 ```

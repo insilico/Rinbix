@@ -17,7 +17,17 @@ Suggests:
     fossil,
     e1071,
     expm,
-    kernlab
+    kernlab,
+    org.Hs.eg.db,
+    AnnotationDbi,
+    broom,
+    ggplot2,
+    biomaRt,
+    affy,
+    affyPLM,
+    leukemiasEset,
+    networkD3,
+    KEGG.db
 Imports:
     Matrix,
     caret,
@@ -34,8 +44,6 @@ Imports:
     glm2,
     RColorBrewer,
     ReactomePA,
-    org.Hs.eg.db,
-    clusterProfiler,
-    BiocGenerics
+    clusterProfiler
 VignetteBuilder: knitr
 RoxygenNote: 5.0.0

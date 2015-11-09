@@ -8,8 +8,10 @@
 #' 
 #' \code{fisherRtoZ}
 #' 
-#' @param x Correlation value -1 to 1.
-#' @return Transformed correlation value.
+#' @keywords math
+#' @family utility functions
+#' @param x \code{numeric} Correlation value -1 to 1.
+#' @return \code{numeric} Transformed correlation value.
 #' @examples
 #' fisherRtoZ(seq(from=-1, to=1, by=0.25))
 #' @export
@@ -22,9 +24,13 @@ fisherRtoZ <- function(x) {
 #' 
 #' \code{geneLowValueFilter} removes genes with values in the lowest percentile.
 #' 
-#' @param dataMatrix Data frame with genes in rows and samples in columns.
-#' @param percentile Numeric percentile threshold below which genes will be removed.
-#' @return List with the mask used and filtered data frame.
+#' @family utility functions
+#' @family filter functions
+#' @family microarray functions
+#' @family inbix synonym functions
+#' @param dataMatrix \code{data.frame} with genes in rows and samples in columns.
+#' @param percentile \code{numeric} percentile threshold below which genes will be removed.
+#' @return \code{list} with the mask used and filtered data frame.
 #' @examples
 #' data(testdata100ME4)
 #' lowValFiltered <- geneLowValueFilter(testdata100ME4[, -ncol(testdata100ME4)])
@@ -54,9 +60,13 @@ geneLowValueFilter <- function(dataMatrix, percentile=0.1) {
 #' The elements of Mask corresponding to rows with a variance greater than the threshold 
 #' have a value of 1, and those with a variance less than the threshold are 0.
 #'
-#' @param dataMatrix Data frame with genes in rows and samples in columns.
-#' @param percentile Numeric variance percentile threshold below which genes will be removed.
-#' @return List with the mask used and filtered data frame
+#' @family utility functions
+#' @family filter functions
+#' @family microarray functions
+#' @family inbix synonym functions
+#' @param dataMatrix \code{data.frame} with genes in rows and samples in columns.
+#' @param percentile \code{numeric} variance percentile threshold below which genes will be removed.
+#' @return \code{list} with the mask used and filtered data frame
 #' @examples
 #' data(testdata100ME4)
 #' lowVarFiltered <- geneLowVarianceFilter(testdata100ME4[, -ncol(testdata100ME4)])
@@ -79,13 +89,15 @@ geneLowVarianceFilter <- function(dataMatrix, percentile=0.1) {
 #' Ported from Javascript found here: 
 #' \url{http://www.pixelwit.com/blog/2008/05/how-to-draw-logarithmic-spiral/}
 #'
-#' @param centerX Numeric X origin of the spiral.
-#' @param centerY Numeric Y origin of the spiral.
-#' @param radius Numeric distance from origin to outer arm.
-#' @param sides Numeric points or sides along the spiral's arm.
-#' @param coils Numeric coils or full rotations. (Positive numbers spin clockwise, negative numbers spin counter-clockwise)
-#' @param rotation Numeric overall rotation of the spiral. ('0'=no rotation, '1'=360 degrees, '180/360'=180 degrees)
-#' @return matrix of x-y coordinates 'sides' rows and two columns.
+#' @keywords math
+#' @family utility functions
+#' @param centerX \code{numeric} X origin of the spiral.
+#' @param centerY \code{numeric} Y origin of the spiral.
+#' @param radius \code{numeric} distance from origin to outer arm.
+#' @param sides \code{numeric} points or sides along the spiral's arm.
+#' @param coils \code{numeric} coils or full rotations. (Positive numbers spin clockwise, negative numbers spin counter-clockwise)
+#' @param rotation \code{numeric} overall rotation of the spiral. ('0'=no rotation, '1'=360 degrees, '180/360'=180 degrees)
+#' @return \code{matrix} of x-y coordinates 'sides' rows and two columns.
 #' @export
 #' @keywords internal
 logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
@@ -118,10 +130,12 @@ logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
 #' 
 #' \code{scaleAB}
 #' 
-#' @param v Numeric vector.
-#' @param a Numeric minimum value in range.
-#' @param b Numeric maximum value in range.
-#' @return v scaled to range (a, b).
+#' @keywords math array
+#' @family utility functions
+#' @param v \code{numeric} vector.
+#' @param a \code{numeric} minimum value in range.
+#' @param b \code{numeric} maximum value in range.
+#' @return \code{numeric} v scaled to range (a, b).
 #' @examples
 #' scaleAB(1:10, 0, 1)
 #' @export
@@ -139,10 +153,12 @@ scaleAB <- function(v, a, b) {
 #' 
 #' \code{sumOfPowers} 
 #' 
-#' @param A Matrix adjacency.
-#' @param n Numeric maximum power of series adjacencyMatrix^n.
-#' @param verbose Flag to send messages to stdout.
-#' @return A^n.
+#' @keywords math array
+#' @family utility functions
+#' @param A \code{matrix} adjacency.
+#' @param n \code{numeric} maximum power of series adjacencyMatrix^n.
+#' @param verbose \code{logical} to send messages to stdout.
+#' @return \code{matrix} A^n.
 #' @examples
 #' A <- matrix(1:9, 3)
 #' sumOfPowers(A, 3)

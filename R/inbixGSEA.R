@@ -8,17 +8,22 @@
 #' 
 #' \code{getReactomePathways} 
 #' 
-#' @param geneSymbols vector gene symbols.
-#' @return enrichResult enriched pathways with FDR control.
+#' @param geneSymbols \code{vector} gene symbols.
+#' @return \code{\link[DOSE]{enrichResult-class}} enriched pathways with FDR control.
+#' @family GSEA functions
+#' @examples
+#' data(geneListSymbols)
+#' reactomePathDesc <- getReactomePathways(geneListSymbols)
 #' @export
 getReactomePathways <- function(geneSymbols) {
   geneIdsEntrez <- AnnotationDbi::mget(geneSymbols, 
-                                       AnnotationDbi::revmap(org.Hs.egSYMBOL), 
+                                       AnnotationDbi::revmap(org.Hs.eg.db::org.Hs.egSYMBOL), 
                                        ifnotfound=NA)
   pathwayEnrich <- ReactomePA::enrichPathway(gene=geneIdsEntrez, 
                                              pvalueCutoff=1, 
                                              qvalueCutoff=0.9, 
                                              minGSSize=2)
+  pathwayEnrich
 }
 
 # ----------------------------------------------------------------------------
@@ -26,16 +31,22 @@ getReactomePathways <- function(geneSymbols) {
 #' 
 #' \code{getKEGGAnalysis} 
 #' 
-#' @param geneSymbols vector gene symbols.
-#' @return enrichResult enrichment KEGG categories with FDR control.
+#' @param geneSymbols \code{vector} gene symbols.
+#' @return \code{\link[DOSE]{enrichResult-class}} enriched pathways with FDR control.
+#' @family GSEA functions
+#' @examples
+#' data(geneListSymbols)
+#' keggEnrichment <- getKEGGAnalysis(geneListSymbols)
 #' @export
 getKEGGAnalysis <- function(geneSymbols) {
-  geneIdsEntrez <- AnnotationDbi::mget(geneSymbols, AnnotationDbi::revmap(org.Hs.egSYMBOL), 
+  geneIdsEntrez <- AnnotationDbi::mget(geneSymbols, 
+  	                                   AnnotationDbi::revmap(org.Hs.eg.db::org.Hs.egSYMBOL), 
                                        ifnotfound=NA)
   geneIdsEntrez[is.na(geneIdsEntrez)] = " "
   keggEnrichment <- clusterProfiler::enrichKEGG(geneIdsEntrez, "human", 
                                                 pvalueCutoff=0.05,
                                                 use_internal_data=TRUE)
+  keggEnrichment
 }
 
 # ----------------------------------------------------------------------------
@@ -43,11 +54,17 @@ getKEGGAnalysis <- function(geneSymbols) {
 #' 
 #' \code{getGOAnalysis} 
 #' 
-#' @param geneSymbols vector gene symbols.
-#' @return enrichResult enrichment GO categories with FDR control.
+#' @param geneSymbols \code{vector} gene symbols.
+#' @return \code{\link[DOSE]{enrichResult-class}} enriched pathways with FDR control.
+#' @family GSEA functions
+#' @examples
+#' data(geneListSymbols)
+#' goEnrichment <- getGOAnalysis(geneListSymbols)
 #' @export
 getGOAnalysis <- function(geneSymbols) {
-  geneIdsEntrez <- AnnotationDbi::mget(geneSymbols, AnnotationDbi::revmap(org.Hs.egSYMBOL), 
+  geneIdsEntrez <- AnnotationDbi::mget(geneSymbols, 
+  	                                   AnnotationDbi::revmap(org.Hs.eg.db::org.Hs.egSYMBOL), 
                                        ifnotfound=NA)
   goEnrichment <- clusterProfiler::enrichGO(geneIdsEntrez, "human", "MF")
+  goEnrichment
 }

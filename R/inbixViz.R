@@ -8,15 +8,17 @@
 #' 
 #' \code{adjacencyToNetList} 
 #' 
-#' @param Aadj Matrix correlation matrix.
-#' @param thresholdType String threshold type: "hard" or "soft".
-#' @param thresholdValue Numeric hard threshold correlation value or soft threshold power.
-#' @param useAbs Flag take absolute value of the correlation matrix.
-#' @param useWeighted Flag use weighted adjacency matrix versus binary.
-#' @param verbose Flag send verbose messages to standard out .
-#' @param plotFilename String image file for network plot.
-#' @param groups Vector group assignments for network nodes.
-#' @return list with igraph network, edge list and node list.
+#' @keywords graphs
+#' @family visualization functions
+#' @family network functions
+#' @param Aadj \code{matrix} correlation matrix.
+#' @param thresholdType \code{string} threshold type: "hard" or "soft".
+#' @param thresholdValue \code{numeric} hard threshold correlation value or soft threshold power.
+#' @param useAbs \code{logical} take absolute value of the correlation matrix.
+#' @param useWeighted \code{logical} use weighted adjacency matrix versus binary.
+#' @param verbose \code{logical} send verbose messages to standard out .
+#' @param groups \code{vector} group assignments for network nodes.
+#' @return \code{list} with igraph network, edge \code{list} and node list.
 #' @examples
 #' data("testdata10")
 #' predictors <- testdata10[, -ncol(testdata10)]
@@ -91,7 +93,7 @@ adjacencyToNetList <- function(Aadj=NULL, thresholdType="hard", thresholdValue=0
   igraph::V(adjacencyNet)$color <- nodeColors[groups]
     
   igraph::V(adjacencyNet)$size <- nodeDegrees * 5
-  igraph::V(adjacencyNet)$size2 <- V(adjacencyNet)$size
+  igraph::V(adjacencyNet)$size2 <- igraph::V(adjacencyNet)$size
 
   # edge weights computed above in pairwise sums of connections
   igraph::E(adjacencyNet)$width <- igraph::E(adjacencyNet)$weight

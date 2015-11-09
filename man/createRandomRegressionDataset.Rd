@@ -7,12 +7,12 @@
 createRandomRegressionDataset(numRows, numCols)
 }
 \arguments{
-\item{numRows}{Numeric number of rows (samples).}
+\item{numRows}{\code{numeric} number of rows (samples).}
 
-\item{numCols}{Numeric number of columns (independent variables),}
+\item{numCols}{\code{numeric} number of columns (independent variables),}
 }
 \value{
-data frame with class column.
+\code{data.frame} with class column.
 }
 \description{
 \code{createRandomRegressionDataset}
@@ -20,4 +20,17 @@ data frame with class column.
 \examples{
 ds <- createRandomRegressionDataset(100, 100)
 }
+\seealso{
+Other simulation functions: \code{\link{createDiffCoexpMatrixNoME}},
+  \code{\link{createDiffCoexpMatrixNull}},
+  \code{\link{createDiffCoexpMatrix}},
+  \code{\link{createMainEffectsMatrix}},
+  \code{\link{createRandomMatrix}},
+  \code{\link{getFoldChange}},
+  \code{\link{randomNetworkSim}},
+  \code{\link{scaleFreeSim}},
+  \code{\link{simCorrMatrixNonUniform}},
+  \code{\link{simCorrMatrix}}
+}
+\keyword{datagen}
 

@@ -10,8 +10,7 @@ test_that("adjacencyToNetList", {
 	                              thresholdValue=0.2, 
 	                              useAbs=TRUE, 
 	                              useWeighted=TRUE, 
-	                              verbose=TRUE, 
-	                              plotFilename="", 
+	                              verbose=FALSE, 
 	                              groups=NULL)
 	filteredNetwork <- netlist$net
   expect_equal(nrow(netlist$nodes), 9)

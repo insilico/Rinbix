@@ -1,8 +1,12 @@
 ---
-title: "Rinbix RNA-Seq Pipeline"
+title: "Rinbix Predict RNA-Seq Pipeline"
 author: "Bill White"
 date: "October 27, 2015"
-output: html_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Rinbix Predict RNA-Seq Pipeline}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 #Load Rinbix and SImulated Data Set
@@ -32,31 +36,31 @@ predictResult
 
 ```{r}
 set.seed(1965)
-preprocessResult <- preprocess(method="log2", 
-                               predictorsTrain, 
-                               predictorsTest, 
-                               verbose=FALSE)
+preprocessResult <- preprocessRnaseq(method="log2", 
+                                     predictorsTrain, 
+                                     predictorsTest, 
+                                     verbose=FALSE)
 cat("Before preprocessing:\n")
 predictorsTrain[1:5, 1:5]
 cat("After preprocessing:\n")
 preprocessResult$train[1:5, 1:5]
 
-filterResult <- filterGenes(method="randomforests", 
-                            preprocessResult$train, 
-                            responseTrain, 
-                            preprocessResult$test, 
-                            responseTest,
-                            nTopGenes=10, 
-                            verbose=FALSE)
+filterResult <- filterRnaseq(method="randomforests", 
+                             preprocessResult$train, 
+                             responseTrain, 
+                             preprocessResult$test, 
+                             responseTest,
+                             nTopGenes=10, 
+                             verbose=FALSE)
 
 cat("Genes before filtering:", ncol(preprocessResult$train), 
     "after:", ncol(filterResult$train), "\n")
 
-classifyStats <- classify(method="svm", 
-                          filterResult$train, 
-                          responseTrain, 
-                          filterResult$test, 
-                          responseTest,
-                          verbose=FALSE)
+classifyStats <- classifyRnaseq(method="svm", 
+                                filterResult$train, 
+                                responseTrain, 
+                                filterResult$test, 
+                                responseTest,
+                                verbose=FALSE)
 classifyStats
 ```
