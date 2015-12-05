@@ -38,6 +38,7 @@ Other GAIN functions: \code{\link{dcgainInbix}},
   \code{\link{dcgain}}, \code{\link{dmgain}},
   \code{\link{fitInteractionModel}},
   \code{\link{fitMainEffectModel}},
+  \code{\link{gainToSimpleSIF}},
   \code{\link{getInteractionEffects}},
   \code{\link{regainInbix}}, \code{\link{regainParallel}},
   \code{\link{regain}}

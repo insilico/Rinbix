@@ -4,11 +4,13 @@
 \alias{rankUnivariateRegression}
 \title{Rank genes by univariate regression.}
 \usage{
-rankUnivariateRegression(regressionData)
+rankUnivariateRegression(regressionData, numCores = 2)
 }
 \arguments{
 \item{regressionData}{\code{data.frame} with gene in columns and samples in rows;
 the last column should be labeled 'Class' and be 0 or 1 values.}
+
+\item{numCores}{\code{numeric} number of processor cores to use in mclapply}
 }
 \value{
 \code{data.frame} with gene, convergence status, beta coefficient, 
@@ -27,12 +29,13 @@ Other feature selection functions: \code{\link{geneRank}},
   \code{\link{rankDeseq2}}, \code{\link{rankDeseq}},
   \code{\link{rankEdgeRGlm}}, \code{\link{rankEdgeR}},
   \code{\link{rankGeneRank}}, \code{\link{rankGlmnet}},
+  \code{\link{rankIterativeRelieff}},
   \code{\link{rankLasso}}, \code{\link{rankLimma}},
   \code{\link{rankRandomForest}},
   \code{\link{rankRegainSnprank}},
-  \code{\link{rankReliefSeq}}, \code{\link{rankSam}},
-  \code{\link{rankTTest}}, \code{\link{snprankInbix}},
-  \code{\link{snprank}}
+  \code{\link{rankReliefSeq}}, \code{\link{rankRelieff}},
+  \code{\link{rankSam}}, \code{\link{rankTTest}},
+  \code{\link{snprankInbix}}, \code{\link{snprank}}
 }
 \keyword{models}
 \keyword{regression}

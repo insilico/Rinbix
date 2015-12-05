@@ -1,0 +1,43 @@
+---
+title: "Rinbix-ReliefF-Ranking"
+author: "Bill White"
+date: "November 15, 2015"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Rinbix Network Visualization}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+# Load Library and Test Data
+## Main Effects Fold Change 4
+## Functional Variables at Indices 1 and 5
+
+```{r}
+library(Rinbix)
+data("testdata100ME4")
+```
+
+# Relief-F
+
+```{r}
+rankedVarsRelief <- rankRelieff(testdata100ME4)
+knitr::kable(head(rankedVarsRelief), row.names=F)
+```
+
+# ReliefSeq C++
+
+```{r}
+rankedVarsRelief <- rankReliefSeq(testdata100ME4)
+knitr::kable(head(rankedVarsRelief))
+```
+
+# Iterative Relief-F
+
+```{r}
+rankedVarsIterRelief <- rankIterativeRelieff(testdata100ME4, 
+                                             percentRemovePerIteration=10,
+                                             targetNumAttributes=10, 
+                                             verbose=FALSE)
+knitr::kable(head(rankedVarsIterRelief$all.scores), row.names=F)
+```

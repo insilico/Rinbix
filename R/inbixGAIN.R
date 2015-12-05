@@ -311,6 +311,38 @@ fitMainEffectModel <- function(data, variableName, depVarName, regressionFamily,
 }
 
 # -----------------------------------------------------------------------------
+#' GAIN matrix to simple interaction format (SIF) converter.
+#' 
+#' \code{gainToSimpleSIF} 
+#' 
+#' @keywords array
+#' @family GAIN functions
+#' @param gainMatrix \code{matrix} GAIN matrix.
+#' @return sifDF \code{data.frame} of node1 weight node2.
+#' @examples
+#' data(testdata10)
+#' rinbixRegain <- regain(testdata10, stdBetas=TRUE, absBetas=TRUE)
+#' gainSIF <- gainToSimpleSIF(rinbixRegain)
+#' expect_equal(nrow(gainSIF), choose(nrow(rinbixRegain), 2))
+#' @export
+gainToSimpleSIF <- function(gainMatrix) {
+  matrixDim <- dim(gainMatrix)[1]
+  variableNames <- colnames(gainMatrix)
+  # TODO: use combn and upper tiangular to avoid slow double loop rbind acculuator
+  sifDF <- NULL
+  for(i in 1:matrixDim) {
+    for(j in 1:matrixDim) {
+      if(j <= i) next
+      sifDF <- rbind(sifDF, data.frame(node1=variableNames[i],
+                                       weight=gainMatrix[i, j],
+                                       node2=variableNames[j]))
+    }
+  }
+  rownames(sifDF) <- paste("int", 1:nrow(sifDF), sep="")
+  sifDF
+}
+
+# -----------------------------------------------------------------------------
 #' Get interaction effects from generalized linear model regression.
 #' 
 #' \code{getInteractionEffects} 

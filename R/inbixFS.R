@@ -266,7 +266,7 @@ rankDcgainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE) {
   # make predictors (genes from SAM's POV) into rows
   predictors <- t(as.matrix(regressionData[, 1:numPredictors]))
   # phenotype is response
-  response <- regressionData[,ncol(regressionData)]
+  response <- regressionData[, ncol(regressionData)]
   
   # run Rinbix version of dcGAIN
   #dcResult <- dcgain(ds$regressionData) <- BUG 5/13/14
@@ -343,6 +343,59 @@ rankGlmnet <- function(regressionData, verbose=FALSE) {
              values=as.numeric(nzv),
              stringsAsFactors=FALSE)
   resultDF[order(resultDF$values, decreasing=TRUE), ]
+}
+
+# ----------------------------------------------------------------------------
+#' Rank by Iterative Relief-F.
+#' 
+#' \code{rankIterativeRelieff} 
+#' 
+#' @family feature selection functions
+#' @seealso \link{\code{rankRelieff}}
+#' @param regressionData \code{data.frame} of predictors and final class column.
+#' @param percentRemovePerIteration \code{numeric} percent of attributes to remover per iteration.
+#' @param targetNumAttributes \code{numeric} target number of attributes.
+#' @param verbose \code{logical} to send messages to stdout.
+#' @return \code{list} with \code{data.frame} of reduced regressionData 
+#'   with the target number of attributes and a \code{data.frame} of scores.
+#' @examples
+#' data(testdata100ME4)
+#' irelieffResults <- iterativeRelieff(testdata100ME4)
+#' @export
+rankIterativeRelieff <- function(regressionData, 
+                                 percentRemovePerIteration=10, 
+                                 targetNumAttributes=10,
+                                 verbose=FALSE) {
+  classCol <- as.integer(regressionData[, ncol(regressionData)])
+  curData <- regressionData[, -ncol(regressionData)]
+  curNumAttributes <- ncol(curData)
+  iterDone <- FALSE
+  iteration <- 0
+  scoresDF <- NULL
+  while(!iterDone) {
+    iteration <- iteration + 1
+    # run Relief-F on this subset
+    curData$Class <- classCol
+    thisRanking <- rankRelieff(curData)
+    thisRanking <- thisRanking[order(thisRanking$score), ]
+    thisNumToRemove <- as.integer(curNumAttributes * (percentRemovePerIteration / 100))
+    if((thisNumToRemove > 0) && (curNumAttributes - thisNumToRemove) > 0) {
+      attributesToRemove <- head(thisRanking, n=thisNumToRemove)
+      scoresDF <- rbind(scoresDF, data.frame(gene=attributesToRemove$gene, 
+                                             score=attributesToRemove$score))
+      if(verbose) cat("Number of attributes:", curNumAttributes, 
+                      ", removing:", thisNumToRemove, "\n")
+      curData <- curData[, -which(colnames(curData) %in% attributesToRemove$gene)]
+      curNumAttributes <- ncol(curData) - 1
+    } else {
+      scoresDF <- rbind(scoresDF, data.frame(gene=thisRanking$gene, 
+                                             score=thisRanking$score))
+      iterDone <- TRUE
+    }
+  }
+  scoresDF <- scoresDF[order(scoresDF$score, decreasing=T), ]
+  if(verbose) cat("Iterative Relief-F complete in [", iteration, "] iterations\n")
+  list(top.data=curData, all.scores=scoresDF)
 }
 
 # ----------------------------------------------------------------------------
@@ -468,6 +521,25 @@ rankRegainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE,  pTh
   # }
   # SNPrank
   snprankResults <- snprankInbix(rgResult$reGAIN, gamma=gamma)
+}
+
+# ----------------------------------------------------------------------------
+#' Rank by Relief-F.
+#' 
+#' \code{rankRelieff} 
+#' 
+#' @family feature selection functions
+#' @param regressionData \code{data.frame} of predictors and final class column.
+#' @return \code{data.frame} with Relief-F results: gene, score.
+#' @examples
+#' data(testdata100ME4)
+#' rankRelieffResults <- rankRelieff(testdata100ME4)
+#' @export
+rankRelieff <- function(regressionData) {
+  regressionData$Class <- factor(regressionData$Class, levels=c(0, 1))
+  relieffRankings <- CORElearn::attrEval(Class ~ ., regressionData, estimator="Relief")
+  retDF <- data.frame(gene=names(relieffRankings), score=relieffRankings)
+  retDF[order(retDF$score, decreasing=TRUE), ]
 }
 
 # ----------------------------------------------------------------------------
@@ -628,34 +700,36 @@ rankTTest <- function(regressionData) {
 #' @family feature selection functions
 #' @param regressionData \code{data.frame} with gene in columns and samples in rows;
 #' the last column should be labeled 'Class' and be 0 or 1 values.
+#' @param numCores \code{numeric} number of processor cores to use in mclapply
 #' @return \code{data.frame} with gene, convergence status, beta coefficient, 
 #' p-value, standard error and standardized beta columns.
 #' @examples
 #' data(testdata100ME4)
 #' rankUnivariateRegressionResults <- rankUnivariateRegression(testdata100ME4)
 #' @export
-rankUnivariateRegression <- function(regressionData) {
+rankUnivariateRegression <- function(regressionData, numCores=2) {
   # calculate the logistic regression coefficient for each variable in 
   # regressionData versus the "Class" column (last column)
   colNames <- colnames(regressionData)[1:(ncol(regressionData)-1)]
   numVars <- length(colNames)
-  results <- NULL
   regressionData$Class <- factor(regressionData$Class)
-  for(i in 1:numVars) {
-    glmFormula <- paste("Class ~ ", colNames[i], sep="")
-    interactionModel <- glm(as.formula(glmFormula), family="binomial", data=regressionData)
-    glmConverged <- interactionModel$converged
-    intCoef <- summary(interactionModel)$coefficients[2, "Estimate"]
-    intStdErr <- summary(interactionModel)$coefficients[2, "Std. Error"]
-    intPval <- summary(interactionModel)$coefficients[2, "Pr(>|z|)"]
-    results <- rbind(results, 
-                     cbind(colNames[i],
-                           glmConverged, 
-                           round(intCoef, 6), 
-                           round(intPval, 6), 
-                           round(intStdErr, 6), 
-                           round(intCoef / intStdErr, 6)))
-  }
-  colnames(results) <- c("Variable", "Converged", "Beta", "p", "se", "std beta")
-  sortedResults <- results[order(results[, 4]), ]
+  results <- parallel::mclapply(1:numVars, 
+                                mc.cores=numCores, 
+                                FUN=function(i) {
+                                  glmFormula <- paste("Class ~ ", colNames[i], sep="")
+                                  interactionModel <- glm(as.formula(glmFormula), 
+                                                          family="binomial", 
+                                                          data=regressionData)
+                                  glmConverged <- interactionModel$converged
+                                  fitVarStats <- broom::tidy(interactionModel)[2, ]
+                                  data.frame(Variable=colNames[i], 
+                                             Converged=glmConverged, 
+                                             Beta=round(fitVarStats$estimate, 6), 
+                                             p=round(fitVarStats$p.value, 6), 
+                                             SE=round(fitVarStats$std.error, 6), 
+                                             Stat=round(fitVarStats$statistic, 6), 
+                                             stringsAsFactors=FALSE)
+                                })
+  resultsDF <- do.call(rbind, results)
+  sortedResults <- resultsDF[order(resultsDF$p), ]
 }

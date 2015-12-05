@@ -16,6 +16,9 @@
 #' fisherRtoZ(seq(from=-1, to=1, by=0.25))
 #' @export
 fisherRtoZ <- function(x) { 
+  # catch +/-Inf in transform
+  x[x > 0.9999999999] <- 0.9999999999
+  x[x < -0.9999999999] <- -0.9999999999
   atanh(x)
 }
 

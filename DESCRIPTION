@@ -1,7 +1,7 @@
 Package: Rinbix
 Type: Package
 Title: Insilico Bioinformatics for R
-Version: 0.0.0.9000
+Version: 0.0.1
 Date: 2014-02-24
 Authors@R: as.person("Bill White <bill-white@utulsa.edu> [aut, cre]")
 Description: In silico research group's bioinformatics toolbox for network and
@@ -44,6 +44,7 @@ Imports:
     glm2,
     RColorBrewer,
     ReactomePA,
-    clusterProfiler
+    clusterProfiler,
+    snpStats
 VignetteBuilder: knitr
-RoxygenNote: 5.0.0
+RoxygenNote: 5.0.1

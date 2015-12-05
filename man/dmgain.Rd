@@ -29,6 +29,7 @@ rinbixDmgain <- dmgain(testdata10)
 Other GAIN functions: \code{\link{dcgainInbix}},
   \code{\link{dcgain}}, \code{\link{fitInteractionModel}},
   \code{\link{fitMainEffectModel}},
+  \code{\link{gainToSimpleSIF}},
   \code{\link{getInteractionEffects}},
   \code{\link{getMainEffects}}, \code{\link{regainInbix}},
   \code{\link{regainParallel}}, \code{\link{regain}}

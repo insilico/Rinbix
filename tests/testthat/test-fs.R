@@ -40,6 +40,16 @@ test_that("glmnet", {
 	expect_equal(success, TRUE)
 })
 
+test_that("Iterative Relief", {
+  success <- FALSE
+  bestReliefResults <- rankIterativeRelieff(testdata100ME4)
+  bestVars <- bestReliefResults$all.scores$gene
+  if((bestVars[1] == "gene0001") && (bestVars[2] == "gene0005")) {
+  	success <- TRUE
+  }
+  expect_equal(success, TRUE)
+})
+
 test_that("Lasso", {
 	success <- TRUE
 	rankLassoResults <- rankLasso(testdata100ME4)
@@ -65,6 +75,15 @@ test_that("RandomForest", {
 		success <- TRUE
 	}
 	expect_equal(success, TRUE)
+})
+
+test_that("Relief", {
+  success <- FALSE
+  rankReliefResults <- rankRelieff(testdata100ME4)
+  if(nrow(rankReliefResults) == (ncol(testdata100ME4) - 1)) {
+    success <- TRUE
+  }
+  expect_equal(success, TRUE)
 })
 
 test_that("ReliefSeq", {

@@ -27,9 +27,7 @@
 #'                               thresholdType="hard", 
 #'                               thresholdValue=0.2, 
 #'                               useAbs=TRUE, 
-#'                               useWeighted=TRUE, 
-#'                               verbose=TRUE, 
-#'                               groups=NULL)
+#'                               useWeighted=TRUE)
 #' @export
 adjacencyToNetList <- function(Aadj=NULL, thresholdType="hard", thresholdValue=0.8, 
                          useAbs=TRUE, useWeighted=FALSE, verbose=FALSE,
@@ -38,35 +36,37 @@ adjacencyToNetList <- function(Aadj=NULL, thresholdType="hard", thresholdValue=0
     stop("adjacencyToNetList: Aadj is a required parameter")
   }
   if(verbose) cat("Begin adjacencyToNetList\n")
+  # thresholding
   if(thresholdType == "soft") {
     if(verbose) cat("Soft Threshold Aadj ^", thresholdValue, "\n")
     Aadj <- Aadj ^ thresholdValue
   } else {
     if(useAbs) {
       if(verbose) cat("Threshold abs(Aadj) >", thresholdValue, "\n")
-      passThreshIdx <- abs(Aadj) > thresholdValue
+      Aadj <- abs(Aadj)
     } else {
       if(verbose) cat("Threshold Aadj >", thresholdValue, "\n")
-      passThreshIdx <- Aadj > thresholdValue
     }
-    # create binary adjacency matrix from thresholding
-    if(useWeighted) {
-      if(verbose) cat("Making filtered weighted\n")
-      Aadj[!passThreshIdx] <- 0
-    } else {
-      if(verbose) cat("Making filtered binary\n")
-      Aadj[passThreshIdx] <- 1
-      Aadj[!passThreshIdx] <- 0
-    }
+    passThreshIdx <- Aadj > thresholdValue
+  }
+  # create weighted or binary adjacency matrix from thresholding
+  if(useWeighted) {
+    if(verbose) cat("Making filtered weighted\n")
+    Aadj[!passThreshIdx] <- 0
+  } else {
+    if(verbose) cat("Making filtered binary\n")
+    Aadj[passThreshIdx] <- 1
+    Aadj[!passThreshIdx] <- 0
   }
   nodeLabels <- colnames(Aadj)
   numNodes <- length(nodeLabels)
+  # groups
   nodeGroups <- factor(seq(1, numNodes))
   if((!is.null(groups)) && (length(groups) != numNodes)) {
     nodeGroups <- factor(groups)
   }
   numGroups <- nlevels(nodeGroups)
-  if(verbose) cat("Number of group levels", numGroups, "\n")
+  if(verbose) cat("Number of node group assignment levels", numGroups, "\n")
 
   # -----------------------------------------------------------------------------
   # create an igraph object from the edge weights matrix
@@ -116,35 +116,88 @@ adjacencyToNetList <- function(Aadj=NULL, thresholdType="hard", thresholdValue=0
     nodeStart <- nodeLabels[i]
     for(j in 1:numNodes) {
       if(j <= i) { next }
-      if(Aadj[i, j] > 0) {
+      if(Aadj[i, j] != 0) {
         nodeEnd <- nodeLabels[j]
         edgeWeight <- Aadj[i, j]
-        graphLinks <- rbind(graphLinks, data.frame(src=i, target=j, value=edgeWeight))
+        graphLinks <- rbind(graphLinks, data.frame(Source=i, Target=j, Value=edgeWeight))
       }
     }
   }
-  rownames(graphLinks) <- seq(1, nrow(graphLinks))
-  uniqueNodes <- unique(c(unique(graphLinks$src), unique(graphLinks$target)))
-  numUniqueNodes <- length(uniqueNodes)  
+  rownames(graphLinks) <- paste("row", seq(1, nrow(graphLinks)), sep="")
+#   uniqueNodes <- unique(c(unique(graphLinks$src), unique(graphLinks$target)))
+#   numUniqueNodes <- length(uniqueNodes)  
   # node list
-  graphNodes <- NULL
-  for(uniqIdx in 1:numUniqueNodes) {
-    graphNodeIdx <- uniqueNodes[uniqIdx]
-    graphNodes <- rbind(graphNodes, data.frame(idn=graphNodeIdx,
-                                               name=nodeLabels[graphNodeIdx], 
-                                               group=nodeGroups[graphNodeIdx], 
-                                               size=nodeDegrees[graphNodeIdx],
-                                               stringsAsFactors=F))
-  }
-  rownames(graphNodes) <- uniqueNodes
+  graphNodeLabels <- igraph::V(adjacencyNet)$label
+  graphNodes <- data.frame(NodeID=1:length(graphNodeLabels),
+                           Name=graphNodeLabels, 
+                           Group=as.character(nodeGroups),
+                           Size=as.numeric(nodeDegrees),
+                           stringsAsFactors=F)
   
-  # return data frames suitable for D3 or other viz
-  edgeList <- data.frame(from=as.numeric(factor(graphLinks$src)) - 1, 
-                         to=as.numeric(factor(graphLinks$target)) - 1 )
-  nodeList <- cbind(idn=factor(graphNodes$idn, 
-                    levels=graphNodes$idn), graphNodes)
+  rownames(graphNodes) <- paste("row", seq(1, nrow(graphNodes)), sep="")
 
   # return the Igraph object, edge list and node list
   if(verbose) cat("End adjacencyToNetList\n")
-  list(net=adjacencyNet, links=edgeList, nodes=nodeList, groups=groups)
+  list(net=adjacencyNet, links=graphLinks, nodes=graphNodes, groups=groups)
+}
+
+# ----------------------------------------------------------------------------
+#' Create a simple D3 network from a netlist created by adjacencyToNetList.
+#' 
+#' \code{netListToSimpleD3}
+#' 
+#' @keywords graphs
+#' @family visualization functions
+#' @family network functions
+#' @param netlist \code{object} results object from adjacencyToNetList.
+#' @param nodeCharge \code{numeric} charge on the nodes, negative=repulsive.
+#' @examples
+#' data("testdata10")
+#' predictors <- testdata10[, -ncol(testdata10)]
+#' Acorr <- cor(predictors)
+#' netlist <- adjacencyToNetList(Acorr, 
+#'                               thresholdType="hard", 
+#'                               thresholdValue=0.2, 
+#'                               useAbs=TRUE, 
+#'                               useWeighted=TRUE)
+#' netListToSimpleD3(netlist)
+#' @export
+netListToSimpleD3 <- function(netlist, nodeCharge=-2000) {
+  networkD3::simpleNetwork(netlist$links, 
+                           Source="Source", 
+                           Target="Target", 
+                           linkColour="black", 
+                           charge=nodeCharge)
+}
+
+# ----------------------------------------------------------------------------
+#' Create a force layout D3 network from a netlist created by adjacencyToNetList.
+#' 
+#' \code{netListToForceD3}
+#' 
+#' @keywords graphs
+#' @family visualization functions
+#' @family network functions
+#' @param netlist \code{object} results object from adjacencyToNetList.
+#' @param nodeCharge \code{numeric} charge on the nodes, negative=repulsive.
+#' @examples
+#' data("testdata10")
+#' predictors <- testdata10[, -ncol(testdata10)]
+#' Acorr <- cor(predictors)
+#' netlist <- adjacencyToNetList(Acorr, 
+#'                               thresholdType="hard", 
+#'                               thresholdValue=0.2, 
+#'                               useAbs=TRUE, 
+#'                               useWeighted=TRUE)
+#' netListToForceD3(netlist)
+#' @export
+netListToForceD3 <- function(netlist, nodeCharge=-2000) {
+  networkD3::forceNetwork(Links=netlist$links, 
+                          Nodes=netlist$nodes, 
+                          Source="Source", Target="Target",
+                          NodeID="NodeID", Group="Group", 
+                          linkColour="#afafaf", 
+                          fontSize=10, zoom=T, legend=T,
+                          opacity=0.9, 
+                          charge=nodeCharge)
 }

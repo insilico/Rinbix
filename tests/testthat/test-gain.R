@@ -1,6 +1,6 @@
 library(Rinbix)
 data(testdata10)
-context("R GAIN tests vs inbix C++ Standalone GAIN")
+context("GAIN")
 
 test_that("dcGAIN", {
   inbixDcgain <- as.matrix(read.table("testdata10.dcgain", header=T))
@@ -42,4 +42,10 @@ test_that("reGAIN stdBetas=FALSE, absBetas=FALSE", {
   inbixRegain <- as.matrix(read.table("testdata10-noabs-beta.block.regain", header=T))
   rinbixRegain <- regain(testdata10, stdBetas=FALSE, absBetas=FALSE)
   expect_equal(object=rinbixRegain, expected=inbixRegain, tolerance=0.02)
+})
+
+test_that("GAIN to Simple SIF", {
+  rinbixRegain <- regain(testdata10, stdBetas=TRUE, absBetas=TRUE)
+  gainSIF <- gainToSimpleSIF(rinbixRegain)
+  expect_equal(nrow(gainSIF), choose(nrow(rinbixRegain), 2))
 })
