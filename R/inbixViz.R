@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # inbixViz.R - Bill White - 10/31/15
 #
-# Rinbix package for visualization.
+# Rinbix package functions for visualization.
 
 # ----------------------------------------------------------------------------
 #' Create an Igraph network from an adjacency matrix.

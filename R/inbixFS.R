@@ -351,7 +351,7 @@ rankGlmnet <- function(regressionData, verbose=FALSE) {
 #' \code{rankIterativeRelieff} 
 #' 
 #' @family feature selection functions
-#' @seealso \link{\code{rankRelieff}}
+#' @seealso \link{rankRelieff}
 #' @param regressionData \code{data.frame} of predictors and final class column.
 #' @param percentRemovePerIteration \code{numeric} percent of attributes to remover per iteration.
 #' @param targetNumAttributes \code{numeric} target number of attributes.
@@ -360,7 +360,7 @@ rankGlmnet <- function(regressionData, verbose=FALSE) {
 #'   with the target number of attributes and a \code{data.frame} of scores.
 #' @examples
 #' data(testdata100ME4)
-#' irelieffResults <- iterativeRelieff(testdata100ME4)
+#' irelieffResults <- rankIterativeRelieff(testdata100ME4)
 #' @export
 rankIterativeRelieff <- function(regressionData, 
                                  percentRemovePerIteration=10, 

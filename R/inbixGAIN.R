@@ -323,7 +323,6 @@ fitMainEffectModel <- function(data, variableName, depVarName, regressionFamily,
 #' data(testdata10)
 #' rinbixRegain <- regain(testdata10, stdBetas=TRUE, absBetas=TRUE)
 #' gainSIF <- gainToSimpleSIF(rinbixRegain)
-#' expect_equal(nrow(gainSIF), choose(nrow(rinbixRegain), 2))
 #' @export
 gainToSimpleSIF <- function(gainMatrix) {
   matrixDim <- dim(gainMatrix)[1]

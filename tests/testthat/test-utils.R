@@ -2,7 +2,7 @@ library(Rinbix)
 context("Utilities")
 
 test_that("fisherRtoZ check range from -1 to 1", {
-  testValues <- seq(from=-1, to=1, by=0.25)
+  testValues <- seq(from=-0.9, to=0.9, by=0.25)
   lapply(testValues, function(x) { expect_equal(fisherRtoZ(x), 0.5 * log((1 + x) / (1 - x))) })
 })
 
