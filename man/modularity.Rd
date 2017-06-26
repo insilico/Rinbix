@@ -46,4 +46,3 @@ Other inbix synonym functions: \code{\link{dcgain}},
 }
 \keyword{cluster}
 \keyword{math}
-

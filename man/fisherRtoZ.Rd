@@ -19,10 +19,11 @@ fisherRtoZ(x)
 fisherRtoZ(seq(from=-1, to=1, by=0.25))
 }
 \seealso{
-Other utility functions: \code{\link{geneLowValueFilter}},
+Other utility functions: \code{\link{geneLowCoefOfVarFilter}},
+  \code{\link{geneLowValueFilter}},
   \code{\link{geneLowVarianceFilter}},
-  \code{\link{logSpiral}}, \code{\link{scaleAB}},
-  \code{\link{sumOfPowers}}
+  \code{\link{logSpiral}},
+  \code{\link{lookupGenesFromEnsemblIds}},
+  \code{\link{scaleAB}}, \code{\link{sumOfPowers}}
 }
 \keyword{math}
-

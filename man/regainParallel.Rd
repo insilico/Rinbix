@@ -56,4 +56,3 @@ Other inbix synonym functions: \code{\link{dcgain}},
 \keyword{array}
 \keyword{models}
 \keyword{regression}
-

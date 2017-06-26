@@ -563,18 +563,25 @@ rankRelieff <- function(regressionData) {
 #' rankReliefSeqResults <- rankReliefSeq(testdata100ME4)
 #' @export
 rankReliefSeq <- function(regressionData, outPrefix="Rinbix", k=10) {
-  if(Sys.which("reliefseq") == "") {
-    stop("reliefseq is not in the PATH")
+  if(Sys.which("inbix") == "") {
+    stop("inbix is not in the PATH")
   }
   # write regressionData data frame to inbix files
-  writeRegressionDataAsInbixNumeric(regressionData, "Rinbix")
+  writeRegressionDataAsInbixNumeric(regressionData, outPrefix)
   # run reliefseq command
-  relieffCmd <- paste("reliefseq -n Rinbix.num -a Rinbix.pheno -k", k , "-o", outPrefix)
-  #cat("Running relieff command:", relieffCmd, "\n")
+  #relieffCmd <- paste("reliefseq -n Rinbix.num -a Rinbix.pheno -k", k , "-o", outPrefix)
+  # replaced relifseq with inbix version 6/24/17
+  relieffCmd <- paste("inbix --numeric-file Rinbix.num --pheno Rinbix.pheno --1", 
+                      "--relieff --algorithm-mode reliefseq",
+                      "--k-nearest-neighbors", k,
+                      "--out", outPrefix)
+  cat("Running relieff command:", relieffCmd, "\n")
   relieffStdout <- system(relieffCmd, intern=TRUE)
-  relieffRankings <- read.table("Rinbix.reliefseq", header=FALSE, sep="\t")
-  file.remove(c("Rinbix.num", "Rinbix.pheno", "Rinbix.reliefseq"))
-  data.frame(gene=relieffRankings[, 2], score=relieffRankings[, 1] )
+  cat("stdout:", relieffStdout, "\n")
+  relieffRankings <- read.table("Rinbix.relieff.tab", header=FALSE, sep="\t")
+  file.remove(c("Rinbix.num", "Rinbix.pheno", "Rinbix.relieff.tab"))
+  # cmd=relieffCmd, stdout=relieffStdout
+  data.frame(gene=relieffRankings[, 2], score=relieffRankings[, 1])
 }
 
 # ----------------------------------------------------------------------------

@@ -24,4 +24,3 @@ Other inbix interface functions: \code{\link{dcgainInbix}},
   \code{\link{readInbixNumericAsRegressionData}},
   \code{\link{regainInbix}}, \code{\link{snprankInbix}}
 }
-

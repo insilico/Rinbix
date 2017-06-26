@@ -44,4 +44,3 @@ Other feature selection functions: \code{\link{geneRank}},
   \code{\link{rankUnivariateRegression}},
   \code{\link{snprankInbix}}
 }
-

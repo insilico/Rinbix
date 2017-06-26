@@ -50,4 +50,3 @@ Other inbix synonym functions: \code{\link{geneLowValueFilter}},
 }
 \keyword{array}
 \keyword{models}
-

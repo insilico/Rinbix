@@ -25,7 +25,7 @@ rankedVarsRelief <- rankRelieff(testdata100ME4)
 knitr::kable(head(rankedVarsRelief), row.names=F)
 ```
 
-# ReliefSeq C++
+# ReliefSeq
 
 ```{r}
 rankedVarsRelief <- rankReliefSeq(testdata100ME4)

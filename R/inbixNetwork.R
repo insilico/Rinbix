@@ -31,6 +31,55 @@ getIGraphStats <- function(g) {
 }
 
 # ----------------------------------------------------------------------------
+#' Prepare and adjacency matrix for network analysis.
+#' 
+#' \code{prepareAdjacencyMatrix}
+#' 
+#' @family network functions
+#' @param adjacencyMatrix \code{matrix} adjacency matrix
+#' @param thresholdType \code{string} threshold type: "hard" or "soft".
+#' @param thresholdValue \code{numeric} hard threshold correlation value or soft threshold power.
+#' @param useAbs \code{logical} take absolute value of the correlation matrix.
+#' @param useWeighted \code{logical} use weighted adjacency matrix versus binary.
+#' @param verbose \code{logical} to send runtime messages to stdout.
+#' @return \code{matrix} transformed for network analysis.
+#' @export
+prepareAdjacencyMatrix <- function(adjacencyMatrix=NULL, 
+                                   thresholdType="hard", 
+                                   thresholdValue=0.8, 
+                                   useAbs=TRUE, 
+                                   useWeighted=FALSE,
+                                   verbose=FALSE) {
+  if(is.null(adjacencyMatrix)) {
+    stop("prepareAdjacencyMatrix: adjacencyMatrix is a required parameter")
+  }
+  if(verbose) cat("Begin prepareAdjacencyMatrix\n")
+  if(useAbs) {
+    if(verbose) cat("Taking absolute value of adjacencyMatrix\n")
+    adjacencyMatrix <- abs(adjacencyMatrix)
+  }
+  # thresholding
+  if(thresholdType == "soft") {
+    if(verbose) cat("Soft threshold adjacencyMatrix^", thresholdValue, "\n", sep="")
+    adjacencyMatrix <- adjacencyMatrix ^ thresholdValue
+  } else {
+    if(verbose) cat("Hard threshold abs(adjacencyMatrix) >", thresholdValue, "\n")
+    passThreshold <- adjacencyMatrix > thresholdValue
+    # create adjacency matrix from thresholding
+    if(useWeighted) {
+      if(verbose) cat("Keeping weighted values that pass threshold [", thresholdValue, "]\n")
+      adjacencyMatrix[!passThreshold] <- 0
+    } else {
+      if(verbose) cat("Keeping values that pass threshold [", thresholdValue, "] as binary 0/1\n")
+      adjacencyMatrix[passThreshold] <- 1
+      adjacencyMatrix[!passThreshold] <- 0
+    }
+  }
+  if(verbose) cat("End prepareAdjacencyMatrix\n")
+  adjacencyMatrix
+}
+
+# ----------------------------------------------------------------------------
 #' Print stats about the IGraph g.
 #' 
 #' \code{printIGraphStats}

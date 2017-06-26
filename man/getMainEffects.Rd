@@ -55,4 +55,3 @@ Other inbix synonym functions: \code{\link{dcgain}},
 \keyword{models}
 \keyword{regression}
 \keyword{univar}
-

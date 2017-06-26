@@ -320,29 +320,8 @@ ripM <- function(Acorr, thresholdType="hard", thresholdValue=0.8,
                  verbose=FALSE) {
   # ---------------------------------------------------------------------------
   # preprocessing
-  Aorig <- Acorr
-  if(useAbs) {
-    if(verbose) cat("Taking absolute value of Acorr\n")
-    Acorr <- abs(Acorr)
-  }
-  # thresholding
-  if(thresholdType == "soft") {
-    if(verbose) cat("Soft threshold Acorr^", thresholdValue, "\n", sep="")
-    Acorr <- Acorr ^ thresholdValue
-  } else {
-    if(verbose) cat("Hard threshold abs(Acorr) >", thresholdValue, "\n")
-    passThreshold <- Acorr > thresholdValue
-    # create adjacency matrix from thresholding
-    if(useWeighted) {
-      if(verbose) cat("Keeping weighted values that pass threshold [", thresholdValue, "]\n")
-      Acorr[!passThreshold] <- 0
-    } else {
-      if(verbose) cat("Keeping values that pass threshold [", thresholdValue, "] as binary 0/1\n")
-      Acorr[passThreshold] <- 1
-      Acorr[!passThreshold] <- 0
-    }
-  }
-
+  Acorr <- prepareAdjacencyMatrix(Acorr)
+  
   # ---------------------------------------------------------------------------
   # ripM
   rip_modules <- list()

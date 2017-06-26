@@ -33,4 +33,3 @@ Other simulation functions: \code{\link{createDiffCoexpMatrixNoME}},
   \code{\link{simCorrMatrix}}
 }
 \keyword{datagen}
-

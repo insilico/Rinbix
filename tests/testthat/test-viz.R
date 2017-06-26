@@ -1,6 +1,14 @@
 library(Rinbix)
 context("Visualization")
 
+test_that("adjacencyMatrixToChordDiagram", {
+  data("testdata10")
+  predictors <- testdata10[, -ncol(testdata10)]
+  Acorr <- cor(predictors)
+  chord <- adjacencyMatrixToChordDiagram(Acorr)
+  expect_equal(TRUE, TRUE)
+})
+
 test_that("adjacencyToNetList", {
 	data("testdata10")
 	predictors <- testdata10[, -ncol(testdata10)]
@@ -13,6 +21,19 @@ test_that("adjacencyToNetList", {
 	filteredNetwork <- netlist$net
   expect_equal(nrow(netlist$nodes), 10)
   expect_equal(nrow(netlist$links), 23)
+})
+
+test_that("igraphToChordDiagram", {
+  data("testdata10")
+  predictors <- testdata10[, -ncol(testdata10)]
+  Acorr <- cor(predictors)
+  netlist <- adjacencyToNetList(Acorr, 
+                                thresholdType="hard", 
+                                thresholdValue=0.2, 
+                                useAbs=TRUE, 
+                                useWeighted=TRUE)
+  chord <- igraphToChordDiagram(netlist$net, netlist$nodes$Name)
+  expect_equal(TRUE, TRUE)
 })
 
 test_that("netListToSimpleD3", {

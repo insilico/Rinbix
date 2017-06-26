@@ -23,6 +23,31 @@ fisherRtoZ <- function(x) {
 }
 
 # -----------------------------------------------------------------------------
+#' Remove genes with low coefficient of variation.
+#' 
+#' \code{geneLowCoefOfVarFilter} removes genes with coefficient of variation less than value.
+#' 
+#' @family utility functions
+#' @family filter functions
+#' @family microarray functions
+#' @param dataMatrix \code{data.frame} with genes in rows and samples in columns.
+#' @param coefOfVarThreshold \code{numeric} threshold below which genes will be removed.
+#' @return \code{list} with the mask used and filtered data frame.
+#' @examples
+#' data(testdata100ME4)
+#' lowCVFiltered <- geneLowCoefOfVarFilter(t(testdata100ME4[, -ncol(testdata100ME4)]))
+#' @export
+geneLowCoefOfVarFilter <- function(dataMatrix, coefOfVarThreshold=0.1) {
+  coefOfVars <- apply(dataMatrix, 1, function(x) { sd(x) / abs(mean(x)) })
+  # the smaller the threshold, the higher the experimental effect relative 
+  # to the measurement precision
+  # filter the data matrix
+  fdata <- dataMatrix[coefOfVars < coefOfVarThreshold, ]
+  # return the filtered data
+  list(fdata=fdata)
+}
+
+# -----------------------------------------------------------------------------
 #' Remove genes with low absolute values.
 #' 
 #' \code{geneLowValueFilter} removes genes with values in the lowest percentile.
@@ -36,7 +61,7 @@ fisherRtoZ <- function(x) {
 #' @return \code{list} with the mask used and filtered data frame.
 #' @examples
 #' data(testdata100ME4)
-#' lowValFiltered <- geneLowValueFilter(testdata100ME4[, -ncol(testdata100ME4)])
+#' lowValFiltered <- geneLowValueFilter(t(testdata100ME4[, -ncol(testdata100ME4)]))
 #' @export
 geneLowValueFilter <- function(dataMatrix, percentile=0.1) {
   # Remove gene profiles with low absolute values in dataMatrix. Returns:
@@ -72,7 +97,7 @@ geneLowValueFilter <- function(dataMatrix, percentile=0.1) {
 #' @return \code{list} with the mask used and filtered data frame
 #' @examples
 #' data(testdata100ME4)
-#' lowVarFiltered <- geneLowVarianceFilter(testdata100ME4[, -ncol(testdata100ME4)])
+#' lowVarFiltered <- geneLowVarianceFilter(t(testdata100ME4[, -ncol(testdata100ME4)]))
 #' @export
 geneLowVarianceFilter <- function(dataMatrix, percentile=0.1) {
   variances <- apply(as.matrix(dataMatrix), 1, var)
@@ -126,6 +151,26 @@ logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
     results <- rbind(results, data.frame(x=x, y=y))
   }
   as.matrix(results)
+}
+
+#' Look up gene names for a list of Ensembl IDs.
+#' 
+#' \code{lookupGenesFromEnsemblIds}
+#' 
+#' @family utility functions
+#' @param ensemblIds \code{character} vector of Ensembl IDs.
+#' @return \code{character} vector of gene names/symbols.
+#' @examples
+#' ensemblIds <- c("ENSG00000000003", "ENSG00000000005")
+#' geneNames <- lookupGenesFromEnsemblIds(ensemblIds)
+#' @export
+lookupGenesFromEnsemblIds <- function(ensemblIds) {
+  ensembl = biomaRt::useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+  geneNames <- biomaRt::getBM(attributes=c('ensembl_gene_id','hgnc_symbol'), 
+                              filters='ensembl_gene_id', 
+                              values=ensemblIds, 
+                              mart=ensembl)
+  geneNames
 }
 
 # ----------------------------------------------------------------------------

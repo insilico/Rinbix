@@ -40,4 +40,3 @@ Other feature selection functions: \code{\link{geneRank}},
 \keyword{models}
 \keyword{regression}
 \keyword{univar}
-

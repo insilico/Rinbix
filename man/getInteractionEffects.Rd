@@ -46,4 +46,3 @@ Other GAIN functions: \code{\link{dcgainInbix}},
 \keyword{internal}
 \keyword{models}
 \keyword{regression}
-

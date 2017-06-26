@@ -13,4 +13,3 @@ A dataset containing random variables var1 ... var10.
 Class/phenotypes are 5 0's and 5 1's.
 }
 \keyword{datasets}
-

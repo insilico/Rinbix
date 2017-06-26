@@ -1,4 +1,7 @@
-## ----libraries, echo=FALSE, message=FALSE--------------------------------
+## ----libraries, echo=FALSE, message=FALSE, warning=FALSE-----------------
+library(BiocParallel)
+register(DoparParam())
+#register(MulticoreParam())
 library(affy)
 library(affyPLM)
 library(leukemiasEset)
@@ -9,6 +12,7 @@ library(org.Hs.eg.db)
 library(AnnotationDbi)
 library(Rinbix)
 library(biomaRt)
+knitr::opts_chunk$set(fig.width=12, fig.height=8) 
 
 ## ----dataset-------------------------------------------------------------
 data(leukemiasEset)  # load bone marrow samples
@@ -44,11 +48,11 @@ ALL.NoL.Data <- leukExprData[,ALL.NoL.mask]
 
 ## ----cov-----------------------------------------------------------------
 # there are a lot of genes that have very low signal to noise that we can get rid of.
-coef.of.vars <- apply(ALL.NoL.Data,1,function(x) {sd(x)/abs(mean(x))})
+coef.of.vars <- apply(ALL.NoL.Data, 1, function(x) { sd(x) / abs(mean(x)) })
 # the smaller the threshold, the higher the experimental effect relative to the measurement precision
-sum(coef.of.vars<.05)  # 5,378 genes
+sum(coef.of.vars < 0.05)  # 5,378 genes
 # filter the data matrix
-ALL.NoL.Data.filter <- ALL.NoL.Data[coef.of.vars<.05,]
+ALL.NoL.Data.filter <- ALL.NoL.Data[coef.of.vars < 0.05,]
 dim(ALL.NoL.Data.filter)
 
 ## ----groups--------------------------------------------------------------
@@ -60,7 +64,7 @@ levels(test.groups)
 ## ----ttest---------------------------------------------------------------
 # put it all together. apply to all genes
 # i is the data row or gene index
-ttest_fn <- function(i){
+ttest_fn <- function(i) {
       mygene<-rownames(ALL.NoL.Data.filter)[i]
       t.result <- t.test(ALL.NoL.Data.filter[i,] ~ test.groups)
       tidy.result <- tidy(t.result)
@@ -68,7 +72,7 @@ ttest_fn <- function(i){
       pval <- tidy.result$p.value
       cbind(mygene, tstat, pval)    
 } 
-ttest_allgene_results.df<-data.frame(t(sapply(1:nrow(ALL.NoL.Data.filter), ttest_fn)))
+ttest_allgene_results.df <- data.frame(t(sapply(1:nrow(ALL.NoL.Data.filter), ttest_fn)))
 colnames(ttest_allgene_results.df) <- c("ensmblID", "t-stat", "p-value")
 # sort
 ttest_allgene_sorted <- ttest_allgene_results.df[order(as.numeric(as.character(ttest_allgene_results.df$"p-value"))), ]
@@ -88,18 +92,18 @@ knitr::kable(head(top_geneNames))
 
 ## ----reactome, echo=TRUE-------------------------------------------------
 reactomeAnalysis <- getReactomePathways(top_geneNames$hgnc_symbol)
-knitr::kable(summary(reactomeAnalysis), row.names=FALSE)
+knitr::kable(as.data.frame(reactomeAnalysis), row.names=FALSE)
 
 ## ----kegg, echo=TRUE-----------------------------------------------------
 keggAnalysis <- getKEGGAnalysis(top_geneNames$hgnc_symbol)
-knitr::kable(summary(keggAnalysis), row.names=FALSE)
+knitr::kable(as.data.frame(keggAnalysis), row.names=FALSE)
 
 ## ----go, echo=TRUE-------------------------------------------------------
 goAnalysis <- getGOAnalysis(top_geneNames$hgnc_symbol)
-knitr::kable(summary(goAnalysis), row.names=FALSE)
+knitr::kable(as.data.frame(goAnalysis), row.names=FALSE)
 
 ## ----pathplots, echo=TRUE------------------------------------------------
 # hmm, not doing anything
-barplot(keggAnalysis)
-barplot(goAnalysis)
+print(barplot(keggAnalysis))
+print(barplot(goAnalysis))
 

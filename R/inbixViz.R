@@ -4,6 +4,31 @@
 # Rinbix package functions for visualization.
 
 # ----------------------------------------------------------------------------
+#' Create a chord diagram from an adjacency matrix.
+#' 
+#' \code{adjacencyMatrixToChordDiagram} 
+#' 
+#' @keywords graphs
+#' @family visualization functions
+#' @family network functions
+#' @param adj \code{matrix} adjacency matrix.
+#' @param nodeLabels \code{string} vector of node labels.
+#' @examples
+#' data("testdata10")
+#' predictors <- testdata10[, -ncol(testdata10)]
+#' Acorr <- cor(predictors)
+#' adjacencyMatrixToChordDiagram(Acorr)
+#' @export
+adjacencyMatrixToChordDiagram <- function(adj, nodeLabels=NULL) {
+  if(is.null(nodeLabels)) {
+    nodeLabels <- colnames(adj)
+  }
+  colnames(adj) <- nodeLabels
+  rownames(adj) <- nodeLabels
+  circlize::chordDiagramFromMatrix(adj)
+}
+
+# ----------------------------------------------------------------------------
 #' Create an Igraph network from an adjacency matrix.
 #' 
 #' \code{adjacencyToNetList} 
@@ -30,34 +55,14 @@
 #'                               useWeighted=TRUE)
 #' @export
 adjacencyToNetList <- function(Aadj=NULL, thresholdType="hard", thresholdValue=0.8, 
-                         useAbs=TRUE, useWeighted=FALSE, verbose=FALSE,
-                         groups=NULL) {
+                               useAbs=TRUE, useWeighted=FALSE, verbose=FALSE,
+                               groups=NULL) {
   if(is.null(Aadj)) {
     stop("adjacencyToNetList: Aadj is a required parameter")
   }
   if(verbose) cat("Begin adjacencyToNetList\n")
-  # thresholding
-  if(thresholdType == "soft") {
-    if(verbose) cat("Soft Threshold Aadj ^", thresholdValue, "\n")
-    Aadj <- Aadj ^ thresholdValue
-  } else {
-    if(useAbs) {
-      if(verbose) cat("Threshold abs(Aadj) >", thresholdValue, "\n")
-      Aadj <- abs(Aadj)
-    } else {
-      if(verbose) cat("Threshold Aadj >", thresholdValue, "\n")
-    }
-    passThreshIdx <- Aadj > thresholdValue
-  }
-  # create weighted or binary adjacency matrix from thresholding
-  if(useWeighted) {
-    if(verbose) cat("Making filtered weighted\n")
-    Aadj[!passThreshIdx] <- 0
-  } else {
-    if(verbose) cat("Making filtered binary\n")
-    Aadj[passThreshIdx] <- 1
-    Aadj[!passThreshIdx] <- 0
-  }
+  Aadj <- prepareAdjacencyMatrix(Aadj, thresholdType, thresholdValue, 
+                                 useAbs, useWeighted, verbose)
   nodeLabels <- colnames(Aadj)
   numNodes <- length(nodeLabels)
   # groups
@@ -139,6 +144,35 @@ adjacencyToNetList <- function(Aadj=NULL, thresholdType="hard", thresholdValue=0
   # return the Igraph object, edge list and node list
   if(verbose) cat("End adjacencyToNetList\n")
   list(net=adjacencyNet, links=graphLinks, nodes=graphNodes, groups=groups)
+}
+
+# ----------------------------------------------------------------------------
+#' Create a chord diagram from an Igraph network.
+#' 
+#' \code{igraphToChordDiagram} 
+#' 
+#' @keywords graphs
+#' @family visualization functions
+#' @family network functions
+#' @param in.graph \code{Igraph} graph object.
+#' @param nodeLabels \code{string} vector of node labels.
+#' @examples
+#' data("testdata10")
+#' predictors <- testdata10[, -ncol(testdata10)]
+#' Acorr <- cor(predictors)
+#' netlist <- adjacencyToNetList(Acorr, 
+#'                               thresholdType="hard", 
+#'                               thresholdValue=0.2, 
+#'                               useAbs=TRUE, 
+#'                               useWeighted=TRUE)
+#' igraphToChordDiagram(netlist$net, netlist$nodes$Name)
+#' @export
+igraphToChordDiagram <- function(in.graph, nodeLabels=NULL) {
+  if(is.null(nodeLabels)) {
+    nodeLabels <- igraph::V(in.graph)$label
+  }
+  adj <- as.matrix(igraph::get.adjacency(in.graph))
+  adjacencyMatrixToChordDiagram(adj, nodeLabels)
 }
 
 # ----------------------------------------------------------------------------

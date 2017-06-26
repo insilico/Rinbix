@@ -36,4 +36,3 @@ Other GAIN functions: \code{\link{dcgainInbix}},
 }
 \keyword{array}
 \keyword{models}
-
