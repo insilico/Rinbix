@@ -8,18 +8,18 @@ Description: In silico research group's bioinformatics toolbox for network and
     machine learning analysis.
 License: GPL
 Depends:
-    R (>= 3.0.1)
+    R (>= 3.3.0),
+    stats,
+    methods,
+    utils,
+    graphics,
+    grDevices
 Suggests:
     parallel (>= 3.1.2),
     testthat (>= 0.7.1.99),
     knitr,
     rmarkdown
 Imports:
-    stats,
-    methods,
-    utils,
-    graphics,
-    grDevices,
     BiocParallel,
     Matrix,
     caret,

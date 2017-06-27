@@ -19,5 +19,9 @@
 #' \url{http://insilico.utulsa.edu/}{In silico Research Group at the University of Tulsa}
 #' @references 
 #' \url{http://insilico.utulsa.edu/index.php/publications/}{In silico Research Group publications}
+#' @import methods
+#' @import utils
+#' @import stats
+#' @import graphics
+#' @import grDevices
 NULL
-#> NULL

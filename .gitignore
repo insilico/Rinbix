@@ -1,7 +1,4 @@
 .Rproj.user
 .Rhistory
 .RData
-R.Rcheck
-inst/doc
-man/*.Rd
-tests/testthat/testdata10*
+.Ruserdata
