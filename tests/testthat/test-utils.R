@@ -25,7 +25,7 @@ test_that("geneLowVarFilter", {
 })
 
 test_that("lookupGenesFromEnsemblIds", {
-  illuminaIds <- c("ENSG00000000003", "ENSG00000000005")
+  ensemblIds <- c("ENSG00000000003", "ENSG00000000005")
   geneNames <- lookupGenesFromEnsemblIds(ensemblIds)
   expect_equal(geneNames$hgnc_symbol, c("TSPAN6", "TNMD"))
 })

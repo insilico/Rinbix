@@ -2,7 +2,7 @@
 % Please edit documentation in R/inbixFS.R
 \name{snprank}
 \alias{snprank}
-\title{Rank genes by SNPrank algorithm.}
+\title{Rank variables by SNPrank algorithm.}
 \usage{
 snprank(G, gamma = 0.85)
 }
@@ -12,7 +12,7 @@ snprank(G, gamma = 0.85)
 \item{gamma}{\code{numeric} weighting, interactions (closer to 1) versus main effects (closer to 0).}
 }
 \value{
-sortedTable \code{data.frame} with gene, SNPrank, diagonal and degree columns.
+sortedTable \code{data.frame} with variable, SNPrank, diagonal and degree columns.
 }
 \description{
 \code{snprank}
@@ -24,7 +24,7 @@ rinbixSnpranksDF <- snprank(rinbixRegain)
 }
 \references{
 \itemize{
-  \item \url{http://www.nature.com/gene/journal/v11/n8/full/gene201037a.html}
+  \item \url{http://www.nature.com/variable/journal/v11/n8/full/gene201037a.html}
   {Genes & Immunity Paper}
   \item \url{http://insilico.utulsa.edu/index.php/snprank/}{SNPrank Software}
 }

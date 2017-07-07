@@ -2,6 +2,9 @@
 # inbixCppInterface.R - Bill White - 11/26/14
 #
 # Rinbix package functions to call C++ inbix.
+#
+# TODO: Use Rcpp to implement the algorithm to avoid the standalone inbix
+# compile and install. bcw 7/6/17
 
 # ----------------------------------------------------------------------------
 #' Differential co-expression genetic association network - dcGAIN.
@@ -286,12 +289,13 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
 #' inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
 #' inbixSnpranksDF <- snprankInbix(inbixRegain$reGAIN)
 #' @export
-snprankInbix <- function(gainMatrix, outPrefix="Rinbix", gamma=0.85) {
+snprankInbix <- function(gainMatrix, outPrefix = "Rinbix", gamma = 0.85) {
   inbixExists()
   # write gainMatrix to inbix-compatible file
-  write.table(gainMatrix, file="Rinbix.gain", quote=FALSE, col.names=TRUE, row.names=FALSE, sep="\t")
+  write.table(gainMatrix, file = "Rinbix.gain", quote = FALSE, col.names = TRUE, 
+              row.names = FALSE, sep = "\t")
   gammaCmd <- ""
-  if(gamma > 0) {
+  if (gamma > 0) {
     gammaCmd <- paste("--rank-centrality-gamma", gamma)
   }
   # run inbix SNPrank
@@ -299,15 +303,16 @@ snprankInbix <- function(gainMatrix, outPrefix="Rinbix", gamma=0.85) {
   inbixCmd <- paste("inbix --regain-file Rinbix.gain --rank-by centrality --out", 
                     outPrefix, gammaCmd)
   #cat("Running inbix command:", inbixCmd, "\n")
-  snprankStdout <- system(inbixCmd, intern=T)
+  #snprankStdout <- system(inbixCmd, intern = T)
+  system(inbixCmd, intern = TRUE)
   #print(snprankStdout)
-  inbixSnpranks <- read.table("Rinbix.ranks", header=TRUE, sep="\t")
+  inbixSnpranks <- read.table("Rinbix.ranks", header = TRUE, sep = "\t")
   
   # remove temporary files
   file.remove(c("Rinbix.gain", "Rinbix.ranks", "Rinbix.log"))
   
   # return snpranks
-  data.frame(gene=inbixSnpranks$SNP, snprank=inbixSnpranks$SNPrank)
+  data.frame(variable = inbixSnpranks$SNP, score = inbixSnpranks$SNPrank)
 }
 
 # ----------------------------------------------------------------------------

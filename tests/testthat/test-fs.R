@@ -1,4 +1,3 @@
-
 library(Rinbix)
 data(testdata10)
 data(testdata100ME4)
@@ -7,156 +6,111 @@ context("Feature Selection")
 test_that("GeneRank", {
 	success <- FALSE
 	geneRankResults <- rankGeneRank(testdata100ME4)
-	if(nrow(geneRankResults) == (ncol(testdata100ME4) - 1)) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	expect_equal(ncol(geneRankResults), 2)
+	expect_equal(nrow(geneRankResults), ncol(testdata100ME4) - 1)
 })
 
 test_that("dcGAIN + SNPrank", {
-	success <- FALSE
 	dcgainResults <- rankDcgainSnprank(testdata100ME4)
-	if(nrow(dcgainResults) == (ncol(testdata100ME4) - 1)) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
-})
-
-test_that("GeneRank", {
-	success <- FALSE
-	rankGeneRankResults <- rankGeneRank(testdata100ME4)
-	if(nrow(rankGeneRankResults) == (ncol(testdata100ME4) - 1)) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	expect_equal(ncol(dcgainResults), 2)
+	expect_equal(nrow(dcgainResults), ncol(testdata100ME4) - 1)
 })
 
 test_that("glmnet", {
-	success <- TRUE
-	rankGlmnetResults <- rankGlmnet(testdata100ME4)
-	if(nrow(rankGlmnetResults) == 2) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	glmnetResults <- rankGlmnet(testdata100ME4)
+	expect_equal(ncol(glmnetResults), 2)
+	expect_equal(nrow(glmnetResults), 2)
 })
 
 test_that("Iterative Relief", {
-  success <- FALSE
   bestReliefResults <- rankIterativeRelieff(testdata100ME4)
-  bestVars <- bestReliefResults$all.scores$gene
-  if((bestVars[1] == "gene0001") && (bestVars[2] == "gene0005")) {
-  	success <- TRUE
-  }
-  expect_equal(success, TRUE)
+  expect_equal(ncol(dcgainResults), 2)
+  expect_equal(nrow(dcgainResults), ncol(testdata100ME4) - 1)
 })
 
 test_that("Lasso", {
-	success <- TRUE
-	rankLassoResults <- rankLasso(testdata100ME4)
-	if(nrow(rankLassoResults) == 2) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	lassoResults <- rankLasso(testdata100ME4)
+	expect_equal(ncol(lassoResults), 2)
+	expect_equal(nrow(lassoResults), 2)
 })
 
 test_that("Limma", {
-	success <- FALSE
-	rankLimmaResults <- rankLimma(testdata100ME4)
-	if(nrow(rankLimmaResults) == (ncol(testdata100ME4) - 1)) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	limmaResults <- rankLimma(testdata100ME4)
+	expect_equal(ncol(limmaResults), 2)
+	expect_equal(nrow(limmaResults), ncol(testdata100ME4) - 1)
 })
 
 test_that("RandomForest", {
-	success <- FALSE
-	rankRandomForestResults <- rankRandomForest(testdata100ME4)
-	if(nrow(rankRandomForestResults) == (ncol(testdata100ME4) - 1)) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	randomForestResults <- rankRandomForest(testdata100ME4)
+	expect_equal(ncol(randomForestResults), 2)
+	expect_equal(nrow(randomForestResults), ncol(testdata100ME4) - 1)
 })
 
 test_that("Relief", {
-  success <- FALSE
-  rankReliefResults <- rankRelieff(testdata100ME4)
-  if(nrow(rankReliefResults) == (ncol(testdata100ME4) - 1)) {
-    success <- TRUE
-  }
-  expect_equal(success, TRUE)
+  reliefResults <- rankRelieff(testdata100ME4)
+  expect_equal(ncol(reliefResults), 2)
+  expect_equal(nrow(reliefResults), ncol(testdata100ME4) - 1)
 })
 
 test_that("ReliefSeq", {
-	success <- FALSE
-	rankReliefSeqResults <- rankReliefSeq(testdata100ME4)
-	if(nrow(rankReliefSeqResults) == (ncol(testdata100ME4) - 1)) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	reliefSeqResults <- rankReliefSeq(testdata100ME4)
+	expect_equal(ncol(reliefSeqResults), 2)
+	expect_equal(nrow(reliefSeqResults), ncol(testdata100ME4) - 1)
 })
 
 test_that("SAM", {
-	success <- FALSE
-	rankSamResults <- rankSam(testdata100ME4)
-	if(nrow(rankSamResults) == (ncol(testdata100ME4) - 1)) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	samResults <- rankSam(testdata100ME4)
+	expect_equal(ncol(samResults), 2)
+	expect_equal(nrow(samResults), ncol(testdata100ME4) - 1)
 })
 
 test_that("t-test", {
-	success <- FALSE
-	rankTTestResults <- rankTTest(testdata100ME4)
-	if(length(rankTTestResults) == (ncol(testdata100ME4) - 1)) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	tTestResults <- rankTTest(testdata100ME4)
+	expect_equal(ncol(tTestResults), 2)
+	expect_equal(nrow(tTestResults), ncol(testdata100ME4) - 1)
 })
 
 test_that("univariate regression", {
-	success <- FALSE
-	rankUnivariateRegressionResults <- rankUnivariateRegression(testdata100ME4)
-	if(nrow(rankUnivariateRegressionResults) == (ncol(testdata100ME4) - 1)) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	univariateRegressionResults <- rankUnivariateRegression(testdata100ME4)
+	expect_equal(ncol(univariateRegressionResults), 2)
+	expect_equal(nrow(univariateRegressionResults), ncol(testdata100ME4) - 1)
 })
 
-# snprank
-test_that("Rinbix SNPrank from reGAIN stdBetas=TRUE, absBetas=TRUE", {
-  rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
-  inbixSnpranksDF <- read.table("testdata10-abs-zval.ranks", header=T)
+# reGAIN parameter combinations + snprank
+test_that("Rinbix SNPrank from reGAIN stdBetas = TRUE, absBetas = TRUE", {
+  rinbixRegain <- regainParallel(testdata10, stdBetas = TRUE, absBetas = TRUE)
+  inbixSnpranksDF <- read.table("testdata10-abs-zval.ranks", header = TRUE)
   inbixSnpranks <- inbixSnpranksDF[,2]
   rinbixSnpranksDF <- snprank(rinbixRegain)
   rinbixSnpranks <- rinbixSnpranksDF[,2]
-  expect_equal(object=rinbixSnpranks, expected=inbixSnpranks, tolerance=0.05)
+  expect_equal(object = rinbixSnpranks, expected = inbixSnpranks, tolerance = 0.05)
 })
 
-test_that("Rinbix SNPrank from reGAIN stdBetas=FALSE, absBetas=TRUE", {
-  rinbixRegain <- regainParallel(testdata10, stdBetas=FALSE, absBetas=TRUE)
-  inbixSnpranksDF <- read.table("testdata10-abs-beta.ranks", header=T)
+test_that("Rinbix SNPrank from reGAIN stdBetas = FALSE, absBetas = TRUE", {
+  rinbixRegain <- regainParallel(testdata10, stdBetas = FALSE, absBetas = TRUE)
+  inbixSnpranksDF <- read.table("testdata10-abs-beta.ranks", header = TRUE)
   inbixSnpranks <- inbixSnpranksDF[,2]
   rinbixSnpranksDF <- snprank(rinbixRegain)
   rinbixSnpranks <- rinbixSnpranksDF[,2]
-  expect_equal(object=rinbixSnpranks, expected=inbixSnpranks, tolerance=0.05)
+  expect_equal(object = rinbixSnpranks, expected = inbixSnpranks, tolerance = 0.05)
 })
 
-test_that("Rinbix SNPrank from reGAIN stdBetas=TRUE, absBetas=FALSE", {
-  rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=FALSE)
-  inbixSnpranksDF <- read.table("testdata10-noabs-zval.ranks", header=T)
+test_that("Rinbix SNPrank from reGAIN stdBetas = TRUE, absBetas = FALSE", {
+  rinbixRegain <- regainParallel(testdata10, stdBetas = TRUE, absBetas = FALSE)
+  inbixSnpranksDF <- read.table("testdata10-noabs-zval.ranks", header = TRUE)
   inbixSnpranks <- inbixSnpranksDF[,2]
   rinbixSnpranksDF <- snprank(rinbixRegain)
   rinbixSnpranks <- rinbixSnpranksDF[,2]
-  expect_equal(object=rinbixSnpranks, expected=inbixSnpranks, tolerance=0.05)
+  expect_equal(object = rinbixSnpranks, expected = inbixSnpranks, tolerance = 0.05)
 })
 
-test_that("Rinbix SNPrank from reGAIN stdBetas=FALSE, absBetas=FALSE", {
-  rinbixRegain <- regainParallel(testdata10, stdBetas=FALSE, absBetas=FALSE)
-  inbixSnpranksDF <- read.table("testdata10-noabs-beta.ranks", header=T)
+test_that("Rinbix SNPrank from reGAIN stdBetas = FALSE, absBetas = FALSE", {
+  rinbixRegain <- regainParallel(testdata10, stdBetas = FALSE, absBetas = FALSE)
+  inbixSnpranksDF <- read.table("testdata10-noabs-beta.ranks", header = TRUE)
   inbixSnpranks <- inbixSnpranksDF[,2]
   rinbixSnpranksDF <- snprank(rinbixRegain)
   rinbixSnpranks <- rinbixSnpranksDF[,2]
-  expect_equal(object=rinbixSnpranks, expected=inbixSnpranks, tolerance=0.05)
+  expect_equal(object = rinbixSnpranks, expected = inbixSnpranks, tolerance = 0.05)
 })
 
 # r2VIM
@@ -164,8 +118,8 @@ test_that("r2VIM", {
 	success <- FALSE
 	predictors <- as.matrix(testdata100ME4[, -ncol(testdata100ME4)])
 	response <- factor(testdata100ME4[, ncol(testdata100ME4)])
-	r2vimResults <- r2VIMorig(predictors=predictors, response=response, verbose=FALSE)
-	if((r2vimResults$votes["gene0001"] == 10) && (r2vimResults$votes["gene0005"] == 10)) {
+	r2vimResults <- r2VIMorig(predictors = predictors, response = response, verbose = FALSE)
+	if ((r2vimResults$votes["gene0001"] == 10) & (r2vimResults$votes["gene0005"] == 10)) {
 		success <- TRUE
 	}
 	expect_equal(success, TRUE)

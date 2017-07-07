@@ -223,7 +223,15 @@ netListToSimpleD3 <- function(netlist, nodeCharge=-2000) {
 #'                               thresholdValue=0.2, 
 #'                               useAbs=TRUE, 
 #'                               useWeighted=TRUE)
-#' netListToForceD3(netlist)
+#' # convert nodes to zero based indexes
+#' netlinks <- data.frame(Source=netlist$links$Source - 1,
+#'                        Target=netlist$links$Target - 1,
+#'                        Value=netlist$links$Value)
+#' netnodes <- data.frame(NodeID=netlist$nodes$NodeID -1, 
+#'                        Name=netlist$nodes$Name, 
+#'                        Group=netlist$nodes$Group, 
+#'                        Size=netlist$nodes$Size)
+#' netListToForceD3(list(links=netlinks, nodes=netnodes, groups=NULL))
 #' @export
 netListToForceD3 <- function(netlist, nodeCharge=-2000) {
   networkD3::forceNetwork(Links=netlist$links, 

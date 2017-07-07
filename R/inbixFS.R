@@ -1,7 +1,8 @@
 # -----------------------------------------------------------------------------
 # inbixFS.R - Bill White - 10/10/15
 #
-# Rinbix package feature selection algorithms.
+# Rinbix package feature selection/ranking algorithms.
+# Refactored ranker algorithms to return common data frame - bcw 7/7/17
 
 # -----------------------------------------------------------------------------
 #' Implements the GeneRank algorithm.
@@ -18,25 +19,29 @@
 #' @param eps \code{numeric} tolerance.
 #' @param maxit \code{numeric} maximum nuber of iterations.
 #' @param verbose \code{logical} to send messages to stdout.
-#' @return ranked \code{list} of genes.
+#' @return ordered \code{data.frame} with variable and score, ordered by score.
 #' @examples
-#' data(testdata100ME4)
-#' geneRankResults <- rankGeneRank(testdata100ME4)
+#' data(testdata10)
+#' geneRankResults <- rankGeneRank(testdata10)
 #' @export
 geneRank <- function(X, a=0.9, eps=0.0001, maxit=10, verbose=FALSE) {
   n <- nrow(X)
-  if(n <= 5000) {
-    if(verbose) cat("Calling geneRank with built-in R function eigen()\n")
-    leftMaxEigen1(X, a)
+  if (n <= 5000) {
+    if (verbose) cat("Calling geneRank with built-in R function eigen()\n")
+    eigenvec <- leftMaxEigen1(X, a)
   } else {
-    if(n <= 10000) {
-      if(verbose) cat("Calling geneRank with power method\n")
-      leftMaxEigen2(X, a, eps, maxit)
+    if (n <= 10000) {
+      if (verbose) cat("Calling geneRank with power method\n")
+      eigenvec <- leftMaxEigen2(X, a, eps, maxit)
     } else {
-      if(verbose) cat("Calling geneRank with power method, no R2 matrix storage\n")
-      leftMaxEigen3(X, a, eps, maxit)
+      if (verbose) cat("Calling geneRank with power method, no R2 matrix storage\n")
+      eigenvec <- leftMaxEigen3(X, a, eps, maxit)
     }
   }
+  # return standard data frame for ranker algorithms
+  returnDF <- data.frame(variable = rownames(X), score = eigenvec)
+  returnDF <- returnDF[order(returnDF$score, decreasing = TRUE), ]
+  returnDF
 }
 
 # -----------------------------------------------------------------------------
@@ -167,40 +172,40 @@ leftMaxEigen3 <- function(X, a=0.9, eps=0.0001, maxit=10) {
 #' @return \code{list} with: run statistics, votes matrix, network matrix, 
 #' importance distribution, importance distribution RIS.
 #' @examples
-#' data(testdata100ME4)
-#' predictors <- as.matrix(testdata100ME4[, -ncol(testdata100ME4)])
-#' response <- factor(testdata100ME4[, ncol(testdata100ME4)])
-#' r2vimResults <- r2VIMorig(predictors=predictors, response=response, verbose=TRUE)
+#' data(testdata10)
+#' predictors <- as.matrix(testdata10[, -ncol(testdata10)])
+#' response <- factor(testdata10[, ncol(testdata10)])
+#' r2vimResults <- r2VIMorig(predictors = predictors, response = response, verbose = TRUE)
 #' @export
-r2VIMorig <- function(predictors=NULL, 
-                      response=NULL, 
-                      numRfRuns=10,
-                      thresholdVIM=0,
-                      thresholdMedianRIS=2,
-                      thresholdProb=0.2,
-                      verbose=FALSE) {
-  if(is.null(predictors ) || is.null(response)) {
+r2VIMorig <- function(predictors = NULL, 
+                      response = NULL, 
+                      numRfRuns = 10,
+                      thresholdVIM = 0,
+                      thresholdMedianRIS = 2,
+                      thresholdProb = 0.2,
+                      verbose = FALSE) {
+  if (is.null(predictors ) || is.null(response)) {
     stop("r2VIMorig: predictors and response are required parameters")
   }
-  numGenes <- ncol(predictors)
-  geneIDs <- colnames(predictors)
+  numvariables <- ncol(predictors)
+  variableIDs <- colnames(predictors)
   # -----------------------------------------------------------------------------
   # compute the variable importances using random forests numRfRuns times,
   # accumulating the importance vectors into a "Dist"ribution data frames
   importanceDistribution <- NULL
   importanceDistributionRIS <- NULL
   # variable votes
-  votes <- as.data.frame(matrix(nrow=1, ncol=numGenes, data=c(0)))
-  colnames(votes) <- geneIDs
+  votes <- as.data.frame(matrix(nrow = 1, ncol = numvariables, data = c(0)))
+  colnames(votes) <- variableIDs
   # GAIN matrix for interaction votes
-  networkMatrix <- matrix(ncol=numGenes, nrow=numGenes, data=c(0))
-  colnames(networkMatrix) <- geneIDs
-  rownames(networkMatrix) <- geneIDs
-  if(verbose) cat("Running", numRfRuns, "randomForest models\n")
+  networkMatrix <- matrix(ncol = numvariables, nrow = numvariables, data = c(0))
+  colnames(networkMatrix) <- variableIDs
+  rownames(networkMatrix) <- variableIDs
+  if (verbose) cat("Running", numRfRuns, "randomForest models\n")
   runStats <- NULL
-  for(testIdx in 1:numRfRuns) {
+  for (testIdx in 1:numRfRuns) {
     # determine variable importance with random forest
-    rfResult <- randomForest::randomForest(predictors, response, importance=TRUE)
+    rfResult <- randomForest::randomForest(predictors, response, importance = TRUE)
     # accumulate importances
     thisRunImportances <- rfResult$importance[, 3]
     estimatedVariance <- abs(min(thisRunImportances))
@@ -208,16 +213,16 @@ r2VIMorig <- function(predictors=NULL,
     importanceDistribution <- rbind(importanceDistribution, thisRunImportances)
     importanceDistributionRIS <- rbind(importanceDistributionRIS, thisRunImportancesRIS)
     # count top ten
-    top10Genes <- names(sort(thisRunImportances, decreasing=T)[1:10])
-    votes[1, top10Genes] <- votes[1, top10Genes] + 1
+    top10variables <- names(sort(thisRunImportances, decreasing = TRUE)[1:10])
+    votes[1, top10variables] <- votes[1, top10variables] + 1
     # count all pairs in top 10
-    for(pair1idx in 1:9) {
-      for(pair2idx in (pair1idx + 1):10) {
-        gene1 <- top10Genes[pair1idx]
-        gene2 <- top10Genes[pair2idx]
-        # add 1/45 to each pair? 45=choose(10, 2)
-        networkMatrix[gene1, gene2] <- networkMatrix[gene1, gene2] + 1
-        networkMatrix[gene2, gene1] <- networkMatrix[gene1, gene2] + 1
+    for (pair1idx in 1:9) {
+      for (pair2idx in (pair1idx + 1):10) {
+        variable1 <- top10variables[pair1idx]
+        variable2 <- top10variables[pair2idx]
+        # add 1/45 to each pair? 45 = choose(10, 2)
+        networkMatrix[variable1, variable2] <- networkMatrix[variable1, variable2] + 1
+        networkMatrix[variable2, variable1] <- networkMatrix[variable1, variable2] + 1
       }
     }
     # classification
@@ -228,24 +233,27 @@ r2VIMorig <- function(predictors=NULL,
     TP <- confusionMatrix[2, 2]
     SENS <- TP / (TP + FN) # TPR/recall/hit rate/sensitivity
     SPEC <- TN / (TN + FP) # TNR/specificity/SPC
-    runStats <- rbind(runStats, data.frame(run=testIdx, 
-                                           confusion=confusionMatrix,
-                                           sensitivity=SENS,
-                                           specificity=SPEC))
-    if(verbose) cat(testIdx, " / ", numRfRuns, ": SENS/SPEC: ", round(SENS, 6), 
-                    " / ", round(SPEC, 6), "\n", sep="")
+    runStats <- rbind(runStats, data.frame(run = testIdx, 
+                                           confusion = confusionMatrix,
+                                           sensitivity = SENS,
+                                           specificity = SPEC))
+    if (verbose) cat(testIdx, " / ", numRfRuns, ": SENS/SPEC: ", round(SENS, 6), 
+                    " / ", round(SPEC, 6), "\n", sep = "")
   }
   diag(networkMatrix) <- as.numeric(votes[1, ])
  
-  list(run.stats=runStats,
-       votes=votes,
-       net.matrix=networkMatrix, 
-       importance.dist=importanceDistribution, 
-       importance.dist.ris=importanceDistributionRIS)
+  list(run.stats = runStats,
+       votes = votes,
+       net.matrix = networkMatrix, 
+       importance.dist = importanceDistribution, 
+       importance.dist.ris = importanceDistributionRIS)
 }
 
 # ----------------------------------------------------------------------------
 #' Rank by dcGAIN + SNPrank.
+#'
+#' Run dcGAIN on the regressionData creating a GAIN matrix.
+#' Then run SNPrank on the GAIN matrix.
 #' 
 #' \code{rankDcgainSnprank} 
 #' 
@@ -255,35 +263,28 @@ r2VIMorig <- function(predictors=NULL,
 #' @param regressionData \code{data.frame} of predictors and final class column.
 #' @param gamma \code{numeric} gamma value for SNPrank
 #' @param saveMatrix \code{logical} to save the dcGAIN matrix to text file.
-#' @return \code{data.frame} with SNPrank results: gene, SNPrank, degree.
+#' @return \code{data.frame} with: variable, score.
 #' @examples
-#' data(testdata100ME4)
-#' dcgainResults <- rankDcgainSnprank(testdata100ME4)
+#' data(testdata10)
+#' dcgainResults <- rankDcgainSnprank(testdata10)
 #' @export
 rankDcgainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE) {
-  numPredictors <- ncol(regressionData) - 1
-  
-  # make predictors (genes from SAM's POV) into rows
-  predictors <- t(as.matrix(regressionData[, 1:numPredictors]))
-  # phenotype is response
-  response <- regressionData[, ncol(regressionData)]
-  
   # run Rinbix version of dcGAIN
   #dcResult <- dcgain(ds$regressionData) <- BUG 5/13/14
   dcResult <- dcgainInbix(regressionData)
   #dcResult <- dcgain(regressionData)
-  if(saveMatrix) {
-    write.table(dcResult$scores, file="test.dcgain", sep="\t", 
-      quote=FALSE, row.names=FALSE, col.names=TRUE)
+  if (saveMatrix) {
+    write.table(dcResult$scores, file = "test.dcgain", sep = "\t", 
+                quote = FALSE, row.names = FALSE, col.names = TRUE)
   }
 
   # SNPrank
   scores <- dcResult$scores
-  pvals <- dcResult$pvals
   # threshold based on p-value
   #scores[pvals > 0.05] <- 0
   #cat("p-value threshold sets", length(scores[pvals > 0.05]), "values to zero\n")
-  snprankResults <- snprankInbix(scores, gamma=gamma)
+  snprankResults <- snprankInbix(scores, gamma = gamma)
+  data.frame(variable = snprankResults$variable, score = snprankResults$score)
 }
 
 # ----------------------------------------------------------------------------
@@ -295,16 +296,13 @@ rankDcgainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE) {
 #' @family feature selection functions
 #' @param regressionData \code{data.frame} of predictors and final class column.
 #' @return \code{data.frame} with gene and gene rank score, ordered by score.
-#' data(testdata100ME4)
-#' rankGeneRankResults <- rankGeneRank(testdata100ME4)
+#' data(testdata10)
+#' rankGeneRankResults <- rankGeneRank(testdata10)
 #' @export
 rankGeneRank <- function(regressionData) {
   numPredictors <- nrow(regressionData)
   predictors <- as.matrix(regressionData[, 1:numPredictors])
-  varNames <- colnames(predictors)
-  ranks <- geneRank(t(predictors))
-  ranks_df <- data.frame(gene=varNames, GRscore=ranks)
-  sorted_ranks <- ranks_df[order(ranks_df$GRscore, decreasing=TRUE),]
+  geneRank(t(predictors))
 }
 
 # -----------------------------------------------------------------------------
@@ -316,33 +314,34 @@ rankGeneRank <- function(regressionData) {
 #' @family feature selection functions
 #' @param regressionData \code{data.frame} of predictors and final class column,
 #' @param verbose \code{logical} send verbose messages to stdout.
-#' @return \code{data.frame} with gene indices, gene names and coefficients.
+#' @return \code{data.frame} with variable indices, variable names and coefficients.
 #' @examples
-#' data(testdata100ME4)
-#' rankGlmnetResults <- rankGlmnet(testdata100ME4)
+#' data(testdata10)
+#' rankGlmnetResults <- rankGlmnet(testdata10)
 #' @export
-rankGlmnet <- function(regressionData, verbose=FALSE) {
+rankGlmnet <- function(regressionData, verbose = FALSE) {
   predictors <- regressionData[, -ncol(regressionData)]
   predictor_names <- colnames(predictors)
-  response <- factor(regressionData[, ncol(regressionData)], levels=c(0, 1))
+  response <- factor(regressionData[, ncol(regressionData)], levels = c(0, 1))
   alpha <- 0.5
-  glmnet_fit_cv <- glmnet::cv.glmnet(as.matrix(predictors), response, alpha=alpha, family="binomial")
+  glmnet_fit_cv <- glmnet::cv.glmnet(as.matrix(predictors), response, alpha = alpha, family = "binomial")
   lambda_min <- glmnet_fit_cv$lambda.min
-  if(verbose) cat("Minimum lambda [", lambda_min, "]\n")
-  res <- predict(glmnet_fit_cv, s=lambda_min, type="coef")
+  if (verbose) cat("Minimum lambda [", lambda_min, "]\n")
+  res <- predict(glmnet_fit_cv, s = lambda_min, type = "coef")
   # nonzero indices minus intercept
   nzi <- (res@i)[-1]
-  if(verbose) cat("glmnet non-zero indices:", nzi, "\n")
-  nzv <- abs(res[nzi+1])
-  if(verbose) cat("glmnet non-zero values:", nzv, "\n")
+  if (verbose) cat("glmnet non-zero indices:", nzi, "\n")
+  nzv <- abs(res[nzi + 1])
+  if (verbose) cat("glmnet non-zero values:", nzv, "\n")
   nznames <- predictor_names[nzi]
-  if(verbose) cat("glmnet non-zero names:", nznames, "\n")
+  if (verbose) cat("glmnet non-zero names:", nznames, "\n")
   
-  resultDF <- data.frame(indices=as.integer(nzi), 
-             names=as.character(nznames), 
-             values=as.numeric(nzv),
-             stringsAsFactors=FALSE)
-  resultDF[order(resultDF$values, decreasing=TRUE), ]
+  resultDF <- data.frame(indices = as.integer(nzi), 
+                         names = as.character(nznames), 
+                         values = as.numeric(nzv),
+                         stringsAsFactors = FALSE)
+  resultDF[order(resultDF$values, decreasing = TRUE), ]
+  data.frame(variable = resultDF$names, score = resultDF$values)
 }
 
 # ----------------------------------------------------------------------------
@@ -359,43 +358,43 @@ rankGlmnet <- function(regressionData, verbose=FALSE) {
 #' @return \code{list} with \code{data.frame} of reduced regressionData 
 #'   with the target number of attributes and a \code{data.frame} of scores.
 #' @examples
-#' data(testdata100ME4)
-#' irelieffResults <- rankIterativeRelieff(testdata100ME4)
+#' data(testdata10)
+#' irelieffResults <- rankIterativeRelieff(testdata10)
 #' @export
 rankIterativeRelieff <- function(regressionData, 
-                                 percentRemovePerIteration=10, 
-                                 targetNumAttributes=10,
-                                 verbose=FALSE) {
+                                 percentRemovePerIteration = 10, 
+                                 targetNumAttributes = 10,
+                                 verbose = FALSE) {
   classCol <- as.integer(regressionData[, ncol(regressionData)])
   curData <- regressionData[, -ncol(regressionData)]
   curNumAttributes <- ncol(curData)
   iterDone <- FALSE
   iteration <- 0
   scoresDF <- NULL
-  while(!iterDone) {
+  while (!iterDone) {
     iteration <- iteration + 1
     # run Relief-F on this subset
     curData$Class <- classCol
     thisRanking <- rankRelieff(curData)
     thisRanking <- thisRanking[order(thisRanking$score), ]
     thisNumToRemove <- as.integer(curNumAttributes * (percentRemovePerIteration / 100))
-    if((thisNumToRemove > 0) && (curNumAttributes - thisNumToRemove) > 0) {
-      attributesToRemove <- head(thisRanking, n=thisNumToRemove)
-      scoresDF <- rbind(scoresDF, data.frame(gene=attributesToRemove$gene, 
-                                             score=attributesToRemove$score))
-      if(verbose) cat("Number of attributes:", curNumAttributes, 
+    if ((thisNumToRemove > 0) && (curNumAttributes - thisNumToRemove) > 0) {
+      attributesToRemove <- head(thisRanking, n = thisNumToRemove)
+      scoresDF <- rbind(scoresDF, data.frame(variable = attributesToRemove$variable, 
+                                             score = attributesToRemove$score))
+      if (verbose) cat("Number of attributes:", curNumAttributes, 
                       ", removing:", thisNumToRemove, "\n")
-      curData <- curData[, -which(colnames(curData) %in% attributesToRemove$gene)]
+      curData <- curData[, -which(colnames(curData) %in% attributesToRemove$variable)]
       curNumAttributes <- ncol(curData) - 1
     } else {
-      scoresDF <- rbind(scoresDF, data.frame(gene=thisRanking$gene, 
-                                             score=thisRanking$score))
+      scoresDF <- rbind(scoresDF, data.frame(variable = thisRanking$variable, 
+                                             score = thisRanking$score))
       iterDone <- TRUE
     }
   }
-  scoresDF <- scoresDF[order(scoresDF$score, decreasing=T), ]
-  if(verbose) cat("Iterative Relief-F complete in [", iteration, "] iterations\n")
-  list(top.data=curData, all.scores=scoresDF)
+  scoresDF <- scoresDF[order(scoresDF$score, decreasing = TRUE), ]
+  if (verbose) cat("Iterative Relief-F complete in [", iteration, "] iterations\n")
+  scoresDF
 }
 
 # ----------------------------------------------------------------------------
@@ -405,10 +404,10 @@ rankIterativeRelieff <- function(regressionData,
 #' 
 #' @family feature selection functions
 #' @param regressionData \code{data.frame} of predictors and final class column.
-#' @return \code{data.frame} with gene and non-zero coefficients, ordered by coefficient.
+#' @return \code{data.frame} with variable and non-zero coefficients, ordered by coefficient.
 #' @examples
-#' data(testdata100ME4)
-#' rankLassoResults <- rankLasso(testdata100ME4)
+#' data(testdata10)
+#' rankLassoResults <- rankLasso(testdata10)
 #' @export
 rankLasso <- function(regressionData) {
   numPredictors <- ncol(regressionData) - 1
@@ -416,20 +415,23 @@ rankLasso <- function(regressionData) {
   varNames <- colnames(predictors)
   # scale the predictors! lesson learned 5/2/14
   scaledPredictors <- base::scale(predictors)
-  response <- factor(regressionData$Class, levels=c(0, 1))
-  cv <- glmnet::cv.glmnet(scaledPredictors, response, alpha=1, nfolds=5, family="binomial")
+  response <- factor(regressionData$Class, levels = c(0, 1))
+  cv <- glmnet::cv.glmnet(scaledPredictors, response, alpha = 1, nfolds = 5, 
+                          family = "binomial")
   l <- cv$lambda.min
-  alpha=0.5
+  alpha <- 0.5
   # fit the model
-  fits <- glmnet::glmnet(scaledPredictors, response, family="binomial", alpha=alpha, nlambda=100)
-  res <- predict(fits, s=l, type="coefficients")
+  fits <- glmnet::glmnet(scaledPredictors, response, family = "binomial", 
+                         alpha = alpha, nlambda = 100)
+  res <- predict(fits, s = l, type = "coefficients")
   # nonzero indices minus intercept
   nzi <- (res@i)[-1]
   #cat("nzi:", nzi, "\n")
-  nzv <- res[nzi+1]
+  nzv <- res[nzi + 1]
   #cat("nzv:", nzv, "\n")
-  returnDF <- data.frame(gene=varNames[nzi], coef=as.vector(nzv))
-  returnDF[order(returnDF$coef, decreasing=TRUE), ]
+  returnDF <- data.frame(variable = varNames[nzi], score = as.vector(nzv))
+  returnDF[order(returnDF$score, decreasing = TRUE), ]
+  returnDF
 }
 
 # ----------------------------------------------------------------------------
@@ -440,25 +442,27 @@ rankLasso <- function(regressionData) {
 #' @keywords models
 #' @family feature selection functions
 #' @param regressionData \code{data.frame} of predictors and final class column,
-#' @return \code{data.frame} with gene and p-value, ordered by p-value,
+#' @return \code{data.frame} with variable and p-value, ordered by p-value,
 #' @examples
-#' data(testdata100ME4)
-#' rankLimmaResults <- rankLimma(testdata100ME4)
+#' data(testdata10)
+#' rankLimmaResults <- rankLimma(testdata10)
 #' @export
 rankLimma <- function(regressionData) {
   # set up the data
   numPredictors <- ncol(regressionData) - 1
-  # make predictors (genes from Limma's POV) into rows
+  # make predictors (variables from Limma's POV) into rows
   predictors <- t(as.matrix(regressionData[, 1:numPredictors]))
   # phenotype is response
-  response <- regressionData[,ncol(regressionData)]
+  response <- regressionData[, ncol(regressionData)]
   design <- model.matrix(~response)
   # proceed with analysis
   fit <- limma::lmFit(predictors, design)
   fit2 <- limma::eBayes(fit)
-  tT <- limma::topTable(fit2, coef=2, adjust="fdr", sort.by="p", n=Inf)
-  returnDF <- data.frame(gene=rownames(tT), score=tT$P.Value)
+  tT <- limma::topTable(fit2, coef = 2, adjust.method = "fdr", sort.by = "p", 
+                        number = Inf)
+  returnDF <- data.frame(variable = rownames(tT), score = tT$P.Value)
   returnDF[order(returnDF$score), ]
+  returnDF
 }
 
 # ----------------------------------------------------------------------------
@@ -469,22 +473,24 @@ rankLimma <- function(regressionData) {
 #' @keywords models
 #' @family feature selection functions
 #' @param regressionData \code{data.frame} of predictors and final class column.
-#' @return \code{data.frame} with gene and importance score, ordered by importance.
+#' @return \code{data.frame} with variable and importance score, ordered by importance.
 #' @examples
-#' data(testdata100ME4)
-#' rankRandomForestResults <- rankRandomForest(testdata100ME4)
+#' data(testdata10)
+#' rankRandomForestResults <- rankRandomForest(testdata10)
 #' @export
 rankRandomForest <- function(regressionData) {
   numPredictors <- ncol(regressionData) - 1
   # make predictors
   predictors <- as.matrix(regressionData[, 1:numPredictors])
-  varNames <- colnames(predictors)
+  #varNames <- colnames(predictors)
   #predictors <- t(predictors)
   # phenotype is response
   response <- as.factor(regressionData[,ncol(regressionData)])
-  rfResult <- randomForest::randomForest(predictors, response, importance=TRUE)
-  returnDF <- data.frame(gene=rownames(rfResult$importance), score=rfResult$importance[, 3])
-  returnDF[order(returnDF$score, decreasing=TRUE), ]
+  rfResult <- randomForest::randomForest(predictors, response, importance = TRUE)
+  returnDF <- data.frame(variable = rownames(rfResult$importance), 
+                         score = rfResult$importance[, 3])
+  returnDF[order(returnDF$score, decreasing = TRUE), ]
+  returnDF
 }
 
 # ----------------------------------------------------------------------------
@@ -499,19 +505,19 @@ rankRandomForest <- function(regressionData) {
 #' @param gamma \code{numeric} SNPrank gamma
 #' @param saveMatrix \code{logical} to save reGAIN matrix to file.
 #' @param pThresh \code{numeric} probability threshold for reGAIN models.
-#' @return \code{data.frame} with SNPrank results: gene, SNPrank, degree,
+#' @return \code{data.frame} with SNPrank results: variable, SNPrank, degree,
 #' @examples
-#' data(testdata100ME4)
-#' rankRegainSnprankResults <- rankRegainSnprank(testdata100ME4)
+#' data(testdata10)
+#' rankRegainSnprankResults <- rankRegainSnprank(testdata10)
 #' @export
 rankRegainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE,  pThresh=1) {
-  numPredictors <- ncol(regressionData) - 1
   # run inbix C++ version of reGAIN
-  rgResult <- regainInbix(regressionData, stdBetas=FALSE, absBetas=TRUE, pThreshold=pThresh)
+  rgResult <- regainInbix(regressionData, stdBetas = FALSE, absBetas = TRUE, 
+                          pThreshold = pThresh)
   #rgResult <- regainParallel(as.data.frame(regressionData), stdBetas=FALSE, absBetas=TRUE)
-  if(saveMatrix) {
-    write.table(rgResult$reGAIN, file="test.regain", sep="\t",
-      quote=FALSE, row.names=FALSE, col.names=TRUE)  
+  if (saveMatrix) {
+    write.table(rgResult$reGAIN, file = "test.regain", sep = "\t",
+      quote = FALSE, row.names = FALSE, col.names = TRUE)  
   }
   # if(length(rgResult$warningsText) > 0) {
   #   print(rgResult$warningsText)
@@ -520,7 +526,8 @@ rankRegainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE,  pTh
   #   print(rgResult$failuresText)
   # }
   # SNPrank
-  snprankResults <- snprankInbix(rgResult$reGAIN, gamma=gamma)
+  snprankResults <- snprankInbix(rgResult$reGAIN, gamma = gamma)
+  snprankResults[order(snprankResults$score), ]
 }
 
 # ----------------------------------------------------------------------------
@@ -530,16 +537,19 @@ rankRegainSnprank <- function(regressionData, gamma=0.85, saveMatrix=FALSE,  pTh
 #' 
 #' @family feature selection functions
 #' @param regressionData \code{data.frame} of predictors and final class column.
-#' @return \code{data.frame} with Relief-F results: gene, score.
+#' @return \code{data.frame} with Relief-F results: variable, score.
 #' @examples
 #' data(testdata100ME4)
 #' rankRelieffResults <- rankRelieff(testdata100ME4)
 #' @export
 rankRelieff <- function(regressionData) {
-  regressionData$Class <- factor(regressionData$Class, levels=c(0, 1))
-  relieffRankings <- CORElearn::attrEval(Class ~ ., regressionData, estimator="Relief")
-  retDF <- data.frame(gene=names(relieffRankings), score=relieffRankings)
-  retDF[order(retDF$score, decreasing=TRUE), ]
+  regressionData$Class <- factor(regressionData$Class, levels = c(0, 1))
+  relieffRankings <- CORElearn::attrEval(Class ~ ., regressionData, 
+                                         estimator = "Relief")
+  retDF <- data.frame(variable = names(relieffRankings), 
+                      score = relieffRankings)
+  retDF <- retDF[order(retDF$score, decreasing = TRUE), ]
+  retDF
 }
 
 # ----------------------------------------------------------------------------
@@ -550,22 +560,20 @@ rankRelieff <- function(regressionData) {
 #' @references 
 #' \itemize{
 #'   \item \url{http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0081527}
-#'   {ReliefSeq: A Gene-Wise Adaptive-K Nearest-Neighbor Feature Selection Tool for Finding Gene-Gene Interactions and Main Effects in mRNA-Seq Gene Expression Data}
+#'   {ReliefSeq: A variable-Wise Adaptive-K Nearest-Neighbor Feature Selection Tool for Finding Gene-Gene Interactions and Main Effects in mRNA-Seq Gene Expression Data}
 #'   \item \url{http://insilico.utulsa.edu/index.php/reliefseq/}{Relief-Seq Software}
 #' }
 #' @family feature selection functions
 #' @param regressionData \code{data.frame} of predictors and final class column.
 #' @param outPrefix \code{string} output file prefix for temporary files.
 #' @param k \code{numeric} k-nearest neighbors in the Relief-F algorithm.
-#' @return \code{data.frame} with ReliefSeq results: gene, score.
+#' @return \code{data.frame} with ReliefSeq results: variable, score.
 #' @examples
 #' data(testdata100ME4)
 #' rankReliefSeqResults <- rankReliefSeq(testdata100ME4)
 #' @export
 rankReliefSeq <- function(regressionData, outPrefix="Rinbix", k=10) {
-  if(Sys.which("inbix") == "") {
-    stop("inbix is not in the PATH")
-  }
+  inbixExists()
   # write regressionData data frame to inbix files
   writeRegressionDataAsInbixNumeric(regressionData, outPrefix)
   # run reliefseq command
@@ -575,13 +583,14 @@ rankReliefSeq <- function(regressionData, outPrefix="Rinbix", k=10) {
                       "--relieff --algorithm-mode reliefseq",
                       "--k-nearest-neighbors", k,
                       "--out", outPrefix)
-  cat("Running relieff command:", relieffCmd, "\n")
-  relieffStdout <- system(relieffCmd, intern=TRUE)
-  cat("stdout:", relieffStdout, "\n")
-  relieffRankings <- read.table("Rinbix.relieff.tab", header=FALSE, sep="\t")
+  #cat("Running relieff command:", relieffCmd, "\n")
+  system(relieffCmd, intern = TRUE)
+  #relieffStdout <- system(relieffCmd, intern=TRUE)
+  #cat("stdout:", relieffStdout, "\n")
+  relieffRankings <- read.table("Rinbix.relieff.tab", header = FALSE, sep = "\t")
   file.remove(c("Rinbix.num", "Rinbix.pheno", "Rinbix.relieff.tab"))
   # cmd=relieffCmd, stdout=relieffStdout
-  data.frame(gene=relieffRankings[, 2], score=relieffRankings[, 1])
+  data.frame(variable = relieffRankings[, 2], score = relieffRankings[, 1])
 }
 
 # ----------------------------------------------------------------------------
@@ -591,39 +600,42 @@ rankReliefSeq <- function(regressionData, outPrefix="Rinbix", k=10) {
 #' 
 #' @family feature selection functions
 #' @param regressionData \code{data.frame} of predictors and final class column.
-#' @return \code{data.frame} with gene and p-value, ordered by p-value.
+#' @return \code{data.frame} with variable and p-value, ordered by p-value.
 #' @examples
-#' data(testdata100ME4)
-#' rankSamResults <- rankSam(testdata100ME4)
+#' data(testdata10)
+#' rankSamResults <- rankSam(testdata10)
 #' @export
 rankSam <- function(regressionData) {
   numPredictors <- ncol(regressionData) - 1
-  # make predictors (genes from SAM's POV) into rows
+  # make predictors (variables from SAM's POV) into rows
   predictors <- t(as.matrix(regressionData[, 1:numPredictors]))
   # phenotype is response
   response <- regressionData[,ncol(regressionData)] + 1
-  capture.output(samFit <- samr::SAM(x=predictors, y=response, resp.type="Two class unpaired", 
-                 genenames=rownames(predictors)))
-  pVals <- samr::samr.pvalues.from.perms(samFit$samr.obj$tt, samFit$samr.obj$ttstar)
-  returnDF <- data.frame(gene=colnames(predictors), score=pVals)
+  capture.output(samFit <- samr::SAM(x = predictors, y = response, 
+                                     resp.type = "Two class unpaired", 
+                                     genenames = rownames(predictors)))
+  pVals <- samr::samr.pvalues.from.perms(samFit$samr.obj$tt, 
+                                         samFit$samr.obj$ttstar)
+  returnDF <- data.frame(variable = rownames(predictors), score = pVals)
   returnDF[order(returnDF$score), ]
+  returnDF
 }
 
 # -----------------------------------------------------------------------------
-#' Rank genes by SNPrank algorithm.
+#' Rank variables by SNPrank algorithm.
 #' 
 #' \code{snprank}
 #' 
 #' @references 
 #' \itemize{
-#'   \item \url{http://www.nature.com/gene/journal/v11/n8/full/gene201037a.html}
+#'   \item \url{http://www.nature.com/variable/journal/v11/n8/full/gene201037a.html}
 #'   {Genes & Immunity Paper}
 #'   \item \url{http://insilico.utulsa.edu/index.php/snprank/}{SNPrank Software}
 #' }
 #' @family feature selection functions
 #' @param G \code{matrix} genetic association interaction network.
 #' @param gamma \code{numeric} weighting, interactions (closer to 1) versus main effects (closer to 0).
-#' @return sortedTable \code{data.frame} with gene, SNPrank, diagonal and degree columns.
+#' @return sortedTable \code{data.frame} with variable, SNPrank, diagonal and degree columns.
 #' @examples
 #' data(testdata10)
 #' rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
@@ -631,7 +643,7 @@ rankSam <- function(regressionData) {
 #' @export
 snprank <- function(G, gamma=0.85) {
   n <- nrow(G);
-  geneNames <- colnames(G)
+  variableNames <- colnames(G)
   Gdiag <- diag(G)
   Gtrace <- sum(Gdiag)
   colsum <- colSums(G);
@@ -640,29 +652,30 @@ snprank <- function(G, gamma=0.85) {
   colsumG <- colSums(G)
   rowSumG <- rowSums(G)
   rowsum_denom <- matrix(0, n, 1);
-  for(i in 1:n) {
+  for (i in 1:n) {
     localSum <- 0;
-    for(j in 1:n) {
+    for (j in 1:n) {
       factor <- ifelse(G[i, j] != 0, 1, 0);
       localSum <- localSum + (factor * colsumG[j]);
     }
     rowsum_denom[i] <- localSum;
   }
   gamma_vec <- rep(gamma, n);
-  gamma_matrix <- matrix(nrow=n, ncol=n, data=rep(gamma_vec, n))
-  if(Gtrace) {
+  gamma_matrix <- matrix(nrow = n, ncol = n, data = rep(gamma_vec, n))
+  if (Gtrace) {
     b <- ((1.0 - gamma_vec) / n) + (Gdiag / Gtrace)  
   } else {
     b <- ((1.0 - gamma_vec) / n)
   }
-  D <- matrix(nrow=n, ncol=n, data=c(0))
+  D <- matrix(nrow = n, ncol = n, data = c(0))
   diag(D) <- 1 / colsumG
   I <- diag(n)
   temp <- I - gamma_matrix * G %*% D
   r <- solve(temp, b)
   snpranks <- r / sum(r)
-  saveTable <- data.frame(gene=geneNames, snprank=snpranks)
-  sortedTable <- saveTable[order(saveTable$snprank, decreasing=TRUE),]  
+  saveTable <- data.frame(variable = variableNames, score = snpranks)
+  sortedTable <- saveTable[order(saveTable$score, decreasing = TRUE),]  
+  sortedTable
 }
 
 # ----------------------------------------------------------------------------
@@ -673,10 +686,10 @@ snprank <- function(G, gamma=0.85) {
 #' @keywords models univar
 #' @family feature selection functions
 #' @param regressionData \code{data.frame} of predictors and final class column,
-#' @return \code{data.frame} with t-test results: gene, p-value.
+#' @return \code{data.frame} with t-test results: variable, p-value.
 #' @examples
-#' data(testdata100ME4)
-#' rankTTestResults <- rankTTest(testdata100ME4)
+#' data(testdata10)
+#' rankTTestResults <- rankTTest(testdata10)
 #' @export
 # ----------------------------------------------------------------------------
 rankTTest <- function(regressionData) {
@@ -688,55 +701,74 @@ rankTTest <- function(regressionData) {
   # phenotype is response
   response <- regressionData[, ncol(regressionData)]
   stats_matrix <- NULL
-  for(i in 1:nrow(predictors)) {
+  for (i in 1:nrow(predictors)) {
     g1_data <- predictors[i, response == 0]
     g2_data <- predictors[i, response == 1]
     t_result <- t.test(g1_data, g2_data)
     stats_matrix <- rbind(stats_matrix, t_result$p.value)
   }
   rownames(stats_matrix) <- varNames
-  stats_matrix[order(stats_matrix[, 1], decreasing=FALSE), ]
+  returnDF <- data.frame(variable = varNames, score = stats_matrix[, 1])
+  returnDF <- returnDF[order(returnDF$score, decreasing = FALSE), ]
+  returnDF
 }
 
 # -----------------------------------------------------------------------------
-#' Rank genes by univariate regression.
+#' Rank variables by univariate regression.
 #' 
 #' \code{rankUnivariateRegression}
 #' 
 #' @keywords models univar regression
 #' @family feature selection functions
-#' @param regressionData \code{data.frame} with gene in columns and samples in rows;
+#' @param regressionData \code{data.frame} with variable in columns and samples in rows;
 #' the last column should be labeled 'Class' and be 0 or 1 values.
 #' @param numCores \code{numeric} number of processor cores to use in mclapply
-#' @return \code{data.frame} with gene, convergence status, beta coefficient, 
+#' @param sortOrder \code{character} sort retruned data frame by named column
+#' @return \code{data.frame} with variable, convergence status, beta coefficient, 
 #' p-value, standard error and standardized beta columns.
 #' @examples
-#' data(testdata100ME4)
-#' rankUnivariateRegressionResults <- rankUnivariateRegression(testdata100ME4)
+#' data(testdata10)
+#' rankUnivariateRegressionResults <- rankUnivariateRegression(testdata10)
 #' @export
-rankUnivariateRegression <- function(regressionData, numCores=2) {
+rankUnivariateRegression <- function(regressionData, numCores=2, sortOrder="pval") {
   # calculate the logistic regression coefficient for each variable in 
   # regressionData versus the "Class" column (last column)
-  colNames <- colnames(regressionData)[1:(ncol(regressionData)-1)]
+  colNames <- colnames(regressionData)[1:(ncol(regressionData) - 1)]
   numVars <- length(colNames)
   regressionData$Class <- factor(regressionData$Class)
   results <- parallel::mclapply(1:numVars, 
-                                mc.cores=numCores, 
-                                FUN=function(i) {
-                                  glmFormula <- paste("Class ~ ", colNames[i], sep="")
+                                mc.cores = numCores, 
+                                FUN = function(i) {
+                                  glmFormula <- paste("Class ~ ", colNames[i], sep = "")
                                   interactionModel <- glm(as.formula(glmFormula), 
-                                                          family="binomial", 
-                                                          data=regressionData)
+                                                          family = "binomial", 
+                                                          data = regressionData)
                                   glmConverged <- interactionModel$converged
                                   fitVarStats <- broom::tidy(interactionModel)[2, ]
-                                  data.frame(Variable=colNames[i], 
-                                             Converged=glmConverged, 
-                                             Beta=round(fitVarStats$estimate, 6), 
-                                             p=round(fitVarStats$p.value, 6), 
-                                             SE=round(fitVarStats$std.error, 6), 
-                                             Stat=round(fitVarStats$statistic, 6), 
-                                             stringsAsFactors=FALSE)
+                                  data.frame(Variable = colNames[i], 
+                                             Converged = glmConverged, 
+                                             Beta = round(fitVarStats$estimate, 6), 
+                                             p = round(fitVarStats$p.value, 6), 
+                                             SE = round(fitVarStats$std.error, 6), 
+                                             Stat = round(fitVarStats$statistic, 6), 
+                                             stringsAsFactors = FALSE)
                                 })
+  # put all the parallel results into a data frame
   resultsDF <- do.call(rbind, results)
-  sortedResults <- resultsDF[order(resultsDF$p), ]
+  
+  # return the sorted results complying with the feature selection interface
+  returnDF <- NULL
+  if (sortOrder == "pval") {
+    sortedResults <- resultsDF[order(resultsDF$p), ]
+    returnDF <- data.frame(variable = sortedResults$Variable, score = sortedResults$p)
+  }
+  if (sortOrder == "coef") {
+    sortedResults <- resultsDF[order(resultsDF$Beta, decreasing = TRUE), ]
+    returnDF <- data.frame(variable = sortedResults$Variable, score = sortedResults$Beta)
+  }
+  if (sortOrder == "stat") {
+    sortedResults <- resultsDF[order(resultsDF$Stat, decreasing = TRUE), ]
+    returnDF <- data.frame(variable = sortedResults$Variable, score = sortedResults$Stat)
+  }
+  returnDF  
 }

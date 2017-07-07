@@ -8,19 +8,13 @@ Description: In silico research group's bioinformatics toolbox for network and
     machine learning analysis.
 License: GPL
 Depends:
-    R (>= 3.3.0),
-    stats,
-    methods,
-    utils,
-    graphics,
-    grDevices
+    R (>= 3.3.0)
 Suggests:
     parallel (>= 3.1.2),
     testthat (>= 0.7.1.99),
     knitr,
     rmarkdown
 Imports:
-    BiocParallel,
     Matrix,
     caret,
     edgeR,
@@ -40,18 +34,9 @@ Imports:
     snpStats,
     biomaRt,
     circlize,
-    fossil,
-    e1071,
-    expm,
-    kernlab,
     org.Hs.eg.db,
     AnnotationDbi,
     broom,
-    ggplot2,
-    affy,
-    affyPLM,
-    leukemiasEset,
-    networkD3,
-    KEGG.db
+    networkD3
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1

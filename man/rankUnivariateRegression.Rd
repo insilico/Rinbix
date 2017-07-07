@@ -2,26 +2,28 @@
 % Please edit documentation in R/inbixFS.R
 \name{rankUnivariateRegression}
 \alias{rankUnivariateRegression}
-\title{Rank genes by univariate regression.}
+\title{Rank variables by univariate regression.}
 \usage{
-rankUnivariateRegression(regressionData, numCores = 2)
+rankUnivariateRegression(regressionData, numCores = 2, sortOrder = "pval")
 }
 \arguments{
-\item{regressionData}{\code{data.frame} with gene in columns and samples in rows;
+\item{regressionData}{\code{data.frame} with variable in columns and samples in rows;
 the last column should be labeled 'Class' and be 0 or 1 values.}
 
 \item{numCores}{\code{numeric} number of processor cores to use in mclapply}
+
+\item{sortOrder}{\code{character} sort retruned data frame by named column}
 }
 \value{
-\code{data.frame} with gene, convergence status, beta coefficient, 
+\code{data.frame} with variable, convergence status, beta coefficient, 
 p-value, standard error and standardized beta columns.
 }
 \description{
 \code{rankUnivariateRegression}
 }
 \examples{
-data(testdata100ME4)
-rankUnivariateRegressionResults <- rankUnivariateRegression(testdata100ME4)
+data(testdata10)
+rankUnivariateRegressionResults <- rankUnivariateRegression(testdata10)
 }
 \seealso{
 Other feature selection functions: \code{\link{geneRank}},

@@ -1,11 +1,11 @@
 ## ----libraries, echo=FALSE, message=FALSE, warning=FALSE-----------------
-library(BiocParallel)
-register(DoparParam())
-#register(MulticoreParam())
-library(affy)
-library(affyPLM)
+# library(BiocParallel)
+# register(DoparParam())
+# register(MulticoreParam())
+# library(affy)
+# library(affyPLM)
+library(preprocessCore)
 library(leukemiasEset)
-library(ggplot2)
 library(clusterProfiler)
 library(broom)
 library(org.Hs.eg.db)
@@ -33,7 +33,7 @@ colnames(leukExprData) <- leukPheno  # add phenotype names to matrix
 
 ## ----preprocess----------------------------------------------------------
 # quantiles function needs eset to operate on
-leukExprData_quantile <- normalize.quantiles(leukExprData)
+leukExprData_quantile <- preprocessCore::normalize.quantiles(leukExprData)
 boxplot(leukExprData_quantile,range=0,ylab="raw intensity", main="Quantile Normalized")
 #leukExprData_quantileLog2 <- log2(exprs(leukExprData_quantile))
 leukExprData_quantileLog2 <- log2(leukExprData_quantile)
@@ -86,17 +86,14 @@ top_cutoff <- 100
 # convert output to character instead of factor
 topFeatures <- as.character(ttest_allgene_sorted[1:top_cutoff,]$ensmblID)
 ensembl = useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
-top_geneNames <- getBM(attributes=c('ensembl_gene_id','hgnc_symbol'), filters='ensembl_gene_id', 
-             values=topFeatures, mart=ensembl)
+top_geneNames <- getBM(attributes=c('ensembl_gene_id','hgnc_symbol'),
+                       filters='ensembl_gene_id', 
+                       values=topFeatures, mart=ensembl)
 knitr::kable(head(top_geneNames))
 
 ## ----reactome, echo=TRUE-------------------------------------------------
 reactomeAnalysis <- getReactomePathways(top_geneNames$hgnc_symbol)
 knitr::kable(as.data.frame(reactomeAnalysis), row.names=FALSE)
-
-## ----kegg, echo=TRUE-----------------------------------------------------
-keggAnalysis <- getKEGGAnalysis(top_geneNames$hgnc_symbol)
-knitr::kable(as.data.frame(keggAnalysis), row.names=FALSE)
 
 ## ----go, echo=TRUE-------------------------------------------------------
 goAnalysis <- getGOAnalysis(top_geneNames$hgnc_symbol)
@@ -104,6 +101,5 @@ knitr::kable(as.data.frame(goAnalysis), row.names=FALSE)
 
 ## ----pathplots, echo=TRUE------------------------------------------------
 # hmm, not doing anything
-print(barplot(keggAnalysis))
 print(barplot(goAnalysis))
 

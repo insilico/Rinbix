@@ -64,7 +64,7 @@ test_that("SNPrank Rinbix vs C++ from reGAIN stdBetas=TRUE, absBetas=TRUE", {
 })
 
 test_that("SNPrank Rinbix vs C++ from reGAIN stdBetas=TRUE, absBetas=TRUE", {
-  inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
+  inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=FALSE)
   inbixSnpranksDF <- snprankInbix(inbixRegain$reGAIN)
   inbixSnpranks <- inbixSnpranksDF[, 2]
   rinbixSnpranksDF <- snprank(inbixRegain$reGAIN)

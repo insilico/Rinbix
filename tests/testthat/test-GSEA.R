@@ -7,7 +7,7 @@ test_that("Map SNPs to Genes Biomart", {
 })
 
 test_that("Lookup Gene Descriptions Biomart", {
-  gene.info <- lookupGeneDescBiomart(c("CEPN", "ATMIN"))
+  gene.info <- lookupGeneDescBiomart(c("RXRA", "ATMIN"))
   expect_equal(nrow(gene.info), 2)
 })
 
@@ -15,12 +15,6 @@ test_that("getReactomePathways", {
 	data(geneListSymbols)
 	reactomePathDesc <- getReactomePathways(geneListSymbols)
   expect_equal(class(reactomePathDesc)[1], "enrichResult")
-})
-
-test_that("getKEGGAnalysis", {
-	data(geneListSymbols)
-	keggEnrichment <- getKEGGAnalysis(geneListSymbols)
-  expect_equal(class(keggEnrichment)[1], "enrichResult")
 })
 
 test_that("getGOAnalysis", {

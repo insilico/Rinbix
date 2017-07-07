@@ -36,9 +36,9 @@ lookupGeneDescBiomart <- function(genes.list=NULL) {
                               values=genes.list,
                               uniqueRows=TRUE,
                               mart=ensembl2gene.biomart)
-  colnames(gene.info) <- c("Gene", "Description")
+  colnames(gene.info) <- c("Gene.ID", "Gene.Symbol", "Description")
   # sort data frame returned by snp then gene ID
-  gene.info[order(gene.info$Gene), ]
+  gene.info[order(gene.info$Gene.Symbol), ]
 }
 
 # ----------------------------------------------------------------------------
@@ -135,27 +135,6 @@ getReactomePathways <- function(geneSymbols) {
                                              minGSSize=2,
                                              readable=TRUE)
   pathwayEnrich
-}
-
-# ----------------------------------------------------------------------------
-#' Get the KEGG enrichment analysis for a vector of gene symbols.
-#' 
-#' \code{getKEGGAnalysis} 
-#' 
-#' @param geneSymbols \code{vector} gene symbols.
-#' @return \code{\link[DOSE]{enrichResult-class}} enriched pathways with FDR control.
-#' @family GSEA functions
-#' @examples
-#' data(geneListSymbols)
-#' keggEnrichment <- getKEGGAnalysis(geneListSymbols)
-#' @export
-getKEGGAnalysis <- function(geneSymbols) {
-  geneIdsEntrez <- geneSymbolToEntrezID(geneSymbols)
-  geneIdsEntrez[is.na(geneIdsEntrez)] = " "
-  keggEnrichment <- clusterProfiler::enrichKEGG(geneIdsEntrez, "human", 
-                                                pvalueCutoff=0.05,
-                                                use_internal_data=TRUE)
-  keggEnrichment
 }
 
 # ----------------------------------------------------------------------------

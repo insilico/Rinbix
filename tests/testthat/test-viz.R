@@ -40,13 +40,21 @@ test_that("netListToSimpleD3", {
   data("testdata10")
   predictors <- testdata10[, -ncol(testdata10)]
   Acorr <- cor(predictors)
-  netlist <- adjacencyToNetList(Acorr, 
-                                thresholdType="hard", 
-                                thresholdValue=0.2, 
-                                useAbs=TRUE, 
+  netlist <- adjacencyToNetList(Acorr,
+                                thresholdType="hard",
+                                thresholdValue=0.2,
+                                useAbs=TRUE,
                                 useWeighted=TRUE)
-  net <- netListToSimpleD3(netlist)
-  expect_equal(length(net), 7)
+  # convert nodes to zero based indexes
+  netlinks <- data.frame(Source=netlist$links$Source - 1,
+                         Target=netlist$links$Target - 1,
+                         Value=netlist$links$Value)
+  netnodes <- data.frame(NodeID=netlist$nodes$NodeID -1,
+                         Name=netlist$nodes$Name,
+                         Group=netlist$nodes$Group,
+                         Size=netlist$nodes$Size)
+  net <- netListToSimpleD3(list(links=netlinks, nodes=netnodes, groups=NULL))
+  expect_equal(length(net), 8)
 })
 
 test_that("netListToForceD3", {
@@ -58,6 +66,22 @@ test_that("netListToForceD3", {
                                 thresholdValue=0.2, 
                                 useAbs=TRUE, 
                                 useWeighted=TRUE)
-  net <- netListToForceD3(netlist)
-  expect_equal(length(net), 7)
+  data("testdata10")
+  predictors <- testdata10[, -ncol(testdata10)]
+  Acorr <- cor(predictors)
+  netlist <- adjacencyToNetList(Acorr,
+                                thresholdType="hard",
+                                thresholdValue=0.2,
+                                useAbs=TRUE,
+                                useWeighted=TRUE)
+  # convert nodes to zero based indexes
+  netlinks <- data.frame(Source=netlist$links$Source - 1,
+                         Target=netlist$links$Target - 1,
+                         Value=netlist$links$Value)
+  netnodes <- data.frame(NodeID=netlist$nodes$NodeID -1,
+                         Name=netlist$nodes$Name,
+                         Group=netlist$nodes$Group,
+                         Size=netlist$nodes$Size)
+  net <- netListToForceD3(list(links=netlinks, nodes=netnodes, groups=NULL))
+  expect_equal(length(net), 8)
 })
