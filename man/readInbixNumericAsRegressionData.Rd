@@ -26,6 +26,7 @@ Other inbix interface functions: \code{\link{dcgainInbix}},
   \code{\link{permuteGainInbix}},
   \code{\link{rankDcgainSnprank}},
   \code{\link{rankRegainSnprank}},
+  \code{\link{rankReliefSeqInbix}},
   \code{\link{regainInbix}}, \code{\link{snprankInbix}},
   \code{\link{writeRegressionDataAsInbixNumeric}}
 }

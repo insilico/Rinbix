@@ -12,7 +12,7 @@
 
 <meta name="author" content="Bill White" />
 
-<meta name="date" content="2015-11-15" />
+<meta name="date" content="2017-07-08" />
 
 <title>Rinbix-ReliefF-Ranking</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Rinbix-ReliefF-Ranking</h1>
 <h4 class="author"><em>Bill White</em></h4>
-<h4 class="date"><em>November 15, 2015</em></h4>
+<h4 class="date"><em>2017-07-08</em></h4>
 
 
 
@@ -92,7 +92,7 @@ knitr::<span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsReli
 <table>
 <thead>
 <tr class="header">
-<th align="left">gene</th>
+<th align="left">variable</th>
 <th align="right">score</th>
 </tr>
 </thead>
@@ -126,14 +126,12 @@ knitr::<span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsReli
 </div>
 <div id="reliefseq" class="section level1">
 <h1>ReliefSeq</h1>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rankedVarsRelief &lt;-<span class="st"> </span><span class="kw">rankReliefSeq</span>(testdata100ME4)</code></pre></div>
-<pre><code>## Running relieff command: inbix --numeric-file Rinbix.num --pheno Rinbix.pheno --1 --relieff --algorithm-mode reliefseq --k-nearest-neighbors 10 --out Rinbix 
-## stdout:  @----------------------------------------------------------@ |        inbix        |     v0.05p     |   2017            | |----------------------------------------------------------| |  (C) 2017 Bill White, GNU General Public License, v2     | @----------------------------------------------------------@  Writing console output to log file [ Rinbix.log ] Analysis started: Sun Jun 25 19:11:22 2017  Options in effect:  --numeric-file Rinbix.num   --pheno Rinbix.pheno    --1     --relieff   --algorithm-mode reliefseq  --k-nearest-neighbors 10    --out Rinbix  Read 100 numeric attributes from [ Rinbix.num ] with nonmissing values for 100 individuals Reading alternate phenotype from [ Rinbix.pheno ]  100 individuals with non-missing alternate phenotype Assuming a disease phenotype (0=unaff, 1=aff, other=miss) 50 cases, 50 controls and 0 missing Before frequency and genotyping pruning, there are 0 SNPs 100 founders and 0 non-founders found 0 SNPs failed missingness test ( GENO &gt; 1 ) 0 SNPs failed frequency test ( MAF &lt; 0 ) After frequency and genotyping pruning, there are 0 SNPs After filtering, 50 cases, 50 controls and 0 missing After filtering, 0 males, 0 females, and 100 of unspecified sex Loading data set for Relief-F analysis from Plink data structures 20170625 - 19:11:23 - Converting data to Individual-major format 20170625 - 19:11:23 - Dataset: Default constructor 20170625 - 19:11:23 - Adapting PLINK data structures to Dataset object 20170625 - 19:11:23 - Get PLINK Numeric variable metadata for 100 numerics 20170625 - 19:11:23 - Get PLINK variable data for all subjects 20170625 - 19:11:23 - Detected BINARY phenotype 20170625 - 19:11:23 - Final number of subjects loaded: 100 20170625 - 19:11:23 - Final number of SNPs loaded: 0 20170625 - 19:11:23 - Final number of numerics loaded: 100 20170625 - 19:11:23 - PlinkInternalsDataset loaded 20170625 - 19:11:23 - New SNP distance diff metric: gm 0x55934e756670 20170625 - 19:11:23 - New SNP distance nearest neighbor metric: gm 0x55934e756670 20170625 - 19:11:23 - New continuous distance metric: manhattan 0x55934e7567f0 20170625 - 19:11:23 - Performing NUMERIC analysis 20170625 - 19:11:23 - Performing Relief-F analysis 20170625 - 19:11:23 - Constructing ReliefSeq 20170625 - 19:11:23 - --------------------------------------- 20170625 - 19:11:23 - ReliefF initialization from Plink parameters and Dataset pointer 20170625 - 19:11:23 - Number of samples: m = 100 20170625 - 19:11:23 - Sampling all instances deterministically 20170625 - 19:11:23 - Number of nearest neighbors: k = 10 20170625 - 19:11:23 - Number of attributes: 100 20170625 - 19:11:23 - ReliefF SNP distance metric: gm 20170625 - 19:11:23 - ReliefF continuous distance metric: manhattan 20170625 - 19:11:23 - Weight by distance method: equal 20170625 - 19:11:23 - ReliefF has 4 threads 20170625 - 19:11:23 - ReliefFSeq mode set to: snr 20170625 - 19:11:23 - ReliefFSeq SNR mode set to: snr 20170625 - 19:11:23 - ReliefFSeq s0 set to: 0.05000000 20170625 - 19:11:23 - ReliefFSeq initializing with config map 20170625 - 19:11:23 - Precomputing instance distances 20170625 - 19:11:23 - Preparing distance matrix... done 20170625 - 19:11:23 - 1) Computing instance-to-instance distances 20170625 - 19:11:23 - 100/100 done 20170625 - 19:11:23 - 2) Calculating same and different class nearest neighbors...  20170625 - 19:11:23 - 100/100 done 20170625 - 19:11:23 - 3) Calculating weight by distance factors for nearest neighbors...  20170625 - 19:11:23 - Running ReliefFSeq algorithm 20170625 - 19:11:23 - Relief-F algorithm done 20170625 - 19:11:23 - Writing Relief-F results to: Rinbix.relieff.tab  Analysis finished: Sun Jun 25 19:11:23 2017</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr::<span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsRelief))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rankedVarsRelief &lt;-<span class="st"> </span><span class="kw">rankReliefSeq</span>(testdata100ME4)
+knitr::<span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsRelief))</code></pre></div>
 <table>
 <thead>
 <tr class="header">
-<th align="left">gene</th>
+<th align="left">variable</th>
 <th align="right">score</th>
 </tr>
 </thead>
@@ -172,40 +170,6 @@ knitr::<span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsReli
                                              <span class="dt">targetNumAttributes=</span><span class="dv">10</span>, 
                                              <span class="dt">verbose=</span><span class="ot">FALSE</span>)
 knitr::<span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsIterRelief$all.scores), <span class="dt">row.names=</span>F)</code></pre></div>
-<table>
-<thead>
-<tr class="header">
-<th align="left">gene</th>
-<th align="right">score</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">gene0001</td>
-<td align="right">1.0000000</td>
-</tr>
-<tr class="even">
-<td align="left">gene0005</td>
-<td align="right">1.0000000</td>
-</tr>
-<tr class="odd">
-<td align="left">gene0046</td>
-<td align="right">0.1446466</td>
-</tr>
-<tr class="even">
-<td align="left">gene0009</td>
-<td align="right">0.0909650</td>
-</tr>
-<tr class="odd">
-<td align="left">gene0016</td>
-<td align="right">0.0769207</td>
-</tr>
-<tr class="even">
-<td align="left">gene0027</td>
-<td align="right">0.0714457</td>
-</tr>
-</tbody>
-</table>
 </div>
 
 

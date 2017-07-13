@@ -25,11 +25,12 @@ These functions are documented in the package vignettes and reference manual.
 
 Rinbix is a package that is most easily installed through RStudio's Tools->Install Packages... menu. Alternatively, the package can be installed from an R console with:
 ```{r, eval=FALSE}
-install.packages("path_to_file/Rinbix-1.0.tar.gz", repos=NULL, type="source")
+install.packages("path_to_file/Rinbix-VERSIONSTRING.tar.gz", 
+                 repos = NULL, type = "source")
 ```
 or from the command line with:
 ```{r, eval=FALSE}
-R CMD INSTALL Rinbix-1.0.tar.gz
+R CMD INSTALL Rinbix-VERSIONSTRING.tar.gz
 ```
 
 ## Conventions
@@ -44,31 +45,31 @@ Variable and function names are in camelCase. Data frames for case-control data 
 
 This simple example demonstrates a workflow from data simulation to ranked genes. Simulate a differential co-expression data set with 10 genes and 40 subjects.
 
-```{r, echo=FALSE}
-library(Rinbix)
-```
-
 ### Data simulation
 
 ```{r}
+library(Rinbix)
 data("scaleFreeNetwork")
-dataset <- createDiffCoexpMatrixNoME(M=10, N=40, meanExpression=7, 
-                                     A=scaleFreeNetwork,
-                                     randSdNoise=0.5, sdNoise=0.05,
-                                     sampleIndicesInteraction=seq(1:3))
-cat("Simulated genes:", colnames(dataset$regressionData)[1:3], "\n")
+datasetObj <- createDiffCoexpMatrixNoME(M = 10, N = 40, meanExpression = 7, 
+                                        A = scaleFreeNetwork,
+                                        randSdNoise = 0.5, sdNoise = 0.05,
+                                        sampleIndicesInteraction = seq(1:3))
+dataset <- as.data.frame(datasetObj$regressionData)
+colnames(dataset) <- colnames(datasetObj$regressionData)
+rownames(dataset) <- rownames(datasetObj$regressionData)
+cat("Simulated genes:", colnames(dataset)[1:3], "\n")
 ```
 
 ### First few rows of the simulated data set
 
 ```{r, echo=FALSE, results='asis'}
-knitr::kable(head(dataset$regressionData))
+knitr::kable(dataset)
 ```
 
 ### Run a ranker/feature selector algorithm. dcGAIN + SNPrank
 
 ```{r}
-dcgain_snprank_results <- rankDcgainSnprank(dataset$regressionData)
+dcgain_snprank_results <- rankDcgainSnprank(dataset)
 ```
 
 ### dcGAIN + SNPrank results
@@ -80,7 +81,7 @@ knitr::kable(dcgain_snprank_results)
 ### Run a ranker/feature selector algorithm. reGAIN + SNPrank
 
 ```{r}
-regain_snprank_results <- rankRegainSnprank(dataset$regressionData)
+regain_snprank_results <- rankRegainSnprank(dataset)
 ```
 
 ### reGAIN + SNPrank results

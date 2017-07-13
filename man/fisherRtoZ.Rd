@@ -16,7 +16,7 @@ fisherRtoZ(x)
 \code{fisherRtoZ}
 }
 \examples{
-fisherRtoZ(seq(from=-1, to=1, by=0.25))
+fisherRtoZ(seq(from = -1, to = 1, by = 0.25))
 }
 \seealso{
 Other utility functions: \code{\link{geneLowCoefOfVarFilter}},

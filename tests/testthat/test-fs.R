@@ -4,7 +4,6 @@ data(testdata100ME4)
 context("Feature Selection")
 
 test_that("GeneRank", {
-	success <- FALSE
 	geneRankResults <- rankGeneRank(testdata100ME4)
 	expect_equal(ncol(geneRankResults), 2)
 	expect_equal(nrow(geneRankResults), ncol(testdata100ME4) - 1)
@@ -24,8 +23,8 @@ test_that("glmnet", {
 
 test_that("Iterative Relief", {
   bestReliefResults <- rankIterativeRelieff(testdata100ME4)
-  expect_equal(ncol(dcgainResults), 2)
-  expect_equal(nrow(dcgainResults), ncol(testdata100ME4) - 1)
+  expect_equal(ncol(bestReliefResults), 2)
+  expect_equal(nrow(bestReliefResults), ncol(testdata100ME4) - 1)
 })
 
 test_that("Lasso", {
@@ -80,9 +79,9 @@ test_that("univariate regression", {
 test_that("Rinbix SNPrank from reGAIN stdBetas = TRUE, absBetas = TRUE", {
   rinbixRegain <- regainParallel(testdata10, stdBetas = TRUE, absBetas = TRUE)
   inbixSnpranksDF <- read.table("testdata10-abs-zval.ranks", header = TRUE)
-  inbixSnpranks <- inbixSnpranksDF[,2]
+  inbixSnpranks <- inbixSnpranksDF[, 2]
   rinbixSnpranksDF <- snprank(rinbixRegain)
-  rinbixSnpranks <- rinbixSnpranksDF[,2]
+  rinbixSnpranks <- rinbixSnpranksDF[, 2]
   expect_equal(object = rinbixSnpranks, expected = inbixSnpranks, tolerance = 0.05)
 })
 
@@ -115,12 +114,10 @@ test_that("Rinbix SNPrank from reGAIN stdBetas = FALSE, absBetas = FALSE", {
 
 # r2VIM
 test_that("r2VIM", {
-	success <- FALSE
 	predictors <- as.matrix(testdata100ME4[, -ncol(testdata100ME4)])
 	response <- factor(testdata100ME4[, ncol(testdata100ME4)])
-	r2vimResults <- r2VIMorig(predictors = predictors, response = response, verbose = FALSE)
-	if ((r2vimResults$votes["gene0001"] == 10) & (r2vimResults$votes["gene0005"] == 10)) {
-		success <- TRUE
-	}
-	expect_equal(success, TRUE)
+	r2vimResults <- r2VIMorig(predictors = predictors, response = response, 
+	                          verbose = FALSE)
+	expect_equal(((r2vimResults$votes["gene0001"] == 10) && 
+	              (r2vimResults$votes["gene0005"] == 10)), TRUE)
 })

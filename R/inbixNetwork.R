@@ -1,9 +1,7 @@
-# ----------------------------------------------------------------------------
 # inbixNetwork.R - Bill White - 10/10/15
 #
 # Rinbix package network/graph functions.
 
-# ----------------------------------------------------------------------------
 #' Get stats about the IGraph g.
 #' 
 #' \code{getIGraphStats}
@@ -19,18 +17,17 @@
 getIGraphStats <- function(g) {
   return(
     data.frame(
-      nnodes=igraph::vcount(g), 
-      maxDegree=max(igraph::degree(g)),
-      minDegree=min(igraph::degree(g)),
-      nedges=igraph::ecount(g), 
-      radius=igraph::radius(g), 
-      density=igraph::graph.density(g), 
-      transitivity=igraph::transitivity(g), 
-      avgPathLen=igraph::average.path.length(g), 
-      assortativeDegree=igraph::assortativity.degree(g)))
+      nnodes = igraph::vcount(g), 
+      maxDegree = max(igraph::degree(g)),
+      minDegree = min(igraph::degree(g)),
+      nedges = igraph::ecount(g), 
+      radius = igraph::radius(g), 
+      density = igraph::graph.density(g), 
+      transitivity = igraph::transitivity(g), 
+      avgPathLen = igraph::average.path.length(g), 
+      assortativeDegree = igraph::assortativity.degree(g)))
 }
 
-# ----------------------------------------------------------------------------
 #' Prepare and adjacency matrix for network analysis.
 #' 
 #' \code{prepareAdjacencyMatrix}
@@ -44,42 +41,41 @@ getIGraphStats <- function(g) {
 #' @param verbose \code{logical} to send runtime messages to stdout.
 #' @return \code{matrix} transformed for network analysis.
 #' @export
-prepareAdjacencyMatrix <- function(adjacencyMatrix=NULL, 
-                                   thresholdType="hard", 
-                                   thresholdValue=0.8, 
-                                   useAbs=TRUE, 
-                                   useWeighted=FALSE,
-                                   verbose=FALSE) {
-  if(is.null(adjacencyMatrix)) {
+prepareAdjacencyMatrix <- function(adjacencyMatrix = NULL, 
+                                   thresholdType = "hard", 
+                                   thresholdValue = 0.8, 
+                                   useAbs = TRUE, 
+                                   useWeighted = FALSE,
+                                   verbose = FALSE) {
+  if (is.null(adjacencyMatrix)) {
     stop("prepareAdjacencyMatrix: adjacencyMatrix is a required parameter")
   }
-  if(verbose) cat("Begin prepareAdjacencyMatrix\n")
-  if(useAbs) {
-    if(verbose) cat("Taking absolute value of adjacencyMatrix\n")
+  if (verbose) cat("Begin prepareAdjacencyMatrix\n")
+  if (useAbs) {
+    if (verbose) cat("Taking absolute value of adjacencyMatrix\n")
     adjacencyMatrix <- abs(adjacencyMatrix)
   }
   # thresholding
-  if(thresholdType == "soft") {
-    if(verbose) cat("Soft threshold adjacencyMatrix^", thresholdValue, "\n", sep="")
+  if (thresholdType == "soft") {
+    if (verbose) cat("Soft threshold adjacencyMatrix^", thresholdValue, "\n", sep = "")
     adjacencyMatrix <- adjacencyMatrix ^ thresholdValue
   } else {
-    if(verbose) cat("Hard threshold abs(adjacencyMatrix) >", thresholdValue, "\n")
+    if (verbose) cat("Hard threshold abs(adjacencyMatrix) >", thresholdValue, "\n")
     passThreshold <- adjacencyMatrix > thresholdValue
     # create adjacency matrix from thresholding
-    if(useWeighted) {
-      if(verbose) cat("Keeping weighted values that pass threshold [", thresholdValue, "]\n")
+    if (useWeighted) {
+      if (verbose) cat("Keeping weighted values that pass threshold [", thresholdValue, "]\n")
       adjacencyMatrix[!passThreshold] <- 0
     } else {
-      if(verbose) cat("Keeping values that pass threshold [", thresholdValue, "] as binary 0/1\n")
+      if (verbose) cat("Keeping values that pass threshold [", thresholdValue, "] as binary 0/1\n")
       adjacencyMatrix[passThreshold] <- 1
       adjacencyMatrix[!passThreshold] <- 0
     }
   }
-  if(verbose) cat("End prepareAdjacencyMatrix\n")
+  if (verbose) cat("End prepareAdjacencyMatrix\n")
   adjacencyMatrix
 }
 
-# ----------------------------------------------------------------------------
 #' Print stats about the IGraph g.
 #' 
 #' \code{printIGraphStats}
@@ -101,7 +97,6 @@ printIGraphStats <- function(g) {
   return(TRUE)
 }
 
-# ----------------------------------------------------------------------------
 #' Random network simulation.
 #'
 #' Generates a Erdos-Renyi random network as an adjacency matrix.
@@ -121,21 +116,21 @@ printIGraphStats <- function(g) {
 #' @param verbose \code{logical} to send runtime messages to stdout.
 #' @return network adjacency \code{matrix}.
 #' @examples
-#' net <- randomNetworkSim(n=1000)
+#' net <- randomNetworkSim(n = 1000)
 #' @export
-randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistPlot=F, 
-                             useIgraph=FALSE, numBins=10, filePrefix="random_network_sim",
-                             verbose=FALSE) {
+randomNetworkSim <- function(n = 100, p = 0.1, doFitPlot = F, doNetworkPlot = F, doHistPlot = F, 
+                             useIgraph = FALSE, numBins = 10, filePrefix = "random_network_sim",
+                             verbose = FALSE) {
   # Erdos-Renyi
   # usage: A <- random_network_sim(100,.1,1)
-  if(useIgraph) {
+  if (useIgraph) {
     g <- igraph::erdos.renyi.game(n, p)
     printIGraphStats(g)
     A <- igraph::get.adjacency(g)
   } else {
-    A <- matrix(ncol=n, nrow=n, data=runif(n * n))
+    A <- matrix(ncol = n, nrow = n, data = runif(n * n))
     # undirected no self-connections, no weights
-    A <- as.matrix(Matrix::triu(A < p, 1)) # take upper triangle (k=1) of (random nxn < p)
+    A <- as.matrix(Matrix::triu(A < p, 1)) # take upper triangle (k = 1) of (random nxn < p)
     #A = sparse(A)
     # now make A symmetric, undirected
     A <- A + t(A)
@@ -143,47 +138,46 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
   degrees <- rowSums(A)
   
   # calculates the scale free parameter and shows network
-  if(useIgraph) {
+  if (useIgraph) {
     deg_counts <- floor(igraph::degree.distribution(g)*100)
   } else {
     k_rows <- rowSums(A)
     bins <- numBins
-    histObj <- hist(k_rows, bins, plot=doHistPlot)
+    histObj <- hist(k_rows, bins, plot = doHistPlot)
     deg_counts <- histObj$counts
   }
   #print(deg_counts)
   # find non zero entries for log plot  
-  nz_idx <- which(deg_counts != 0, arr.ind=T)
+  nz_idx <- which(deg_counts != 0, arr.ind = TRUE)
   nz_deg_counts <- deg_counts[nz_idx]
   
   # Igraph's discrete power law fit
   powerLawFit <- igraph::power.law.fit(nz_deg_counts)
-  if(verbose) cat("Erdos-Renyi Graph Estimate of x_min:", powerLawFit$xmin, "\n")
-  if(verbose) cat("Erdos-Renyi Graph Estimate of x_min KS value:", powerLawFit$KS.stat, "\n")
-  if(verbose) cat("Erdos-Renyi Graph Estimate of scaling parameter alpha:", powerLawFit$alpha, "\n")
-  if(doFitPlot) {
-    png(paste(filePrefix, "_er_powerlaw_fit.png", sep=""), width=1024, height=768)
+  if (verbose) cat("Erdos-Renyi Graph Estimate of x_min:", powerLawFit$xmin, "\n")
+  if (verbose) cat("Erdos-Renyi Graph Estimate of x_min KS value:", powerLawFit$KS.stat, "\n")
+  if (verbose) cat("Erdos-Renyi Graph Estimate of scaling parameter alpha:", powerLawFit$alpha, "\n")
+  if (doFitPlot) {
+    png(paste(filePrefix, "_er_powerlaw_fit.png", sep = ""), width = 1024, height = 768)
     # data
-    plot(powerLawFit, xlab="Degree", ylab="CDF", 
-         main="Erdos-Renyi Degree Distribution with Power Law Fit")
+    plot(powerLawFit, xlab = "Degree", ylab = "CDF", 
+         main = "Erdos-Renyi Degree Distribution with Power Law Fit")
     # fit
-    lines(powerLawFit, col=2)
+    lines(powerLawFit, col = 2)
     dev.off()
   }
   
   # viz with lower triangle removed.
-  if(doNetworkPlot) {
+  if (doNetworkPlot) {
     g <- igraph::graph.adjacency(A)
     igraph::V(g)$size <- scaleAB(degrees, 10, 20)
-    png(paste(filePrefix, "_er_network.png", sep=""), width=1024, height=768)
-    plot(g, layout=igraph::layout.fruchterman.reingold, edge.arrow.mode=0)
+    png(paste(filePrefix, "_er_network.png", sep = ""), width = 1024, height = 768)
+    plot(g, layout = igraph::layout.fruchterman.reingold, edge.arrow.mode = 0)
     dev.off()
   }
   
   return(A)
 }
 
-# ----------------------------------------------------------------------------
 #' Scale free network simulation.
 #' 
 #' Generates a scale free network as an adjacency matrix.
@@ -201,18 +195,18 @@ randomNetworkSim <- function(n=100, p=0.1, doFitPlot=F, doNetworkPlot=F, doHistP
 #' @param verbose \code{logical} to send runtime messages to stdout.
 #' @return network adjacency \code{matrix}.
 #' @examples
-#' net <- scaleFreeSim(n=1000)
+#' net <- scaleFreeSim(n = 1000)
 #' @export
-scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F, 
-                         numBins=10, filePrefix="scale_free_sim", verbose=FALSE) {
+scaleFreeSim <- function(n = 100, doFitPlot = F, doNetworkPlot = F, useIgraph = F, 
+                         numBins = 10, filePrefix = "scale_free_sim", verbose = FALSE) {
   
   # Baraba'si-Albert (BA) model generation of scale-free network
-  if(useIgraph) {
-    g <- igraph::barabasi.game(n, directed=F)
-    foo <- printIGraphStats(g)
+  if (useIgraph) {
+    g <- igraph::barabasi.game(n, directed = F)
+    printIGraphStats(g)
     A <- igraph::get.adjacency(g)
   } else {
-    A <- matrix(ncol=n, nrow=n, data=c(0))
+    A <- matrix(ncol = n, nrow = n, data = c(0))
     deg <- rep(0, n)
     A[1,2] <- 1      # Connect nodes 1 and 2 to seed the network.
     A[2,1] <- 1      # Make symmetric
@@ -221,10 +215,10 @@ scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F,
     sumdeg <- 2
     # Other nodes will be added one at a time and given a chance to connect to
     # existing nodes. Existing nodes will get more chances to make a connection.
-    for(j in 3:n) {        # Start adding the remaining nodes j
-      for(i in 1:(j-1)) {  # Give j a chance to connect to existing nodes 1:j-1
+    for (j in 3:n) {        # Start adding the remaining nodes j
+      for (i in 1:(j-1)) {  # Give j a chance to connect to existing nodes 1:j-1
         p_i <- deg[i] / sumdeg
-        if(runif(1) < p_i) {
+        if (runif(1) < p_i) {
           A[i, j] <- 1
           A[j, i] <- 1
           deg[i] <- deg[i] + 1
@@ -237,41 +231,41 @@ scaleFreeSim <- function(n=100, doFitPlot=F, doNetworkPlot=F, useIgraph=F,
   degrees <- rowSums(A)
   
   # calculates the scale free parameter and shows network
-  if(useIgraph) {
+  if (useIgraph) {
     deg_counts <- floor(igraph::degree.distribution(g)*100)
   } else {
     k_rows <- rowSums(A)
     bins <- numBins
-    histObj <- hist(k_rows, bins, plot=F)
+    histObj <- hist(k_rows, bins, plot = F)
     deg_counts <- histObj$counts
   }
 
   # find non zero entries for log plot  
-  nz_idx <- which(deg_counts != 0, arr.ind=T)
+  nz_idx <- which(deg_counts != 0, arr.ind = T)
   nz_deg_counts <- deg_counts[nz_idx]
   
   # Igraph's discrete power law fit
   powerLawFit <- igraph::power.law.fit(nz_deg_counts)
-  if(verbose) cat("Scale Free Graph Estimate of x_min:", powerLawFit$xmin, "\n")
-  if(verbose) cat("Scale Free Graph Estimate of x_min KS value:", powerLawFit$KS.stat, "\n")
-  if(verbose) cat("Scale Free Graph Estimate of scaling parameter alpha:", powerLawFit$alpha, "\n")
-  if(doFitPlot) {
-    png(paste(filePrefix, "_ba_powerlaw_fit.png", sep=""), width=1024, height=768)
+  if (verbose) cat("Scale Free Graph Estimate of x_min:", powerLawFit$xmin, "\n")
+  if (verbose) cat("Scale Free Graph Estimate of x_min KS value:", powerLawFit$KS.stat, "\n")
+  if (verbose) cat("Scale Free Graph Estimate of scaling parameter alpha:", powerLawFit$alpha, "\n")
+  if (doFitPlot) {
+    png(paste(filePrefix, "_ba_powerlaw_fit.png", sep = ""), width = 1024, height = 768)
     # data
-    plot(powerLawFit, xlab="Degree", ylab="CDF", 
-         main="Scale Free Graph Degree Distribution with Power Law Fit")
+    plot(powerLawFit, xlab = "Degree", ylab = "CDF", 
+         main = "Scale Free Graph Degree Distribution with Power Law Fit")
     # fit
-    lines(powerLawFit, col=2)
+    lines(powerLawFit, col = 2)
     dev.off()
   }
   
   # viz with lower triangle removed
   #A[upper.tri(A)] <- 0
-  if(doNetworkPlot) {
+  if (doNetworkPlot) {
     g <- igraph::graph.adjacency(A)
     igraph::V(g)$size <- scaleAB(degrees, 10, 20)
-    png(paste(filePrefix, "_ba_network.png", sep=""), width=1024, height=768)
-    plot(g, layout=igraph::layout.fruchterman.reingold, edge.arrow.mode=0)
+    png(paste(filePrefix, "_ba_network.png", sep = ""), width = 1024, height = 768)
+    plot(g, layout = igraph::layout.fruchterman.reingold, edge.arrow.mode = 0)
     dev.off()
   }
   

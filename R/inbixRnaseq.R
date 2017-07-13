@@ -1,9 +1,7 @@
-# ------------------------------------------------------------------------------------
 # inbixRnaseq.R - Bill White - 10/12/15
 #
 # Rinbix package RNA-Seq functions.
 
-# ------------------------------------------------------------------------------------
 #' Rank using DESeq.
 #' 
 #' \code{rankDeseq} 
@@ -30,7 +28,6 @@ rankDeseq <- function(rnaExpr, groups) {
 	resultsSave
 }
 
-# ------------------------------------------------------------------------------------
 #' Rank using DESeq2.
 #' 
 #' \code{rankDeseq2} 
@@ -47,14 +44,13 @@ rankDeseq <- function(rnaExpr, groups) {
 #' rDeseq2 <- rankDeseq2(X, y)
 #' @export
 rankDeseq2 <- function(rnaExpr, groups) {
-	colData <- data.frame(groups=groups)
-	deData <- DESeq2::DESeqDataSetFromMatrix(countData=rnaExpr, colData=colData, design=~groups)
-	deData <- DESeq2::DESeq(deData, betaPrior=F)
+	colData <- data.frame(groups = groups)
+	deData <- DESeq2::DESeqDataSetFromMatrix(countData = rnaExpr, colData = colData, design = ~groups)
+	deData <- DESeq2::DESeq(deData, betaPrior = FALSE)
 	results <- DESeq2::results(deData)
 	resultsSorted <- results[order(results$pvalue), ]
 }
 
-# ------------------------------------------------------------------------------------
 #' Rank using edgeR.
 #' 
 #' \code{rankEdgeR} 
@@ -71,7 +67,7 @@ rankDeseq2 <- function(rnaExpr, groups) {
 #' rEdger <- rankEdgeR(X, y)
 #' @export
 rankEdgeR <- function(rnaExpr, groups) {
-	y <- edgeR::DGEList(counts=rnaExpr, group=groups)
+	y <- edgeR::DGEList(counts = rnaExpr, group = groups)
 	y <- edgeR::estimateCommonDisp(y)
 	d <- edgeR::exactTest(y)
 	results <- d$table
@@ -79,7 +75,6 @@ rankEdgeR <- function(rnaExpr, groups) {
 	results
 }
 
-# ------------------------------------------------------------------------------------
 #' Rank using edgeR GLM model.
 #' 
 #' \code{rankEdgeR}Glm 
@@ -100,7 +95,7 @@ rankEdgeR <- function(rnaExpr, groups) {
 rankEdgeRGlm <- function(rnaExpr, groups, covariates) {
 	design <- model.matrix(~groups+covariates)
 	# make the DGElist object as above
-	d <- edgeR::DGEList(counts=rnaExpr, group=groups)
+	d <- edgeR::DGEList(counts = rnaExpr, group = groups)
 	# work with the DEGlist as above
 	d <- edgeR::estimateGLMCommonDisp(d, design)
 	d <- edgeR::estimateGLMTrendedDisp(d, design)

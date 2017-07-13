@@ -6,7 +6,6 @@
 # TODO: Use Rcpp to implement the algorithm to avoid the standalone inbix
 # compile and install. bcw 7/6/17
 
-# ----------------------------------------------------------------------------
 #' Differential co-expression genetic association network - dcGAIN.
 #' 
 #' \code{dcgainInbix} 
@@ -28,7 +27,7 @@
 #' data(testdata10)
 #' rinbixCppDcgain <- dcgainInbix(testdata10)
 #' @export
-dcgainInbix <- function(regressionData, outPrefix="Rinbix") {
+dcgainInbix <- function(regressionData, outPrefix = "Rinbix") {
   inbixExists()
   # write regressionData data frame to inbix files
   writeRegressionDataAsInbixNumeric(regressionData, "Rinbix")
@@ -38,18 +37,17 @@ dcgainInbix <- function(regressionData, outPrefix="Rinbix") {
   # inbixCmd <- paste("inbix --dcgain --numeric-file Rinbix.num --pheno Rinbix.pheno --1 --out", 
   #                   outPrefix)
   #cat("Running inbix command:", inbixCmd, "\n")
-  regainStdout <- system(inbixCmd, intern=T)
-  inbixDcgain <- read.table("Rinbix.dcgain", header=TRUE, sep="\t")
-  inbixDcgainPvals <- read.table("Rinbix.pvals.dcgain", header=TRUE, sep="\t")
+  system(inbixCmd, intern = TRUE)
+  inbixDcgain <- read.table("Rinbix.dcgain", header = TRUE, sep = "\t")
+  inbixDcgainPvals <- read.table("Rinbix.pvals.dcgain", header = TRUE, sep = "\t")
   
   # remove temporary files
   file.remove(c("Rinbix.dcgain", "Rinbix.pvals.dcgain", "Rinbix.pheno", "Rinbix.num", "Rinbix.log"))
   
   # return regain matrix
-  list(scores=as.matrix(inbixDcgain), pvals=as.matrix(inbixDcgainPvals))
+  list(scores = as.matrix(inbixDcgain), pvals = as.matrix(inbixDcgainPvals))
 }
 
-# ----------------------------------------------------------------------------
 #' Check for the inbix executable in the PATH.
 #' 
 #' \code{inbixExists} 
@@ -57,13 +55,12 @@ dcgainInbix <- function(regressionData, outPrefix="Rinbix") {
 #' @return \code{logical} TRUE if found, else exits with error
 #' @export
 inbixExists <- function() {
-  if(Sys.which("inbix") == "") {
+  if (Sys.which("inbix") == "") {
     stop("inbix is not in the PATH")
   }
   TRUE
 }
 
-# ----------------------------------------------------------------------------
 #' Network module/community detection.
 #' 
 #' \code{modularityInbix} 
@@ -82,17 +79,18 @@ inbixExists <- function() {
 #' corMatrix <- cor(testdata10[, -ncol(testdata10)])
 #' inbixModulesDF <- modularityInbix(corMatrix)
 #' @export
-modularityInbix <- function(gainMatrix, outPrefix="Rinbix") {
+modularityInbix <- function(gainMatrix, outPrefix = "Rinbix") {
   inbixExists()
   # write gainMatrix to inbix-compatible file
-  write.table(gainMatrix, file="Rinbix.gain", quote=FALSE, col.names=TRUE, row.names=FALSE, sep="\t")
+  write.table(gainMatrix, file = "Rinbix.gain", quote = FALSE, 
+              col.names = TRUE, row.names = FALSE, sep = "\t")
   inbixCmd <- paste("inbix --regain-file Rinbix.gain --modularity --out", outPrefix)
   #cat("Running inbix command:", inbixCmd, "\n")
   # run inbix
-  modStdout <- system(inbixCmd, intern=T)
+  system(inbixCmd, intern = TRUE)
   #print(snprankStdout)
   # read results
-  inbixModules <- read.table("Rinbix.modules", header=FALSE, sep="\t")
+  inbixModules <- read.table("Rinbix.modules", header = FALSE, sep = "\t")
   colnames(inbixModules) <- c("Var", "Module")
   # remove temporary files
   file.remove(c("Rinbix.gain", "Rinbix.modules", "Rinbix.log"))
@@ -100,7 +98,6 @@ modularityInbix <- function(gainMatrix, outPrefix="Rinbix") {
   inbixModules[order(inbixModules[,1]), ]
 }
 
-# ----------------------------------------------------------------------------
 #' Permute a GAIN method.
 #' 
 #' \code{permuteGainInbix} 
@@ -122,18 +119,18 @@ modularityInbix <- function(gainMatrix, outPrefix="Rinbix") {
 #' data(testdata10)
 #' inbixRegainThresholds <- permuteGainInbix(testdata10)
 #' @export
-permuteGainInbix <- function(regressionData, method="regain", numPerms=100, 
-                             pThresh=1, threshold=0.05, outPrefix="Rinbix") {
+permuteGainInbix <- function(regressionData, method = "regain", numPerms = 100, 
+                             pThresh = 1, threshold = 0.05, outPrefix = "Rinbix") {
   inbixExists()
   # write regressionData data frame to inbix files
   writeRegressionDataAsInbixNumeric(regressionData, "Rinbix")
   # run inbix GAIN
-  if(method == "regain") {
-    methodOptions = "--regain-use-beta-values --regain-matrix-transform abs"
+  if (method == "regain") {
+    methodOptions <- "--regain-use-beta-values --regain-matrix-transform abs"
     #methodOptions <- "--regain-matrix-transform abs"
     #methodOptions <- ""
   }
-  if(method == "dcgain") {
+  if (method == "dcgain") {
     #methodOptions <- ""
     methodOptions <- "--dcgain-abs"
   }
@@ -141,22 +138,22 @@ permuteGainInbix <- function(regressionData, method="regain", numPerms=100,
   numOption <- paste("--permute-gain-num", numPerms)
   thresholdOption <- paste("--permute-gain-threshold", threshold)
   pThresholdOption <- ""
-  if(pThresh < 1) {
+  if (pThresh < 1) {
     pThresholdOption <- paste("--regain-pvalue-threshold", pThresh)
   }
   inbixCmd <- paste("inbix", methodOption, numOption, thresholdOption, pThresholdOption,
     "--numeric-file Rinbix.num --pheno Rinbix.pheno --1 --out", outPrefix)
   #cat("Running inbix command:", inbixCmd, "\n")
-  regainStdout <- system(inbixCmd, intern=T)
+  system(inbixCmd, intern = TRUE)
   #print(regainStdout)
-  inbixThresholds <- read.table("Rinbix_thresholds.txt", header=FALSE, sep="\t")
+  inbixThresholds <- read.table("Rinbix_thresholds.txt", header = FALSE, sep = "\t")
   
   # remove temporary files
-  if(method == "regain") {
+  if (method == "regain") {
     file.remove(c("Rinbix_thresholds.txt", "Rinbix.num", "Rinbix.pheno", "Rinbix.block.sif", 
       "Rinbix.block.mebetas", "Rinbix.block.betas", "Rinbix.log", "Rinbix.perm"))
   }  
-  if(method == "dcgain") {
+  if (method == "dcgain") {
     file.remove(c("Rinbix_thresholds.txt", "Rinbix.pheno", "Rinbix.num", "Rinbix.log", "Rinbix.perm"))
   }
   
@@ -164,7 +161,6 @@ permuteGainInbix <- function(regressionData, method="regain", numPerms=100,
   inbixThresholds
 }
 
-# ----------------------------------------------------------------------------
 #' Read inbix numeric data set and phenotype file; return combined data frame.
 #' 
 #' \code{readInbixNumericAsRegressionData} 
@@ -178,19 +174,18 @@ permuteGainInbix <- function(regressionData, method="regain", numPerms=100,
 #' @return \code{data.frame} with numeric data in first m columns and phenotye in m+1 column.
 #' @export
 readInbixNumericAsRegressionData <- function(baseInbixName) {
-  inbixNumericFile <- paste(baseInbixName, ".num", sep="")
-  inbixNumericTable <- read.table(inbixNumericFile, header=T, sep="\t")
+  inbixNumericFile <- paste(baseInbixName, ".num", sep = "")
+  inbixNumericTable <- read.table(inbixNumericFile, header = TRUE, sep = "\t")
   inbixNumericTable <- inbixNumericTable[, 3:ncol(inbixNumericTable)]
   
-  inbixPhenoFile <- paste(baseInbixName, ".pheno", sep="")
-  inbixPhenoTable <- read.table(inbixPhenoFile, header=F, sep="\t")[, 3]
+  inbixPhenoFile <- paste(baseInbixName, ".pheno", sep = "")
+  inbixPhenoTable <- read.table(inbixPhenoFile, header = FALSE, sep = "\t")[, 3]
   
   regressionData <- cbind(inbixNumericTable, inbixPhenoTable)
   colnames(regressionData) <- c(colnames(inbixNumericTable), "Class")
   regressionData
 }
 
-# ----------------------------------------------------------------------------
 #' Regression genetic association network - reGAIN.
 #' 
 #' \code{regainInbix} 
@@ -214,47 +209,47 @@ readInbixNumericAsRegressionData <- function(baseInbixName) {
 #' @return \code{list} of gene scores and associated p-values.
 #' @examples
 #' data(testdata10)
-#' inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
+#' inbixRegain <- regainInbix(testdata10, stdBetas = TRUE, absBetas = TRUE)
 #' @export
-regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE, 
-                        outPrefix="Rinbix", pThreshold=1, verbose=FALSE) {
+regainInbix <- function(regressionData, stdBetas = TRUE, absBetas = TRUE, 
+                        outPrefix = "Rinbix", pThreshold = 1, verbose = FALSE) {
   inbixExists()
   # write regressionData data frame to inbix files
   writeRegressionDataAsInbixNumeric(regressionData, outPrefix)
   stdBetasCmd <- ""
-  if(!stdBetas) {
+  if (!stdBetas) {
     stdBetasCmd <- "--regain-use-beta-values"
   }
   absBetasCmd <- ""
-  if(absBetas) {
+  if (absBetas) {
     absBetasCmd <- "--regain-matrix-transform abs"  
   }
   pThresholdCmd <- ""
-  if(pThreshold < 1) {
+  if (pThreshold < 1) {
     pThresholdCmd <- paste("--regain-pvalue-threshold", pThreshold)
   }
   # run inbix reGAIN
   inbixCmd <- paste("inbix --regain --numeric-file Rinbix.num --pheno Rinbix.pheno --1 --out", 
                     outPrefix, stdBetasCmd, absBetasCmd, pThresholdCmd)
-  if(verbose) cat("Running inbix command:", inbixCmd, "\n")
-  regainStdout <- system(inbixCmd, intern=T)
-  inbixRegain <- read.table("Rinbix.block.regain", header=TRUE, sep="\t")
+  if (verbose) cat("Running inbix command:", inbixCmd, "\n")
+  system(inbixCmd, intern = TRUE)
+  inbixRegain <- read.table("Rinbix.block.regain", header = TRUE, sep = "\t")
   
   # read warnings and errors if they exist
   warningsText <- ""
   failuresText <- ""
-  if(file.exists("Rinbix.regression.warnings")) {
+  if (file.exists("Rinbix.regression.warnings")) {
     warningsText <- readLines("Rinbix.regression.warnings")
-    if(verbose) cat(warningsText, "\n")
+    if (verbose) cat(warningsText, "\n")
     file.remove("Rinbix.regression.warnings")
   }
-  if(file.exists("Rinbix.regression.failures")) {
+  if (file.exists("Rinbix.regression.failures")) {
     failuresText <- readLines("Rinbix.regression.failures")
-    if(verbose) cat(failuresText, "\n")
+    if (verbose) cat(failuresText, "\n")
     file.remove("Rinbix.regression.failures")
   }
 
-  #file.copy(from="Rinbix.block.betas", to="foo.betas")
+  #file.copy(from = "Rinbix.block.betas", to = "foo.betas")
 
   # remove temporary files
   file.remove(c("Rinbix.block.regain", "Rinbix.num", "Rinbix.pheno", "Rinbix.block.sif", 
@@ -262,10 +257,52 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
                 "Rinbix.log"))
   
   # return regain matrix
-  list(reGAIN=as.matrix(inbixRegain), warningsText=warningsText, failuresText=failuresText)
+  list(reGAIN = as.matrix(inbixRegain), warningsText = warningsText, failuresText = failuresText)
 }
 
-# ----------------------------------------------------------------------------
+#' Rank by inbix ReliefSeq.
+#' 
+#' \code{rankReliefSeqInbix} 
+#' 
+#' @references 
+#' \itemize{
+#'   \item \url{http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0081527}
+#'   {ReliefSeq: A variable-Wise Adaptive-K Nearest-Neighbor Feature Selection Tool for Finding Gene-Gene Interactions and Main Effects in mRNA-Seq Gene Expression Data}
+#'   \item \url{http://insilico.utulsa.edu/index.php/reliefseq/}{Relief-Seq Software}
+#' }
+#' @family inbix interface functions
+#' @family feature selection functions
+#' @param labelledDataFrame \code{data.frame} of predictors and final class column.
+#' @param outPrefix \code{string} output file prefix for temporary files.
+#' @param k \code{numeric} k-nearest neighbors in the Relief-F algorithm.
+#' @return \code{data.frame} with ReliefSeq results: variable, score.
+#' @examples
+#' data(testdata100ME4)
+#' rankReliefSeqResults <- rankReliefSeq(testdata100ME4)
+#' @export
+rankReliefSeqInbix <- function(labelledDataFrame, outPrefix="Rinbix", k=10) {
+  inbixExists()
+  # write labelledDataFrame data frame to inbix files
+  writeRegressionDataAsInbixNumeric(labelledDataFrame, outPrefix)
+  # run reliefseq command
+  #relieffCmd <- paste("reliefseq -n Rinbix.num -a Rinbix.pheno -k", k , "-o", outPrefix)
+  # replaced relifseq with inbix version 6/24/17
+  relieffCmd <- paste("inbix --numeric-file Rinbix.num --pheno Rinbix.pheno --1", 
+                      "--relieff --algorithm-mode reliefseq",
+                      "--k-nearest-neighbors", k,
+                      "--out", outPrefix)
+  #cat("Running relieff command:", relieffCmd, "\n")
+  system(relieffCmd, intern = TRUE)
+  #relieffStdout <- system(relieffCmd, intern=TRUE)
+  #cat("stdout:", relieffStdout, "\n")
+  relieffRankings <- read.table("Rinbix.relieff.tab", header = FALSE, sep = "\t")
+  file.remove(c("Rinbix.num", "Rinbix.pheno", "Rinbix.relieff.tab"))
+  # cmd=relieffCmd, stdout=relieffStdout
+  data.frame(variable = relieffRankings[, 2], 
+             score = relieffRankings[, 1],
+             stringsAsFactors = FALSE)
+}
+
 #' SNPrank network centrality gene ranker based on GAIN matrix.
 #' 
 #' \code{snprankInbix} 
@@ -279,24 +316,25 @@ regainInbix <- function(regressionData, stdBetas=TRUE, absBetas=TRUE,
 #' }
 #' @family inbix interface functions
 #' @family feature selection functions
+#' @keywords eigenvectors
 #' @seealso \code{\link{snprank}}
 #' @param gainMatrix \code{matrix} GAIN matrix.
 #' @param outPrefix \code{string} file output prefix.
-#' @param gamma \code{numeric} gamma damping parameter (see paper).
+#' @param gammaParam \code{numeric} gamma damping parameter (see paper).
 #' @return \code{data.frame} of gene snpranks.
 #' @examples
 #' data(testdata10)
-#' inbixRegain <- regainInbix(testdata10, stdBetas=TRUE, absBetas=TRUE)
+#' inbixRegain <- regainInbix(testdata10, stdBetas = TRUE, absBetas = TRUE)
 #' inbixSnpranksDF <- snprankInbix(inbixRegain$reGAIN)
 #' @export
-snprankInbix <- function(gainMatrix, outPrefix = "Rinbix", gamma = 0.85) {
+snprankInbix <- function(gainMatrix, outPrefix = "Rinbix", gammaParam = 0.85) {
   inbixExists()
   # write gainMatrix to inbix-compatible file
   write.table(gainMatrix, file = "Rinbix.gain", quote = FALSE, col.names = TRUE, 
               row.names = FALSE, sep = "\t")
   gammaCmd <- ""
-  if (gamma > 0) {
-    gammaCmd <- paste("--rank-centrality-gamma", gamma)
+  if (gammaParam > 0) {
+    gammaCmd <- paste("--rank-centrality-gamma", gammaParam)
   }
   # run inbix SNPrank
   #cat("gamma:", gamma, "gamma command:", gammaCmd, "\n")
@@ -315,7 +353,6 @@ snprankInbix <- function(gainMatrix, outPrefix = "Rinbix", gamma = 0.85) {
   data.frame(variable = inbixSnpranks$SNP, score = inbixSnpranks$SNPrank)
 }
 
-# ----------------------------------------------------------------------------
 #' Write regression data frame as  inbix numeric data set and phenotype file.
 #' 
 #' \code{writeRegressionDataAsInbixNumeric} 
@@ -327,20 +364,20 @@ snprankInbix <- function(gainMatrix, outPrefix = "Rinbix", gamma = 0.85) {
 #' @export
 writeRegressionDataAsInbixNumeric <- function(regressionData, baseInbixName) {
   numSamples <- nrow(regressionData)
-  numGenes <- ncol(regressionData)-1
+  numGenes <- ncol(regressionData) - 1
 
   phenoCol <- ncol(regressionData)
   phenos <- regressionData[, phenoCol]
-  subIds <- c(paste("subj", 1:numSamples, sep=""))
+  subIds <- c(paste("subj", 1:numSamples, sep = ""))
   phenosTable <- cbind(subIds, subIds, phenos)
-  inbixPhenoFile <- paste(baseInbixName, ".pheno", sep="")
-  write.table(phenosTable, inbixPhenoFile, quote=F, sep="\t", 
-              col.names=F, row.names=F)
+  inbixPhenoFile <- paste(baseInbixName, ".pheno", sep = "")
+  write.table(phenosTable, inbixPhenoFile, quote = FALSE, sep = "\t", 
+              col.names = FALSE, row.names = FALSE)
   
   inbixNumericData <- regressionData[, 1:numGenes]
   inbixNumericTable <- cbind(subIds, subIds, inbixNumericData)
   colnames(inbixNumericTable) <- c("FID", "IID", colnames(inbixNumericData))
-  inbixNumericFile <- paste(baseInbixName, ".num", sep="")
-  write.table(inbixNumericTable, inbixNumericFile, quote=F, sep="\t", 
-              col.names=T, row.names=F)
+  inbixNumericFile <- paste(baseInbixName, ".num", sep = "")
+  write.table(inbixNumericTable, inbixNumericFile, quote = FALSE, sep = "\t", 
+              col.names = TRUE, row.names = FALSE)
 }

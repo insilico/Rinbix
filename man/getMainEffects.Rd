@@ -4,12 +4,12 @@
 \alias{getMainEffects}
 \title{Get main effects from generalized linear model regression (parallel).}
 \usage{
-getMainEffects(data, regressionFamily = "binomial", numCovariates = 0,
-  writeBetas = FALSE, useBetas = FALSE, transformMethod = "",
-  numCores = 2, verbose = FALSE)
+getMainEffects(labelledDataFrame, regressionFamily = "binomial",
+  numCovariates = 0, writeBetas = FALSE, useBetas = FALSE,
+  transformMethod = "", numCores = 2, verbose = FALSE)
 }
 \arguments{
-\item{data}{\code{data.frame} with genes in columns and samples in rows.}
+\item{labelledDataFrame}{\code{data.frame} with variables in columns and samples in rows.}
 
 \item{regressionFamily}{\code{string} glm regression family name.}
 
@@ -41,14 +41,14 @@ Other GAIN functions: \code{\link{dcgainInbix}},
   \code{\link{gainToSimpleSIF}},
   \code{\link{getInteractionEffects}},
   \code{\link{regainInbix}}, \code{\link{regainParallel}},
-  \code{\link{regain}}
+  \code{\link{regain}}, \code{\link{snprank}}
 
 Other inbix synonym functions: \code{\link{dcgain}},
   \code{\link{geneLowValueFilter}},
   \code{\link{geneLowVarianceFilter}},
   \code{\link{modularityBestSplit}},
   \code{\link{modularity}}, \code{\link{regainParallel}},
-  \code{\link{regain}}
+  \code{\link{regain}}, \code{\link{snprank}}
 }
 \keyword{array}
 \keyword{internal}

@@ -34,7 +34,8 @@ Other inbix synonym functions: \code{\link{dcgain}},
   \code{\link{geneLowValueFilter}},
   \code{\link{geneLowVarianceFilter}},
   \code{\link{getMainEffects}}, \code{\link{modularity}},
-  \code{\link{regainParallel}}, \code{\link{regain}}
+  \code{\link{regainParallel}}, \code{\link{regain}},
+  \code{\link{snprank}}
 }
 \keyword{cluster}
 \keyword{internal}

@@ -4,11 +4,11 @@
 \alias{regainParallel}
 \title{Parallel execution of the regression genetic association interaction network (reGAIN) algorithm.}
 \usage{
-regainParallel(regressionData, stdBetas = FALSE, absBetas = FALSE,
+regainParallel(labelledDataFrame, stdBetas = FALSE, absBetas = FALSE,
   numCores = 2, verbose = FALSE)
 }
 \arguments{
-\item{regressionData}{\code{data.frame} with gene in columns and samples in rows;
+\item{labelledDataFrame}{\code{data.frame} with variable in columns and samples in rows;
 the last column should be labeled 'Class' and be 0 or 1 values.}
 
 \item{stdBetas}{\code{logical} to use standardized beta coefficients.}
@@ -20,14 +20,14 @@ the last column should be labeled 'Class' and be 0 or 1 values.}
 \item{verbose}{\code{logical} to send verbose messages to stdout.}
 }
 \value{
-regainMatrix \code{matrix} of gene by gene regression coefficients.
+regainMatrix \code{matrix} of variable by variable regression coefficients.
 }
 \description{
 \code{regainParallel}
 }
 \examples{
 data(testdata10)
-rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
+rinbixRegain <- regainParallel(testdata10, stdBetas = TRUE, absBetas = TRUE)
 }
 \references{
 \itemize{
@@ -44,14 +44,15 @@ Other GAIN functions: \code{\link{dcgainInbix}},
   \code{\link{gainToSimpleSIF}},
   \code{\link{getInteractionEffects}},
   \code{\link{getMainEffects}}, \code{\link{regainInbix}},
-  \code{\link{regain}}
+  \code{\link{regain}}, \code{\link{snprank}}
 
 Other inbix synonym functions: \code{\link{dcgain}},
   \code{\link{geneLowValueFilter}},
   \code{\link{geneLowVarianceFilter}},
   \code{\link{getMainEffects}},
   \code{\link{modularityBestSplit}},
-  \code{\link{modularity}}, \code{\link{regain}}
+  \code{\link{modularity}}, \code{\link{regain}},
+  \code{\link{snprank}}
 }
 \keyword{array}
 \keyword{models}

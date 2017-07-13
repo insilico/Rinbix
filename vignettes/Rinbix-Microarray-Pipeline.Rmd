@@ -1,7 +1,7 @@
 ---
 title: "Rinbix Microarray Pipeline"
 author: "Bill White"
-date: "October 27, 2015"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Rinbix Microarray Pipeline}
@@ -23,7 +23,7 @@ library(org.Hs.eg.db)
 library(AnnotationDbi)
 library(Rinbix)
 library(biomaRt)
-knitr::opts_chunk$set(fig.width=12, fig.height=8) 
+knitr::opts_chunk$set(fig.width = 12, fig.height = 8) 
 ```
 
 # Get Leukemias Eset
@@ -34,15 +34,15 @@ data(leukemiasEset)  # load bone marrow samples
 #str(leukemiasEset)
 #slotNames(leukemiasEset) # phenoData, etc
 dim(leukemiasEset) # 20172 genes x 60 samples
-sampleNames(leukemiasEset) # cell file names
-allPheno <- pData(leukemiasEset)
+Biobase::sampleNames(leukemiasEset) # cell file names
+allPheno <- Biobase::pData(leukemiasEset)
 #head(allPheno)  # look at phenotype info
 leukPheno <- allPheno$LeukemiaType  # abbreviated leukemia types
 summary(leukPheno)
 # ALL AML CLL CML NoL 
 # 12  12  12  12  12 
 #featureNames(leukemiasEset)[1:5] # first 5 gene ensemble ids
-leukExprData <- exprs(leukemiasEset) # exprs is an affy function to extract expression data from eset
+leukExprData <- Biobase::exprs(leukemiasEset) # exprs is an affy function to extract expression data from eset
 colnames(leukExprData) <- leukPheno  # add phenotype names to matrix
 ```
 
@@ -51,12 +51,12 @@ colnames(leukExprData) <- leukPheno  # add phenotype names to matrix
 ```{r preprocess}
 # quantiles function needs eset to operate on
 leukExprData_quantile <- preprocessCore::normalize.quantiles(leukExprData)
-boxplot(leukExprData_quantile,range=0,ylab="raw intensity", main="Quantile Normalized")
+boxplot(leukExprData_quantile,range = 0,ylab = "raw intensity", main = "Quantile Normalized")
 #leukExprData_quantileLog2 <- log2(exprs(leukExprData_quantile))
 leukExprData_quantileLog2 <- log2(leukExprData_quantile)
 colnames(leukExprData_quantileLog2) <- leukPheno  # add phenotype names to matrix
-boxplot(leukExprData_quantileLog2,range=0,ylab="log2 intensity", 
-        main="Quantile Normalized Log2")
+boxplot(leukExprData_quantileLog2,range = 0,ylab = "log2 intensity", 
+        main = "Quantile Normalized Log2")
 # compare the ALL and NoL groups; find genes that are differentially expressed between groups
 # use t.test
 # 1. create subset of data for the two groups
@@ -74,15 +74,7 @@ sum(coef.of.vars < 0.05)  # 5,378 genes
 # filter the data matrix
 ALL.NoL.Data.filter <- ALL.NoL.Data[coef.of.vars < 0.05,]
 dim(ALL.NoL.Data.filter)
-```
-
-# 3. create factor variable for the two groups for the t-test
-
-```{r groups}
-test.groups <- as.factor(colnames(ALL.NoL.Data.filter))
-test.groups
-str(test.groups)
-levels(test.groups)
+phenos <- as.integer(factor(colnames(ALL.NoL.Data.filter)))
 ```
 
 #t-test
@@ -90,21 +82,11 @@ levels(test.groups)
 ```{r ttest}
 # put it all together. apply to all genes
 # i is the data row or gene index
-ttest_fn <- function(i) {
-      mygene<-rownames(ALL.NoL.Data.filter)[i]
-      t.result <- t.test(ALL.NoL.Data.filter[i,] ~ test.groups)
-      tidy.result <- tidy(t.result)
-      tstat <- tidy.result$statistic
-      pval <- tidy.result$p.value
-      cbind(mygene, tstat, pval)    
-} 
-ttest_allgene_results.df <- data.frame(t(sapply(1:nrow(ALL.NoL.Data.filter), ttest_fn)))
-colnames(ttest_allgene_results.df) <- c("ensmblID", "t-stat", "p-value")
-# sort
-ttest_allgene_sorted <- ttest_allgene_results.df[order(as.numeric(as.character(ttest_allgene_results.df$"p-value"))), ]
-#tested<-topTable(fitE, adjust="fdr", sort.by="B", number=Inf)
-#DE <- tested[tested$adj.P.Val < 0.01,]
-knitr::kable(head(ttest_allgene_sorted), row.names=FALSE, digits=6)
+filteredGenes <- rownames(ALL.NoL.Data.filter)
+filteredDataset <- cbind(t(ALL.NoL.Data.filter), phenos - 1)
+colnames(filteredDataset) <- c(filteredGenes, "Class")
+ttest.results <- rankTTest(filteredDataset)
+knitr::kable(head(ttest.results$variable), row.names = FALSE, digits = 6)
 ```
 
 #Lookup Top Genes
@@ -113,26 +95,27 @@ knitr::kable(head(ttest_allgene_sorted), row.names=FALSE, digits=6)
 top_cutoff <- 100
 # grab top ensmblID 
 # convert output to character instead of factor
-topFeatures <- as.character(ttest_allgene_sorted[1:top_cutoff,]$ensmblID)
-ensembl = useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
-top_geneNames <- getBM(attributes=c('ensembl_gene_id','hgnc_symbol'),
-                       filters='ensembl_gene_id', 
-                       values=topFeatures, mart=ensembl)
-knitr::kable(head(top_geneNames))
+topFeatures <- as.character(ttest.results[1:top_cutoff, ]$variable)
+topGeneNames <- lookupGeneDescBiomart(topFeatures, list.type = "ensembl_gene_id")
+if (nrow(topGeneNames) < 1) {
+  warning(paste("No gene symbols found for the Ensembl IDs"))
+} else {
+  knitr::kable(head(topGeneNames))
+}
 ```
 
 #Reactome
 
 ```{r reactome, echo=TRUE}
-reactomeAnalysis <- getReactomePathways(top_geneNames$hgnc_symbol)
-knitr::kable(as.data.frame(reactomeAnalysis), row.names=FALSE)
+reactomeAnalysis <- getReactomePathways(topGeneNames$Gene.Symbol)
+knitr::kable(as.data.frame(reactomeAnalysis), row.names = FALSE)
 ```
 
 #GO
 
 ```{r go, echo=TRUE}
-goAnalysis <- getGOAnalysis(top_geneNames$hgnc_symbol)
-knitr::kable(as.data.frame(goAnalysis), row.names=FALSE)
+goAnalysis <- getGOAnalysis(topGeneNames$Gene.Symbol)
+knitr::kable(as.data.frame(goAnalysis), row.names = FALSE)
 ```
 
 #Plots

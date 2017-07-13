@@ -24,7 +24,7 @@ modularity(G, verbose = FALSE)
 }
 \examples{
 data(testdata10)
-rinbixRegain <- regainParallel(testdata10, stdBetas=TRUE, absBetas=TRUE)
+rinbixRegain <- regainParallel(testdata10, stdBetas = TRUE, absBetas = TRUE)
 rinbixModulesDF <- Rinbix::modularity(rinbixRegain)
 }
 \seealso{
@@ -42,7 +42,8 @@ Other inbix synonym functions: \code{\link{dcgain}},
   \code{\link{geneLowVarianceFilter}},
   \code{\link{getMainEffects}},
   \code{\link{modularityBestSplit}},
-  \code{\link{regainParallel}}, \code{\link{regain}}
+  \code{\link{regainParallel}}, \code{\link{regain}},
+  \code{\link{snprank}}
 }
 \keyword{cluster}
 \keyword{math}

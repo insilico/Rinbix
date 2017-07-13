@@ -1,9 +1,7 @@
-# -----------------------------------------------------------------------------
 # inbixUtils.R - Bill White - 10/10/15
 #
 # Rinbix package utility/miscellaneous functions.
 
-# ----------------------------------------------------------------------------
 #' Fisher correlation transformation function R to Z distribution.
 #' 
 #' \code{fisherRtoZ}
@@ -13,7 +11,7 @@
 #' @param x \code{numeric} Correlation value -1 to 1.
 #' @return \code{numeric} Transformed correlation value.
 #' @examples
-#' fisherRtoZ(seq(from=-1, to=1, by=0.25))
+#' fisherRtoZ(seq(from = -1, to = 1, by = 0.25))
 #' @export
 fisherRtoZ <- function(x) { 
   # catch +/-Inf in transform
@@ -22,7 +20,6 @@ fisherRtoZ <- function(x) {
   atanh(x)
 }
 
-# -----------------------------------------------------------------------------
 #' Remove genes with low coefficient of variation.
 #' 
 #' \code{geneLowCoefOfVarFilter} removes genes with coefficient of variation less than value.
@@ -37,17 +34,16 @@ fisherRtoZ <- function(x) {
 #' data(testdata100ME4)
 #' lowCVFiltered <- geneLowCoefOfVarFilter(t(testdata100ME4[, -ncol(testdata100ME4)]))
 #' @export
-geneLowCoefOfVarFilter <- function(dataMatrix, coefOfVarThreshold=0.1) {
+geneLowCoefOfVarFilter <- function(dataMatrix, coefOfVarThreshold = 0.1) {
   coefOfVars <- apply(dataMatrix, 1, function(x) { sd(x) / abs(mean(x)) })
   # the smaller the threshold, the higher the experimental effect relative 
   # to the measurement precision
   # filter the data matrix
   fdata <- dataMatrix[coefOfVars < coefOfVarThreshold, ]
   # return the filtered data
-  list(fdata=fdata)
+  list(fdata = fdata)
 }
 
-# -----------------------------------------------------------------------------
 #' Remove genes with low absolute values.
 #' 
 #' \code{geneLowValueFilter} removes genes with values in the lowest percentile.
@@ -63,7 +59,7 @@ geneLowCoefOfVarFilter <- function(dataMatrix, coefOfVarThreshold=0.1) {
 #' data(testdata100ME4)
 #' lowValFiltered <- geneLowValueFilter(t(testdata100ME4[, -ncol(testdata100ME4)]))
 #' @export
-geneLowValueFilter <- function(dataMatrix, percentile=0.1) {
+geneLowValueFilter <- function(dataMatrix, percentile = 0.1) {
   # Remove gene profiles with low absolute values in dataMatrix. Returns:
   # 1) a logical vector mask identifying gene expression profiles in dataMatrix
   #    that have absolute expression levels in the lowest 10% of the data set.
@@ -73,10 +69,9 @@ geneLowValueFilter <- function(dataMatrix, percentile=0.1) {
   fdata <- dataMatrix[!mask, ]
   
   # return the row mask and filtered data
-  list(mask=!mask, fdata=fdata)
+  list(mask = !mask, fdata = fdata)
 }
 
-# -----------------------------------------------------------------------------
 #' Remove genes with low expression variance.
 #' 
 #' \code{geneLowVarianceFilter} removes genes with variance below a 
@@ -99,17 +94,16 @@ geneLowValueFilter <- function(dataMatrix, percentile=0.1) {
 #' data(testdata100ME4)
 #' lowVarFiltered <- geneLowVarianceFilter(t(testdata100ME4[, -ncol(testdata100ME4)]))
 #' @export
-geneLowVarianceFilter <- function(dataMatrix, percentile=0.1) {
+geneLowVarianceFilter <- function(dataMatrix, percentile = 0.1) {
   variances <- apply(as.matrix(dataMatrix), 1, var)
   threshold <- quantile(variances, c(percentile))
   mask <- apply(dataMatrix, 1, function(x) var(x) > threshold)
   fdata <- dataMatrix[mask, ]
   
   # return the row mask and filtered data
-  list(mask=mask, fdata=fdata)
+  list(mask = mask, fdata = fdata)
 }
 
-# -----------------------------------------------------------------------------
 #' Logarithmic spiral coordinate generator for igraph network node layout.
 #'
 #' \code{logSpiral}
@@ -139,7 +133,7 @@ logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
   rotation <- rotation * 2 * pi
   results <- NULL
   # For every side, step around and away from center.
-  for(i in 1:sides) {
+  for (i in 1:sides) {
     # How far away from center
     away <- radius^(i / sides)
     # How far around the center.
@@ -147,8 +141,8 @@ logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
     # Convert 'around' and 'away' to X and Y.
     x <- centerX + cos(around) * away;
     y <- centerY + sin(around) * away;
-    #cat(x, "\t", y, "\n", sep="")
-    results <- rbind(results, data.frame(x=x, y=y))
+    #cat(x, "\t", y, "\n", sep = "")
+    results <- rbind(results, data.frame(x = x, y = y))
   }
   as.matrix(results)
 }
@@ -165,15 +159,14 @@ logSpiral <- function(centerX, centerY, radius, sides, coils, rotation) {
 #' geneNames <- lookupGenesFromEnsemblIds(ensemblIds)
 #' @export
 lookupGenesFromEnsemblIds <- function(ensemblIds) {
-  ensembl = biomaRt::useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
-  geneNames <- biomaRt::getBM(attributes=c('ensembl_gene_id','hgnc_symbol'), 
-                              filters='ensembl_gene_id', 
-                              values=ensemblIds, 
-                              mart=ensembl)
+  ensembl <- biomaRt::useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+  geneNames <- biomaRt::getBM(attributes = c('ensembl_gene_id','hgnc_symbol'), 
+                              filters = 'ensembl_gene_id', 
+                              values = ensemblIds, 
+                              mart = ensembl)
   geneNames
 }
 
-# ----------------------------------------------------------------------------
 #' Scales a numeric vector to a range (a, b).
 #' 
 #' \code{scaleAB}
@@ -194,7 +187,6 @@ scaleAB <- function(v, a, b) {
   v + a
 }
 
-# ----------------------------------------------------------------------------
 #' Compute the power series of a matrix.
 #' 
 #' A <- A^1 + A^2 + . . . + A^n
@@ -211,7 +203,7 @@ scaleAB <- function(v, a, b) {
 #' A <- matrix(1:9, 3)
 #' sumOfPowers(A, 3)
 #' @export
-sumOfPowers <- function(A, n, verbose=FALSE) {
+sumOfPowers <- function(A, n, verbose = FALSE) {
   # g = A + A^2 + A^3 + ... A^n
   # Creates weighted graph g that includes direct connections (A),
   # all paths with 1 intermediate node (A^2)     -- first order indirect
@@ -219,12 +211,12 @@ sumOfPowers <- function(A, n, verbose=FALSE) {
   # ...                                          ...
   # up to n-1 intermediate connections (A^(n-1)) -- n-1 order indirect
   createStr <- "Creating g <- A"
-  if(verbose) cat(createStr, "\n")
+  if (verbose) cat(createStr, "\n")
   g <- A
   currPowerOfA <- A
-  if(n >= 2) { # this should be a pretty efficient way to create g
-    for(i in 2:n){
-      if(verbose) cat(paste(createStr," + A^", i, "\n", sep=""))
+  if (n >= 2) { # this should be a pretty efficient way to create g
+    for (i in 2:n) {
+      if (verbose) cat(paste(createStr," + A^", i, "\n", sep = ""))
       currPowerOfA <- currPowerOfA %*% A
       g <- g + currPowerOfA
     }

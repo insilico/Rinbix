@@ -4,14 +4,14 @@
 \alias{dmgain}
 \title{Differential modularity genetic association network algorithm (dmGAIN) algorithm.}
 \usage{
-dmgain(inbixData)
+dmgain(labelledDataFrame)
 }
 \arguments{
-\item{inbixData}{\code{data.frame} with samples in rows, genes in columns
-and phenotype in the last column.}
+\item{labelledDataFrame}{\code{data.frame} with samples in rows, variables in columns
+and classLabel in the last column.}
 }
 \value{
-results \code{matrix} of gene by gene differential modularity values.
+results \code{matrix} of variable by variable differential modularity values.
 }
 \description{
 \code{dmgain}
@@ -32,7 +32,8 @@ Other GAIN functions: \code{\link{dcgainInbix}},
   \code{\link{gainToSimpleSIF}},
   \code{\link{getInteractionEffects}},
   \code{\link{getMainEffects}}, \code{\link{regainInbix}},
-  \code{\link{regainParallel}}, \code{\link{regain}}
+  \code{\link{regainParallel}}, \code{\link{regain}},
+  \code{\link{snprank}}
 }
 \keyword{array}
 \keyword{models}

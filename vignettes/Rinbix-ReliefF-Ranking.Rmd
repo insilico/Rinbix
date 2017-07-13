@@ -1,7 +1,7 @@
 ---
 title: "Rinbix-ReliefF-Ranking"
 author: "Bill White"
-date: "November 15, 2015"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Rinbix Network Visualization}
@@ -23,13 +23,6 @@ data("testdata100ME4")
 ```{r}
 rankedVarsRelief <- rankRelieff(testdata100ME4)
 knitr::kable(head(rankedVarsRelief), row.names=F)
-```
-
-# ReliefSeq
-
-```{r}
-rankedVarsRelief <- rankReliefSeq(testdata100ME4)
-knitr::kable(head(rankedVarsRelief))
 ```
 
 # Iterative Relief-F

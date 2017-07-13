@@ -4,16 +4,18 @@
 \alias{dcgain}
 \title{Differential coexpression genetic association interaction network (dcGAIN) algorithm.}
 \usage{
-dcgain(inbixData, verbose = FALSE)
+dcgain(labelledDataFrame, computeDiagP = FALSE, verbose = FALSE)
 }
 \arguments{
-\item{inbixData}{\code{data.frame} with samples in rows, genes in columns
-and phenotype in the last column.}
+\item{labelledDataFrame}{\code{data.frame} with samples in rows, variables in columns
+and classLabel in the last column.}
+
+\item{computeDiagP}{\code{logical} to use t-test for diagonal P-value (TRUE) or one (FLASE).}
 
 \item{verbose}{\code{logical} to send messages to stdout.}
 }
 \value{
-results \code{matrix} of gene by gene differential coexpression values.
+results \code{matrix} of variable by variable differential coexpression values.
 }
 \description{
 \code{dcgain}
@@ -39,14 +41,15 @@ Other GAIN functions: \code{\link{dcgainInbix}},
   \code{\link{gainToSimpleSIF}},
   \code{\link{getInteractionEffects}},
   \code{\link{getMainEffects}}, \code{\link{regainInbix}},
-  \code{\link{regainParallel}}, \code{\link{regain}}
+  \code{\link{regainParallel}}, \code{\link{regain}},
+  \code{\link{snprank}}
 
 Other inbix synonym functions: \code{\link{geneLowValueFilter}},
   \code{\link{geneLowVarianceFilter}},
   \code{\link{getMainEffects}},
   \code{\link{modularityBestSplit}},
   \code{\link{modularity}}, \code{\link{regainParallel}},
-  \code{\link{regain}}
+  \code{\link{regain}}, \code{\link{snprank}}
 }
 \keyword{array}
 \keyword{models}

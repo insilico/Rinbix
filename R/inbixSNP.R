@@ -3,7 +3,6 @@
 #
 # Rinbix package functions for SNPs.
 
-# ----------------------------------------------------------------------------
 #' Read a PLINK binary file of SNP genotypes and meta information.
 #' 
 #' \code{readPlinkBinary} 
@@ -17,5 +16,5 @@
 #' }
 #' @export
 readPlinkBinary <- function(plinkBasename) {
-  plinkObj <- snpStats::read.plink(bed=paste(plinkBasename, ".bed", sep=""))
+  snpStats::read.plink(bed = paste(plinkBasename, ".bed", sep = ""))
 }

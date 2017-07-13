@@ -4,12 +4,12 @@
 \alias{getInteractionEffects}
 \title{Get interaction effects from generalized linear model regression.}
 \usage{
-getInteractionEffects(data, regressionFamily = "binomial",
+getInteractionEffects(labelledDataFrame, regressionFamily = "binomial",
   numCovariates = 0, writeBetas = FALSE, excludeMainEffects = FALSE,
   useBetas = FALSE, transformMethod = "", numCores = 2, verbose = FALSE)
 }
 \arguments{
-\item{data}{\code{data.frame} with genes in columns and samples in rows.}
+\item{labelledDataFrame}{\code{data.frame} with variables in columns and samples in rows.}
 
 \item{regressionFamily}{\code{string} glm regression family name.}
 
@@ -28,7 +28,7 @@ getInteractionEffects(data, regressionFamily = "binomial",
 \item{verbose}{\code{logical} to send verbose messages to stdout.}
 }
 \value{
-results \code{matrix} of gene by gene regression coefficients.
+results \code{matrix} of variable by variable regression coefficients.
 }
 \description{
 \code{getInteractionEffects}
@@ -40,7 +40,8 @@ Other GAIN functions: \code{\link{dcgainInbix}},
   \code{\link{fitMainEffectModel}},
   \code{\link{gainToSimpleSIF}},
   \code{\link{getMainEffects}}, \code{\link{regainInbix}},
-  \code{\link{regainParallel}}, \code{\link{regain}}
+  \code{\link{regainParallel}}, \code{\link{regain}},
+  \code{\link{snprank}}
 }
 \keyword{array}
 \keyword{internal}
