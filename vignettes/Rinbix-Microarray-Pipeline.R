@@ -65,3 +65,27 @@ colnames(filteredDataset) <- c(filteredGenes, "Class")
 ttest.results <- rankTTest(filteredDataset)
 knitr::kable(head(ttest.results$variable), row.names = FALSE, digits = 6)
 
+## ------------------------------------------------------------------------
+top_cutoff <- 100
+# grab top ensmblID 
+# convert output to character instead of factor
+topFeatures <- as.character(ttest.results[1:top_cutoff, ]$variable)
+topGeneNames <- lookupGeneDescBiomart(topFeatures, list.type = "ensembl_gene_id")
+if (nrow(topGeneNames) < 1) {
+  warning(paste("No gene symbols found for the Ensembl IDs"))
+} else {
+  knitr::kable(head(topGeneNames))
+}
+
+## ----reactome, echo=TRUE-------------------------------------------------
+reactomeAnalysis <- getReactomePathways(topGeneNames$Gene.Symbol)
+knitr::kable(as.data.frame(reactomeAnalysis), row.names = FALSE)
+
+## ----go, echo=TRUE-------------------------------------------------------
+goAnalysis <- getGOAnalysis(topGeneNames$Gene.Symbol)
+knitr::kable(as.data.frame(goAnalysis), row.names = FALSE)
+
+## ----pathplots, echo=TRUE------------------------------------------------
+# hmm, not doing anything
+print(barplot(goAnalysis))
+

@@ -10,7 +10,8 @@ dcgain(labelledDataFrame, computeDiagP = FALSE, verbose = FALSE)
 \item{labelledDataFrame}{\code{data.frame} with samples in rows, variables in columns
 and classLabel in the last column.}
 
-\item{computeDiagP}{\code{logical} to use t-test for diagonal P-value (TRUE) or one (FLASE).}
+\item{computeDiagP}{\code{logical} to use t-test for diagonal P-value (TRUE) 
+or one (FLASE).}
 
 \item{verbose}{\code{logical} to send messages to stdout.}
 }
@@ -27,7 +28,9 @@ rinbixDcgain <- dcgain(testdata10)
 \references{
 \itemize{
   \item \url{http://www.biodatamining.org/content/8/1/5}
-  {Differential co-expression network centrality and machine learning feature selection for identifying susceptibility hubs in networks with scale-free structure}
+  {Differential co-expression network centrality and machine learning 
+  feature selection for identifying susceptibility hubs in networks with 
+  scale-free structure}
   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
 }
 }

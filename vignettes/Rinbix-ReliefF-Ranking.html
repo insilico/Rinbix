@@ -12,7 +12,7 @@
 
 <meta name="author" content="Bill White" />
 
-<meta name="date" content="2017-07-08" />
+<meta name="date" content="2017-08-09" />
 
 <title>Rinbix-ReliefF-Ranking</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Rinbix-ReliefF-Ranking</h1>
 <h4 class="author"><em>Bill White</em></h4>
-<h4 class="date"><em>2017-07-08</em></h4>
+<h4 class="date"><em>2017-08-09</em></h4>
 
 
 
@@ -88,7 +88,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="relief-f" class="section level1">
 <h1>Relief-F</h1>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rankedVarsRelief &lt;-<span class="st"> </span><span class="kw">rankRelieff</span>(testdata100ME4)
-knitr::<span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsRelief), <span class="dt">row.names=</span>F)</code></pre></div>
+knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsRelief), <span class="dt">row.names=</span>F)</code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -124,52 +124,13 @@ knitr::<span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsReli
 </tbody>
 </table>
 </div>
-<div id="reliefseq" class="section level1">
-<h1>ReliefSeq</h1>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rankedVarsRelief &lt;-<span class="st"> </span><span class="kw">rankReliefSeq</span>(testdata100ME4)
-knitr::<span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsRelief))</code></pre></div>
-<table>
-<thead>
-<tr class="header">
-<th align="left">variable</th>
-<th align="right">score</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">gene0001</td>
-<td align="right">13.9976000</td>
-</tr>
-<tr class="even">
-<td align="left">gene0005</td>
-<td align="right">13.8340000</td>
-</tr>
-<tr class="odd">
-<td align="left">gene0087</td>
-<td align="right">0.0179990</td>
-</tr>
-<tr class="even">
-<td align="left">gene0055</td>
-<td align="right">0.0172849</td>
-</tr>
-<tr class="odd">
-<td align="left">gene0092</td>
-<td align="right">0.0170924</td>
-</tr>
-<tr class="even">
-<td align="left">gene0025</td>
-<td align="right">0.0167255</td>
-</tr>
-</tbody>
-</table>
-</div>
 <div id="iterative-relief-f" class="section level1">
 <h1>Iterative Relief-F</h1>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rankedVarsIterRelief &lt;-<span class="st"> </span><span class="kw">rankIterativeRelieff</span>(testdata100ME4, 
                                              <span class="dt">percentRemovePerIteration=</span><span class="dv">10</span>,
                                              <span class="dt">targetNumAttributes=</span><span class="dv">10</span>, 
                                              <span class="dt">verbose=</span><span class="ot">FALSE</span>)
-knitr::<span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsIterRelief$all.scores), <span class="dt">row.names=</span>F)</code></pre></div>
+knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(rankedVarsIterRelief<span class="op">$</span>all.scores), <span class="dt">row.names=</span>F)</code></pre></div>
 </div>
 
 

@@ -441,12 +441,12 @@ getInteractionEffects <- function(labelledDataFrame,
     }
     if (interactionPval > 0.99) {
       if (verbose) {
-        warning("Interaction effect p-value > 0.99", interactionName, "\n")
+        warning("Interaction effect p-value > 0.99 ", interactionName, "\n")
       }
     }
     if (interactionPval < 2e-16) {
       if (verbose) {
-        warning("Interaction effect p-value < 2e-16", interactionName, "\n")
+        warning("Interaction effect p-value < 2e-16 ", interactionName, "\n")
       }
     }
     
