@@ -414,7 +414,6 @@ getInteractionEffects <- function(labelledDataFrame,
     variable2Idx <- thisComb[2]
     interactionName <- paste(variableNames[variable1Idx], "x", 
                              variableNames[variable2Idx])
-    
     regressionModel <- results[[i]]
     glmConverged <- regressionModel$converged
     if (!glmConverged) {
@@ -426,51 +425,47 @@ getInteractionEffects <- function(labelledDataFrame,
       interactionStat <- 0
       interactionValues[variable1Idx, variable2Idx] <- 0
       interactionValues[variable2Idx, variable1Idx] <- 0
-      next
-    }
-    
-    interactionCoeff <- regressionModel$coef
-    interactionPval <- regressionModel$pval
-    interactionStat <- regressionModel$stdbeta
-    
-    interactionValue <- NA
-    if (useBetas) {
-      interactionValue <- interactionCoeff
     } else {
-      interactionValue <- interactionStat
-    }
-    if (interactionPval > 0.99) {
-      if (verbose) {
-        warning("Interaction effect p-value > 0.99 ", interactionName, "\n")
+      interactionCoeff <- regressionModel$coef
+      interactionPval <- regressionModel$pval
+      interactionStat <- regressionModel$stdbeta
+      interactionValue <- NA
+      if (useBetas) {
+        interactionValue <- interactionCoeff
+      } else {
+        interactionValue <- interactionStat
       }
-    }
-    if (interactionPval < 2e-16) {
-      if (verbose) {
-        warning("Interaction effect p-value < 2e-16 ", interactionName, "\n")
+      if (interactionPval > 0.99) {
+        interactionValue <- 0
+        if (verbose) {
+          cat("Interaction effect p-value > 0.99 ", interactionName, "\n")
+        }
       }
-    }
-    
-    interactionValueTransformed <- interactionValue
-    if (!is.na(interactionValue)) {
-      if (transformMethod == "abs") {
-        interactionValueTransformed <- abs(interactionValue)
+      if (interactionPval < 2e-16) {
+        if (verbose) {
+          cat("Interaction effect p-value < 2e-16 ", interactionName, "\n")
+        }
       }
-      if (transformMethod == "threshold") {
-        interactionValueTransformed <- ifelse(interactionValue < 0, 0, interactionValue)
+      interactionValueTransformed <- interactionValue
+      if (!is.na(interactionValue)) {
+        if (transformMethod == "abs") {
+          interactionValueTransformed <- abs(interactionValue)
+        }
+        if (transformMethod == "threshold") {
+          interactionValueTransformed <- ifelse(interactionValue < 0, 0, interactionValue)
+        }
       }
-    }
-
-    interactionValues[variable1Idx, variable2Idx] <- interactionValueTransformed
-    interactionValues[variable2Idx, variable1Idx] <- interactionValueTransformed
-    
+      interactionValues[variable1Idx, variable2Idx] <- interactionValueTransformed
+      interactionValues[variable2Idx, variable1Idx] <- interactionValueTransformed
+    } # if converged
     if (verbose) {
       cat("Interaction z value:", variable1Idx, variable2Idx, interactionStat, "\n")
-      if (abs(interactionStat) > 4) {
-        print(regressionModel)
-        print(summary(regressionModel))
-      }
+      # if (abs(interactionStat) > 4) {
+      #   print(regressionModel)
+      #   print(summary(regressionModel))
+      # }
     }
-
+    
     if (writeBetas) {
       allBetas <- NULL
       for (colIdx in 1:length(names(regressionModel$coefficients))) {
@@ -681,6 +676,7 @@ getMainEffects <- function(labelledDataFrame,
 #' @param absBetas \code{logical} to use absolute value of beta coefficients.
 #' @param numCores \code{numeric} number of processor cores to use in mclapply
 #' @param verbose \code{logical} to send verbose messages to stdout.
+#' @param writeBetas \code{logical} indicating whther to write beta values to separate file.
 #' @return regainMatrix \code{matrix} of variable by variable regression coefficients.
 #' @examples
 #' data(testdata10)
@@ -690,7 +686,8 @@ regain <- function(labelledDataFrame,
                    stdBetas = FALSE, 
                    absBetas = FALSE, 
                    numCores = 2, 
-                   verbose = FALSE) {
+                   verbose = FALSE,
+                   writeBetas = FALSE) {
   numVars <- ncol(labelledDataFrame) - 1  
   regainMatrix <- NULL
   # run C++ version if grater than 5000 variables
@@ -700,7 +697,8 @@ regain <- function(labelledDataFrame,
                                    stdBetas = stdBetas, 
                                    absBetas = absBetas,
                                    numCores = numCores, 
-                                   verbose = verbose)
+                                   verbose = verbose,
+                                   writeBetas = writeBetas)
   } else {
     cat("WARNING: More than 5000 variables, attempting to run reGAIN in C++\n")
     inbixExists()
@@ -732,6 +730,7 @@ regain <- function(labelledDataFrame,
 #' @param absBetas \code{logical} to use absolute value of beta coefficients.
 #' @param numCores \code{numeric} number of processor cores to use in mclapply
 #' @param verbose \code{logical} to send verbose messages to stdout.
+#' @param writeBetas \code{logical} indicating whether to write beta values to separate file.
 #' @return regainMatrix \code{matrix} of variable by variable regression coefficients.
 #' @examples
 #' data(testdata10)
@@ -741,19 +740,22 @@ regainParallel <- function(labelledDataFrame,
                            stdBetas = FALSE, 
                            absBetas = FALSE, 
                            numCores = 2, 
-                           verbose = FALSE) {
+                           verbose = FALSE, 
+                           writeBetas = FALSE) {
   transform <- ifelse(absBetas, "abs", "")
   rawBetas <- ifelse(stdBetas, FALSE, TRUE)
   mainEffects <- getMainEffects(labelledDataFrame, 
                                 useBetas = rawBetas,
                                 transformMethod = transform,
                                 numCores = numCores,
-                                verbose = verbose)
+                                verbose = verbose, 
+                                writeBetas = writeBetas)
   regainMatrix <- getInteractionEffects(labelledDataFrame, 
                                         useBetas = rawBetas,
                                         transformMethod = transform,
                                         numCores = numCores,
-                                        verbose = verbose)
+                                        verbose = verbose, 
+                                        writeBetas = writeBetas)
   diag(regainMatrix) <- mainEffects
   colnames(regainMatrix) <- colnames(labelledDataFrame)[1:(ncol(labelledDataFrame) - 1)]
   # replace NAs with zero
