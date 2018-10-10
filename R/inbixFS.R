@@ -317,35 +317,6 @@ rankRelieff <- function(labelledDataFrame, corelearn.est = "ReliefFbestK") {
   retDF
 }
 
-#' Rank by SAM - sequential analysis of microarrays.
-#' 
-#' \code{rankSam} 
-#' 
-#' @family feature selection functions
-#' @param labelledDataFrame \code{data.frame} of predictors and final class column.
-#' @return \code{data.frame} with variable and p-value, ordered by p-value.
-#' @examples
-#' data(testdata10)
-#' rankSamResults <- rankSam(testdata10)
-#' @export
-rankSam <- function(labelledDataFrame) {
-  numPredictors <- ncol(labelledDataFrame) - 1
-  # make predictors (variables from SAM's POV) into rows
-  predictors <- t(as.matrix(labelledDataFrame[, 1:numPredictors]))
-  # phenotype is response
-  response <- labelledDataFrame[,ncol(labelledDataFrame)] + 1
-  capture.output(samFit <- samr::SAM(x = predictors, y = response, 
-                                     resp.type = "Two class unpaired", 
-                                     genenames = rownames(predictors)))
-  pVals <- samr::samr.pvalues.from.perms(samFit$samr.obj$tt, 
-                                         samFit$samr.obj$ttstar)
-  returnDF <- data.frame(variable = rownames(predictors), 
-                         score = pVals,
-                         stringsAsFactors = FALSE)
-  returnDF[order(returnDF$score), ]
-  returnDF
-}
-
 #' Rank by t-test.
 #' 
 #' \code{rankTTest} 
@@ -684,6 +655,9 @@ r2VIMorig <- function(predictors = NULL,
 
 #' Rank variables by SNPrank algorithm.
 #' 
+#' This function is for backward compatibility with the original Rinbix
+#' with a single gamma value. 
+#' 
 #' \code{snprank}
 #' 
 #' @references 
@@ -713,7 +687,7 @@ snprank <- function(G, alg.gamma=0.85) {
   #colsum <- colSums(G);
   diag(G) <- 0
   Gtrace <- Gtrace * n;
-  colsumG <- colSums(G)
+  colsumG <- colSums(G) + 0.001
   #rowSumG <- rowSums(G)
   rowsum_denom <- matrix(0, n, 1);
   for (i in 1:n) {

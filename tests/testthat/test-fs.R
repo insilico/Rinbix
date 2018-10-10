@@ -51,18 +51,6 @@ test_that("Relief", {
   expect_equal(nrow(reliefResults), ncol(testdata100ME4) - 1)
 })
 
-test_that("ReliefSeq", {
-	reliefSeqResults <- rankReliefSeq(testdata100ME4)
-	expect_equal(ncol(reliefSeqResults), 2)
-	expect_equal(nrow(reliefSeqResults), ncol(testdata100ME4) - 1)
-})
-
-test_that("SAM", {
-	samResults <- rankSam(testdata100ME4)
-	expect_equal(ncol(samResults), 2)
-	expect_equal(nrow(samResults), ncol(testdata100ME4) - 1)
-})
-
 test_that("t-test", {
 	tTestResults <- rankTTest(testdata100ME4)
 	expect_equal(ncol(tTestResults), 2)
@@ -78,7 +66,7 @@ test_that("univariate regression", {
 # reGAIN parameter combinations + snprank
 test_that("Rinbix SNPrank from reGAIN stdBetas = TRUE, absBetas = TRUE", {
   rinbixRegain <- regainParallel(testdata10, stdBetas = TRUE, absBetas = TRUE)
-  inbixSnpranksDF <- read.table("testdata10-abs-zval.ranks", header = TRUE)
+  inbixSnpranksDF <- snprankInbix(rinbixRegain)
   inbixSnpranks <- inbixSnpranksDF[, 2]
   rinbixSnpranksDF <- snprank(rinbixRegain)
   rinbixSnpranks <- rinbixSnpranksDF[, 2]
@@ -87,8 +75,8 @@ test_that("Rinbix SNPrank from reGAIN stdBetas = TRUE, absBetas = TRUE", {
 
 test_that("Rinbix SNPrank from reGAIN stdBetas = FALSE, absBetas = TRUE", {
   rinbixRegain <- regainParallel(testdata10, stdBetas = FALSE, absBetas = TRUE)
-  inbixSnpranksDF <- read.table("testdata10-abs-beta.ranks", header = TRUE)
-  inbixSnpranks <- inbixSnpranksDF[,2]
+  inbixSnpranksDF <- snprankInbix(rinbixRegain)
+  inbixSnpranks <- inbixSnpranksDF[, 2]
   rinbixSnpranksDF <- snprank(rinbixRegain)
   rinbixSnpranks <- rinbixSnpranksDF[,2]
   expect_equal(object = rinbixSnpranks, expected = inbixSnpranks, tolerance = 0.05)
@@ -96,8 +84,8 @@ test_that("Rinbix SNPrank from reGAIN stdBetas = FALSE, absBetas = TRUE", {
 
 test_that("Rinbix SNPrank from reGAIN stdBetas = TRUE, absBetas = FALSE", {
   rinbixRegain <- regainParallel(testdata10, stdBetas = TRUE, absBetas = FALSE)
-  inbixSnpranksDF <- read.table("testdata10-noabs-zval.ranks", header = TRUE)
-  inbixSnpranks <- inbixSnpranksDF[,2]
+  inbixSnpranksDF <- snprankInbix(rinbixRegain)
+  inbixSnpranks <- inbixSnpranksDF[, 2]
   rinbixSnpranksDF <- snprank(rinbixRegain)
   rinbixSnpranks <- rinbixSnpranksDF[,2]
   expect_equal(object = rinbixSnpranks, expected = inbixSnpranks, tolerance = 0.05)
@@ -105,8 +93,8 @@ test_that("Rinbix SNPrank from reGAIN stdBetas = TRUE, absBetas = FALSE", {
 
 test_that("Rinbix SNPrank from reGAIN stdBetas = FALSE, absBetas = FALSE", {
   rinbixRegain <- regainParallel(testdata10, stdBetas = FALSE, absBetas = FALSE)
-  inbixSnpranksDF <- read.table("testdata10-noabs-beta.ranks", header = TRUE)
-  inbixSnpranks <- inbixSnpranksDF[,2]
+  inbixSnpranksDF <- snprankInbix(rinbixRegain)
+  inbixSnpranks <- inbixSnpranksDF[, 2]
   rinbixSnpranksDF <- snprank(rinbixRegain)
   rinbixSnpranks <- rinbixSnpranksDF[,2]
   expect_equal(object = rinbixSnpranks, expected = inbixSnpranks, tolerance = 0.05)

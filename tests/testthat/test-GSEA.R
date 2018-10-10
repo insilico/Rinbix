@@ -3,7 +3,7 @@ context("GSEA")
 
 test_that("Map SNPs to Genes Biomart", {
   snp.info <- mapSNPsToGenesBiomart(c("rs1048194", "rs13126272"))
-  expect_equal(nrow(snp.info), 3)
+  expect_equal(nrow(snp.info), 2)
 })
 
 test_that("Lookup Gene Descriptions Biomart", {

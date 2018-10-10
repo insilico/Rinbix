@@ -9,7 +9,7 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-The Rinbix package is a collection of functions that support the In silico research group's bioinformatics toolbox for network and machine learning analysis in bioinformatics. These functions are grouped roughly into the following categories:
+The Rinbix package is a collection of functions that support the In silico research group's bioinformatics toolbox for network and machine learning analysis in bioinformatics (inbix). These functions are grouped roughly into the following categories:
 
 - Feature Selection and Ranking
 - Classification and Prediction
@@ -51,7 +51,7 @@ This simple example demonstrates a workflow from data simulation to ranked genes
 library(Rinbix)
 data("scaleFreeNetwork")
 datasetObj <- createDiffCoexpMatrixNoME(M = 10, N = 40, meanExpression = 7, 
-                                        A = scaleFreeNetwork,
+                                        A = Rinbix::scaleFreeNetwork,
                                         randSdNoise = 0.5, sdNoise = 0.05,
                                         sampleIndicesInteraction = seq(1:3))
 dataset <- as.data.frame(datasetObj$regressionData)
