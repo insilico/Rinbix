@@ -425,11 +425,12 @@ regainInbix <- function(regressionData, stdBetas = TRUE, absBetas = TRUE,
   }
 
   # remove temporary files
-  # "num",
-  # "pheno",
-  # "regain.min.sif",
   tempFileSuffixes <- c("regain.min.tab",
                         "regain.min.pvals.tab",
+                        "regain.min.sif",
+                        "runinfo.tab",
+                        "num",
+                        "pheno",
                         "log")
   file.remove(paste(outPrefix, tempFileSuffixes, sep = "."))
   

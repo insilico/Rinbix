@@ -76,8 +76,10 @@ adjacencyToNetList <- function(Aadj = NULL,
 
   # create an igraph object from the edge weights matrix
   if (verbose) cat("Creating igraph object from weighted adjacency matrix\n")
-  adjacencyNet <- igraph::graph_from_adjacency_matrix(Aadj, mode = "upper", 
-                                              weighted = TRUE, diag = FALSE)
+  adjacencyNet <- igraph::graph_from_adjacency_matrix(Aadj, 
+                                                      mode = "upper", 
+                                                      weighted = TRUE, 
+                                                      diag = FALSE)
   # degree is sum of connections
   nodeDegrees <- igraph::degree(adjacencyNet)
   # strength is weighted degree
@@ -94,8 +96,8 @@ adjacencyToNetList <- function(Aadj = NULL,
   igraph::V(adjacencyNet)$shape <- "circle"
 
   # node colors from RColorBrewer
-  nodeColors <- RColorBrewer::brewer.pal(numGroups, "Set3") 
-  igraph::V(adjacencyNet)$color <- nodeColors[groups]
+  nodeColors <- RColorBrewer::brewer.pal(ifelse(numGroups > 12, 12, numGroups), "Set3") 
+  igraph::V(adjacencyNet)$color <- nodeColors[nodeGroups]
     
   igraph::V(adjacencyNet)$size <- nodeDegrees * 5
   igraph::V(adjacencyNet)$size2 <- igraph::V(adjacencyNet)$size
@@ -116,12 +118,10 @@ adjacencyToNetList <- function(Aadj = NULL,
   if (verbose) cat("Creating node and edge lists\n")
   # edge list
   graphLinks <- NULL
-  for(i in 1:numNodes) {
-    nodeStart <- nodeLabels[i]
-    for(j in 1:numNodes) {
+  for (i in 1:numNodes) {
+    for (j in 1:numNodes) {
       if (j <= i) { next }
       if (Aadj[i, j] != 0) {
-        nodeEnd <- nodeLabels[j]
         edgeWeight <- Aadj[i, j]
         graphLinks <- rbind(graphLinks, data.frame(Source = i, Target = j, Value = edgeWeight))
       }
@@ -142,7 +142,10 @@ adjacencyToNetList <- function(Aadj = NULL,
 
   # return the Igraph object, edge list and node list
   if (verbose) cat("End adjacencyToNetList\n")
-  list(net = adjacencyNet, links = graphLinks, nodes = graphNodes, groups = groups)
+  list(net = adjacencyNet, 
+       links = graphLinks, 
+       nodes = graphNodes, 
+       groups = as.character(nodeGroups))
 }
 
 #' Create a chord diagram from an Igraph network.

@@ -2,7 +2,7 @@
 #
 # create_inbix_validation_data.sh - Bill White 
 
-inbix_prefix="testdata10"
+inbix_prefix="testdata100ME4"
 inbix_num="${inbix_prefix}.num"
 inbix_pheno="${inbix_prefix}.pheno"
 
@@ -30,19 +30,19 @@ inbix \
 inbix \
 --numeric-file $inbix_num \
 --pheno $inbix_pheno --1 \
---regain \
+--regain-minimal \
 --regain-matrix-transform abs \
 --out ${inbix_prefix}-abs-zval
 
 # reGAIN + SNPrank
 inbix \
---regain-file ${inbix_prefix}-abs-zval.block.regain \
+--regain-file ${inbix_prefix}-abs-zval.regain.min.tab \
 --rank-by centrality \
 --out ${inbix_prefix}-abs-zval
 
 # reGAIN + modularity
 inbix \
---regain-file ${inbix_prefix}-abs-zval.block.regain \
+--regain-file ${inbix_prefix}-abs-zval.regain.min.tab \
 --modularity \
 --out ${inbix_prefix}-abs-zval
 
@@ -52,18 +52,18 @@ inbix \
 inbix \
 --numeric-file $inbix_num \
 --pheno $inbix_pheno --1 \
---regain \
+--regain-minimal \
 --out ${inbix_prefix}-noabs-zval
 
 # reGAIN + SNPrank
 inbix \
---regain-file ${inbix_prefix}-noabs-zval.block.regain \
+--regain-file ${inbix_prefix}-noabs-zval.regain.min.tab \
 --rank-by centrality \
 --out ${inbix_prefix}-noabs-zval
 
 # reGAIN + modularity
 inbix \
---regain-file ${inbix_prefix}-noabs-zval.block.regain \
+--regain-file ${inbix_prefix}-noabs-zval.regain.min.tab \
 --modularity \
 --out ${inbix_prefix}-noabs-zval
 
@@ -73,20 +73,20 @@ inbix \
 inbix \
 --numeric-file $inbix_num \
 --pheno $inbix_pheno --1 \
---regain \
+--regain-minimal \
 --regain-matrix-transform abs \
 --regain-use-beta-values \
 --out ${inbix_prefix}-abs-beta
 
 # reGAIN + SNPrank
 inbix \
---regain-file ${inbix_prefix}-abs-beta.block.regain \
+--regain-file ${inbix_prefix}-abs-beta.regain.min.tab \
 --rank-by centrality \
 --out ${inbix_prefix}-abs-beta
 
 # reGAIN + modularity
 inbix \
---regain-file ${inbix_prefix}-abs-beta.block.regain \
+--regain-file ${inbix_prefix}-abs-beta.regain.min.tab \
 --modularity \
 --out ${inbix_prefix}-abs-beta
 
@@ -96,18 +96,22 @@ inbix \
 inbix \
 --numeric-file $inbix_num \
 --pheno $inbix_pheno --1 \
---regain \
+--regain-minimal \
 --regain-use-beta-values \
 --out ${inbix_prefix}-noabs-beta
 
 # reGAIN + SNPrank
 inbix \
---regain-file ${inbix_prefix}-noabs-beta.block.regain \
+--regain-file ${inbix_prefix}-noabs-beta.regain.min.tab \
 --rank-by centrality \
 --out ${inbix_prefix}-noabs-beta
 
 # reGAIN + modularity
 inbix \
---regain-file ${inbix_prefix}-noabs-beta.block.regain \
+--regain-file ${inbix_prefix}-noabs-beta.regain.min.tab \
 --modularity \
 --out ${inbix_prefix}-noabs-beta
+
+rm *.log *.failures *.warnings *.runinfo.tab *.pvals.tab \
+*.pvals.dcgain.tab *.pvals.dmgain
+
