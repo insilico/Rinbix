@@ -392,7 +392,7 @@ regainInbix <- function(regressionData, stdBetas = TRUE, absBetas = TRUE,
   # run inbix reGAIN
   numericFile <- paste(outPrefix, "num ", sep = ".")
   phenoFile <- paste(outPrefix, "pheno", sep = ".")
-  inbixCmd <- paste("inbix --regain-minimal", 
+  inbixCmd <- paste("inbix --regain", 
                     "--numeric-file", numericFile, 
                     "--pheno", phenoFile, "--1",
                     "--out", outPrefix, 
@@ -400,7 +400,7 @@ regainInbix <- function(regressionData, stdBetas = TRUE, absBetas = TRUE,
   if (verbose) cat("Running inbix command:", inbixCmd, "\n")
   system(inbixCmd, intern = TRUE)
   if (verbose) print(list.files(path = ".", pattern = paste(outPrefix, "*")))
-  regainMatrixFile <- paste(outPrefix, ".regain.min.tab", sep = "")
+  regainMatrixFile <- paste(outPrefix, ".regain.tab", sep = "")
   if (file.exists(regainMatrixFile)) {
     inbixRegain <- read.table(regainMatrixFile, header = TRUE, sep = "\t")
   } else {
@@ -425,9 +425,9 @@ regainInbix <- function(regressionData, stdBetas = TRUE, absBetas = TRUE,
   }
 
   # remove temporary files
-  tempFileSuffixes <- c("regain.min.tab",
-                        "regain.min.pvals.tab",
-                        "regain.min.sif",
+  tempFileSuffixes <- c("regain.tab",
+                        "regain.pvals.tab",
+                        "regain.sif",
                         "runinfo.tab",
                         "num",
                         "pheno",
