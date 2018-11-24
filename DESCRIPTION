@@ -38,6 +38,8 @@ Imports:
     circlize,
     org.Hs.eg.db,
     AnnotationDbi,
+    reshape2,
+    fossil,
     broom,
     networkD3,
     leukemiasEset,

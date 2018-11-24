@@ -22,6 +22,7 @@
 #' @param regressionData \code{data.frame} with sample rows, gene columns 
 #' plus phenotype column.
 #' @param outPrefix \code{string} file output prefix.
+#' @param verbose A flag indicating whether verbose output be sent to stdout
 #' @return List of gene scores and associated p-values.
 #' @examples
 #' data(testdata10)
@@ -34,7 +35,7 @@ dcgainInbix <- function(regressionData, outPrefix = "Rinbix", verbose = FALSE) {
   # run inbix reGAIN
   inbixCmd <- paste("inbix --dcgain --dcgain-abs --numeric-file Rinbix.num --pheno Rinbix.pheno --1 --out", 
                     outPrefix)
-  if(verbose) cat("Running inbix command:", inbixCmd, "\n")
+  if (verbose) cat("Running inbix command:", inbixCmd, "\n")
   system(inbixCmd, intern = TRUE)
   inbixDcgain <- read.table("Rinbix.dcgain.tab", header = TRUE, sep = "\t")
   inbixDcgainPvals <- read.table("Rinbix.pvals.dcgain.tab", header = TRUE, sep = "\t")
@@ -114,22 +115,20 @@ modularityInbix <- function(gainMatrix, outPrefix = "Rinbix") {
 #' @param outPrefix \code{string} file output prefix.
 #' @return \code{list} of gene thresholds.
 #' @examples 
-#' data(testdata10)
-#' inbixRegainThresholds <- permuteGainInbix(testdata10)
+#' data(testdata100ME4)
+#' inbixRegainThresholds <- permuteGainInbix(testdata100ME4)
 #' @export
 permuteGainInbix <- function(regressionData, method = "regain", numPerms = 100, 
                              pThresh = 1, threshold = 0.05, outPrefix = "Rinbix") {
   inbixExists()
   # write regressionData data frame to inbix files
   writeRegressionDataAsInbixNumeric(regressionData, "Rinbix")
+  methodOptions <- ""
   # run inbix GAIN
   if (method == "regain") {
     methodOptions <- "--regain-use-beta-values --regain-matrix-transform abs"
-    #methodOptions <- "--regain-matrix-transform abs"
-    #methodOptions <- ""
   }
   if (method == "dcgain") {
-    #methodOptions <- ""
     methodOptions <- "--dcgain-abs"
   }
   methodOption <- paste("--permute-gain-method", method, methodOptions)
@@ -139,183 +138,31 @@ permuteGainInbix <- function(regressionData, method = "regain", numPerms = 100,
   if (pThresh < 1) {
     pThresholdOption <- paste("--regain-pvalue-threshold", pThresh)
   }
-  inbixCmd <- paste("inbix", methodOption, numOption, thresholdOption, pThresholdOption,
-    "--numeric-file Rinbix.num --pheno Rinbix.pheno --1 --out", outPrefix)
+  inbixCmd <- paste("inbix", methodOption, numOption, thresholdOption, 
+                    pThresholdOption, "--numeric-file Rinbix.num --pheno Rinbix.pheno --1 --out", 
+                    outPrefix)
   #cat("Running inbix command:", inbixCmd, "\n")
   system(inbixCmd, intern = TRUE)
-  #print(regainStdout)
-  inbixThresholds <- read.table("Rinbix_thresholds.txt", header = FALSE, sep = "\t")
-  
-  # remove temporary files
-  if (method == "regain") {
-    file.remove(c("Rinbix_thresholds.txt", "Rinbix.num", "Rinbix.pheno", "Rinbix.block.sif", 
-      "Rinbix.block.mebetas", "Rinbix.block.betas", "Rinbix.log", "Rinbix.perm"))
-  }  
-  if (method == "dcgain") {
-    file.remove(c("Rinbix_thresholds.txt", "Rinbix.pheno", "Rinbix.num", "Rinbix.log", "Rinbix.perm"))
-  }
-  
-  # return gene thresholds
-  inbixThresholds
-}
-
-#' Call C++ inbix Evaporative Cooling Privacy
-#'
-#' Assumes the inbix executable is in the PATH.
-#'
-#' @param train.ds A data frame with training data and class labels
-#' @param holdout.ds A data frame with holdout data and class labels
-#' @param validation.ds A data frame with validation data and class labels
-#' @param label A character vector of the class variable column name
-#' @param is.simulated Is the data simulated (or real?)
-#' @param bias A numeric for effect size in simulated signal variables
-#' @param update.freq A integer for the number of steps before update
-#' @param start.temp A numeric for EC starting temperature
-#' @param final.temp A numeric for EC final temperature
-#' @param tau.param A numeric for tau to control reduction schedule
-#' @param rf.ntree An integer the number of trees in the random forest
-#' @param rf.mtry An integer the number of variables sampled at each random forest node split
-#' @param save.file A character vector for the results filename or NULL to skip
-#' @param verbose A flag indicating whether verbose output be sent to stdout
-#' @note inbix must be instaled in the path
-#' @return A list containing:
-#' \describe{
-#'   \item{algo.acc}{data frame of results, a row for each update}
-#'   \item{ggplot.data}{melted results data frame for plotting}
-#'   \item{correct}{number of variables detected correctly in each data set}
-#'   \item{elapsed}{total elapsed time}
-#' }
-#' @examples
-#' num.samples <- 100
-#' num.variables <- 100
-#' pct.signals <- 0.1
-#' sim.data <- privateEC::createSimulation(num.samples = num.samples,
-#'                                         num.variables = num.variables,
-#'                                         pct.train = 1 / 3,
-#'                                         pct.holdout = 1 / 3,
-#'                                         pct.validation = 1 / 3,
-#'                                         pct.signals = pct.signals,
-#'                                         sim.type = "mainEffect",
-#'                                         verbose = FALSE)
-#' pec.results <- privateECinbix(train.ds = sim.data$train,
-#'                               holdout.ds = sim.data$holdout,
-#'                               validation.ds = sim.data$validation,
-#'                               verbose = FALSE)
-#' @family classification
-#' @export
-privateECinbix <- function(train.ds=NULL, holdout.ds=NULL, validation.ds=NULL,
-                           label="phenos",
-                           is.simulated=TRUE,
-                           bias=0.4,
-                           update.freq=50,
-                           start.temp=0.1,
-                           final.temp=10 ^ (-5),
-                           tau.param=100,
-                           rf.ntree=500,
-                           rf.mtry=NULL,
-                           save.file=NULL,
-                           verbose=FALSE) {
-  # check for inbix in the PATH or stop with an error
-  if (Sys.which("inbix") == "") {
-    stop("inbix is not installed or not in the PATH")
-  }
-  # check input parameters
-  train.good <- is.null(train.ds)
-  holdout.good <- is.null(holdout.ds)
-  validation.good <- is.null(validation.ds)
-  sum.good <- sum(train.good, holdout.good, validation.good)
-  if (sum.good >= 2) {
-    stop("At least train and holdout data sets must be provided")
-  }
-  d <- ncol(train.ds) - 1
-  param.mtry <- rf.mtry
-  if (is.null(rf.mtry)) {
-    param.mtry <- floor(sqrt(d))
-  }
-  if (param.mtry < 1 | param.mtry > d) {
-    stop(paste("mtry parameter", param.mtry, "out of range 1 < mtry < d"))
-  }
-  ptm <- proc.time()
-  unique.sim.prefix <- tempfile("pec")
-  correct.detect.inbix <- vector(mode = "numeric")
-  # write simple tab-separated vales (tsv) files
-  if (verbose) cat("Writing ", unique.sim.prefix,
-                   ".sim.(train|holdout|validation).tab files\n")
-  utils::write.table(train.ds, paste(unique.sim.prefix, ".sim.train.tab",
-                                     sep = ""), sep = "\t",
-                     row.names = FALSE, col.names = TRUE, quote = FALSE)
-  utils::write.table(holdout.ds, paste(unique.sim.prefix, ".sim.holdout.tab",
-                                       sep = ""), sep = "\t",
-                     row.names = FALSE, col.names = TRUE, quote = FALSE)
-  if (sum.good > 2) {
-    utils::write.table(validation.ds, paste(unique.sim.prefix, ".sim.test.tab",
-                                            sep = ""), sep = "\t",
-                       row.names = FALSE, col.names = TRUE, quote = FALSE)
-  }
-  if (verbose) cat("Running inbix privacy EC on saved simulation data sets\n")
-  system.command <- paste("OMP_NUM_THREADS=4 inbix ",
-                          "--ec-privacy ",
-                          "--depvarname ", label, " ",
-                          "--ec-privacy-train-file ", unique.sim.prefix, ".sim.train.tab ",
-                          "--ec-privacy-holdout-file ", unique.sim.prefix, ".sim.holdout.tab ",
-                          "--ec-privacy-start-temp ", start.temp, " ",
-                          "--ec-privacy-final-temp ", final.temp, " ",
-                          "--ec-privacy-tau ", tau.param, " ",
-                          "--ec-privacy-update-frequency ", update.freq, " ",
-                          "--ntree ", rf.ntree, " ",
-                          "--mtry ", param.mtry, " ",
-                          "--out ", unique.sim.prefix, ".privateec", sep = "")
-  if (sum.good > 2) {
-    c(system.command,
-      paste("--ec-privacy-test-file ", unique.sim.prefix, ".sim.test.tab ",
-            sep = ""))
-  }
-  if (verbose) cat(system.command, "\n")
-  system(system.command, intern = FALSE, ignore.stdout = TRUE, ignore.stderr = TRUE)
-  # if(verbose) cat("Reading inbix privacy EC attributes used results\n")
-  # attrs.file <- paste(unique.sim.prefix, ".privateec.selected.attributes.tab", sep="")
-  # if(verbose) cat(attrs.file, "\n")
-  # attrs.table <- utils::read.table(attrs.file, sep="\t", header=FALSE, stringsAsFactors=FALSE)
-  
-  if (verbose) cat("Reading inbix privacy EC algorithm run details\n")
-  iters.file <- paste(unique.sim.prefix, ".privateec.privacy.iterations.tab", sep = "")
-  if (verbose) cat(iters.file, "\n")
-  iters.table <- utils::read.table(iters.file, sep = "\t", header = TRUE,
-                                   stringsAsFactors = FALSE)
-  if (is.simulated) {
-    correct.detect.inbix <- as.integer(iters.table$Correct)
-  }
-  fxplots <- data.frame(vars.remain = as.integer(iters.table$Keep),
-                        ftrain = iters.table$TrainAcc,
-                        fholdout = iters.table$HoldoutAcc,
-                        fvalidation = iters.table$TestAcc,
-                        alg = 5)
-  melted.fx <- reshape2::melt(fxplots, id = c("vars.remain", "alg"))
-  if (verbose) cat("Cleaning up inbix private EC results files\n")
-  inbix.temp.files <- c(paste(unique.sim.prefix, ".sim.train.tab", sep = ""),
-                        paste(unique.sim.prefix, ".sim.holdout.tab", sep = ""),
-                        paste(unique.sim.prefix, ".privateec.privacy.iterations.tab", sep = ""),
-                        paste(unique.sim.prefix, ".privateec.log", sep = ""))
-  if (sum.good > 2) {
-    inbix.temp.files <- c(inbix.temp.files, 
-                          paste(unique.sim.prefix, ".sim.test.tab", sep = ""))
-  }
-  #file.remove(c(inbix.conv.files, rf.files, attrs.file, iters.file))
-  file.remove(inbix.temp.files)
-  if (!is.null(save.file)) {
-    save.file <- paste(unique.sim.prefix, ".Rdata", sep = "")
-    if (verbose) {
-      cat("saving results to ", save.file, "\n")
+  inbixThresholds <- data.frame()
+  if (file.exists("Rinbix.thresholds.tab")) {
+    inbixThresholds <- read.table("Rinbix.thresholds.tab", header = FALSE, 
+                                  sep = "\t", stringsAsFactors = FALSE)
+    # remove temporary files
+    if (method == "regain") {
+      file.remove(c("Rinbix.perm.tab", "Rinbix.thresholds.tab", "Rinbix.num", 
+                    "Rinbix.pheno", "Rinbix.log"))
+    }  
+    if (method == "dcgain") {
+      file.remove(c("Rinbix.thresholds.tab", "Rinbix.pheno", "Rinbix.num", "Rinbix.log"))
     }
-    save(fxplots, melted.fx, correct.detect.inbix, bias,
-         train.ds, holdout.ds, validation.ds, file = save.file)
+  } else {
+    warning(paste("There is a problem calling inbix permute GAIN with:\n[", 
+                  inbixCmd, "].\nSee the Rinbix.log file in /tmp directory for R"))
   }
-  if (verbose) cat("privacyECinbix elapsed time:", (proc.time() - ptm)[3], "\n")
   
-  list(algo.acc = fxplots,
-       ggplot.data = melted.fx,
-       correct = correct.detect.inbix,
-       elasped = (proc.time() - ptm)[3])
+  # return variable thresholds
+  colnames(inbixThresholds) <- c("variable", "threshold")
+  inbixThresholds
 }
 
 #' Read inbix numeric data set and phenotype file; return combined data frame.
@@ -484,7 +331,7 @@ rankReliefSeqInbix <- function(labelledDataFrame, outPrefix="Rinbix", k=10) {
 }
 
 #' Write inbix numeric and phenotype files (PLINK format) for a list
-#' of simulated data sets (from privateEC, perhaps?)
+#' of simulated data sets
 #'
 #' @param data.sets A list of train, holdout and validation data frames
 #' @param base.sim.prefix A character vector for the input and saved file prefixes
@@ -494,7 +341,7 @@ saveSimAsInbixNative <- function(data.sets=NULL,
                                  base.sim.prefix,
                                  verbose=FALSE) {
   if (is.null(data.sets)) {
-    stop("privateEC: No data sets provided as first argument")
+    stop("No data sets provided as first argument")
   }
   X_train <- data.sets$train
   X_holdo <- data.sets$holdout
@@ -508,37 +355,37 @@ saveSimAsInbixNative <- function(data.sets=NULL,
   train.phenotype <- ifelse(X_train[, ncol(X_train)] == -1, 0, 1)
   train.inbix <- cbind(train.subj.names, train.subj.names, train.expr.matrix)
   colnames(train.inbix) <- c("FID", "IID", var.names)
-  utils::write.table(train.inbix, file=paste(base.sim.prefix, ".train.sim.num", sep=""),
-                     quote=FALSE, sep="\t", col.names=TRUE, row.names=FALSE)
+  utils::write.table(train.inbix, file = paste(base.sim.prefix, ".train.sim.num", sep = ""),
+                     quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
   train.inbix.pheno <- cbind(train.subj.names, train.subj.names, train.phenotype)
-  utils::write.table(train.inbix.pheno, file=paste(base.sim.prefix, ".train.sim.pheno", sep=""),
-                     quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE)
+  utils::write.table(train.inbix.pheno, file = paste(base.sim.prefix, ".train.sim.pheno", sep = ""),
+                     quote = FALSE, sep = "\t", col.names = FALSE, row.names = FALSE)
   # holdout
-  holdo.expr.matrix <- X_holdo[, 1:(ncol(X_holdo)-1)]
+  holdo.expr.matrix <- X_holdo[, 1:(ncol(X_holdo) - 1)]
   var.names <- colnames(holdo.expr.matrix)
   holdo.num.subj <- nrow(holdo.expr.matrix)
-  holdo.subj.names <- paste("subj", 1:holdo.num.subj, sep="")
+  holdo.subj.names <- paste("subj", 1:holdo.num.subj, sep = "")
   holdo.phenotype <- ifelse(X_holdo[, ncol(X_holdo)] == -1, 0, 1)
   holdo.inbix <- cbind(holdo.subj.names, holdo.subj.names, holdo.expr.matrix)
   colnames(holdo.inbix) <- c("FID", "IID", var.names)
-  utils::write.table(holdo.inbix, file=paste(base.sim.prefix, ".holdo.sim.num", sep=""),
-                     quote=FALSE, sep="\t", col.names=TRUE, row.names=FALSE)
+  utils::write.table(holdo.inbix, file = paste(base.sim.prefix, ".holdo.sim.num", sep = ""),
+                     quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
   holdo.inbix.pheno <- cbind(holdo.subj.names, holdo.subj.names, holdo.phenotype)
-  utils::write.table(holdo.inbix.pheno, file=paste(base.sim.prefix, ".holdo.sim.pheno", sep=""),
-                     quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE)
+  utils::write.table(holdo.inbix.pheno, file = paste(base.sim.prefix, ".holdo.sim.pheno", sep = ""),
+                     quote = FALSE, sep = "\t", col.names = FALSE, row.names = FALSE)
   # validation
-  validation.expr.matrix <- X_test[, 1:(ncol(X_test)-1)]
+  validation.expr.matrix <- X_test[, 1:(ncol(X_test) - 1)]
   var.names <- colnames(validation.expr.matrix)
   validation.num.subj <- nrow(validation.expr.matrix)
-  validation.subj.names <- paste("subj", 1:validation.num.subj, sep="")
+  validation.subj.names <- paste("subj", 1:validation.num.subj, sep = "")
   validation.phenotype <- ifelse(X_test[, ncol(X_test)] == -1, 0, 1)
   validation.inbix <- cbind(validation.subj.names, validation.subj.names, validation.expr.matrix)
   colnames(validation.inbix) <- c("FID", "IID", var.names)
-  utils::write.table(validation.inbix, file=paste(base.sim.prefix, ".validation.sim.num", sep=""),
-                     quote=FALSE, sep="\t", col.names=TRUE, row.names=FALSE)
+  utils::write.table(validation.inbix, file = paste(base.sim.prefix, ".validation.sim.num", sep = ""),
+                     quote = FALSE, sep = "\t", col.names = TRUE, row.names = FALSE)
   validation.inbix.pheno <- cbind(validation.subj.names, validation.subj.names, validation.phenotype)
-  utils::write.table(validation.inbix.pheno, file=paste(base.sim.prefix, ".validation.sim.pheno", sep=""),
-                     quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE)
+  utils::write.table(validation.inbix.pheno, file = paste(base.sim.prefix, ".validation.sim.pheno", sep = ""),
+                     quote = FALSE, sep = "\t", col.names = FALSE, row.names = FALSE)
 }
 
 #' SNPrank network centrality gene ranker based on GAIN matrix.

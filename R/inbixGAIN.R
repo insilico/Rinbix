@@ -327,9 +327,9 @@ fitMainEffectModel <- function(labelledDataFrame, variableName, depVarName,
 #' @param gainMatrix \code{matrix} GAIN matrix.
 #' @return sifDF \code{data.frame} of node1 weight node2.
 #' @examples
-#' data(testdata10)
-#' rinbixRegain <- regain(testdata10, stdBetas = TRUE, absBetas = TRUE)
-#' gainSIF <- gainToSimpleSif (rinbixRegain)
+#' data(testdata100ME4)
+#' rinbixRegain <- regainParallel(testdata100ME4, stdBetas = TRUE, absBetas = TRUE)
+#' gainSIF <- gainToSimpleSIF(rinbixRegain)
 #' @export
 gainToSimpleSIF <- function(gainMatrix) {
   matrixDim <- dim(gainMatrix)[1]

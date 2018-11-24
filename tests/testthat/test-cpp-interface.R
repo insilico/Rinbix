@@ -93,30 +93,16 @@ test_that("Read/write inbix data files", {
                tolerance = 0.05)
 })
 
-# test_that("Permute GAIN inbix", {
-#   inbixRegainThresholds <- permuteGainInbix(testdata100ME4)
-#   expect_equal(object = nrow(inbixRegainThresholds), 
-#                expected = ncol(testdata100ME4) - 1)
-# })
+test_that("Permute GAIN inbix", {
+  inbixRegainThresholds <- permuteGainInbix(testdata100ME4, numPerms = 5, 
+                                            method = 'regain')
+  expect_equal(object = nrow(inbixRegainThresholds),
+               expected = ncol(testdata100ME4) - 1)
+})
 
-# test_that("privateECinbix returns sane results", {
-#   num.samples <- 100
-#   num.variables <- 100
-#   pct.signals <- 0.1
-#   require(privateEC)
-#   sim.data <- privateEC::createSimulation(num.samples = num.samples,
-#                                           num.variables = num.variables,
-#                                           pct.train = 1 / 3,
-#                                           pct.holdout = 1 / 3,
-#                                           pct.validation = 1 / 3,
-#                                           pct.signals = pct.signals,
-#                                           sim.type = "mainEffect",
-#                                           verbose = FALSE)
-#   pec.results <- privateECinbix(train.ds = sim.data$train,
-#                                 holdout.ds = sim.data$holdout,
-#                                 validation.ds = sim.data$validation,
-#                                 verbose = FALSE)
-#   expect_equal(ncol(pec.results$algo.acc), 5)
-#   expect_equal(ncol(pec.results$ggplot.data), 4)
-#   expect_equal(length(pec.results$correct), nrow(pec.results$algo.acc))
-# })
+test_that("Permute dcgain inbix", {
+  inbixRegainThresholds <- permuteGainInbix(testdata100ME4, numPerms = 5, 
+                                            method = 'dcgain')
+  expect_equal(object = nrow(inbixRegainThresholds),
+               expected = ncol(testdata100ME4) - 1)
+})
