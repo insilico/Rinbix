@@ -677,6 +677,7 @@ getMainEffects <- function(labelledDataFrame,
 #' @param numCores \code{numeric} number of processor cores to use in mclapply
 #' @param verbose \code{logical} to send verbose messages to stdout.
 #' @param writeBetas \code{logical} indicating whther to write beta values to separate file.
+#' @param regressionFamily \code{string} glm regression family name.
 #' @return regainMatrix \code{matrix} of variable by variable regression coefficients.
 #' @examples
 #' data(testdata10)
@@ -687,7 +688,8 @@ regain <- function(labelledDataFrame,
                    absBetas = FALSE, 
                    numCores = 2, 
                    verbose = FALSE,
-                   writeBetas = FALSE) {
+                   writeBetas = FALSE,
+                   regressionFamily = "binomial") {
   numVars <- ncol(labelledDataFrame) - 1  
   regainMatrix <- NULL
   # run C++ version if grater than 5000 variables
@@ -698,7 +700,8 @@ regain <- function(labelledDataFrame,
                                    absBetas = absBetas,
                                    numCores = numCores, 
                                    verbose = verbose,
-                                   writeBetas = writeBetas)
+                                   writeBetas = writeBetas,
+                                   regressionFamily = regressionFamily)
   } else {
     cat("WARNING: More than 5000 variables, attempting to run reGAIN in C++\n")
     inbixExists()
@@ -731,6 +734,7 @@ regain <- function(labelledDataFrame,
 #' @param numCores \code{numeric} number of processor cores to use in mclapply
 #' @param verbose \code{logical} to send verbose messages to stdout.
 #' @param writeBetas \code{logical} indicating whether to write beta values to separate file.
+#' @param regressionFamily \code{string} glm regression family name.
 #' @return regainMatrix \code{matrix} of variable by variable regression coefficients.
 #' @examples
 #' data(testdata10)
@@ -741,7 +745,8 @@ regainParallel <- function(labelledDataFrame,
                            absBetas = FALSE, 
                            numCores = 2, 
                            verbose = FALSE, 
-                           writeBetas = FALSE) {
+                           writeBetas = FALSE,
+                           regressionFamily = "binomial") {
   transform <- ifelse(absBetas, "abs", "")
   rawBetas <- ifelse(stdBetas, FALSE, TRUE)
   mainEffects <- getMainEffects(labelledDataFrame, 
@@ -749,13 +754,15 @@ regainParallel <- function(labelledDataFrame,
                                 transformMethod = transform,
                                 numCores = numCores,
                                 verbose = verbose, 
-                                writeBetas = writeBetas)
+                                writeBetas = writeBetas,
+                                regressionFamily = regressionFamily)
   regainMatrix <- getInteractionEffects(labelledDataFrame, 
                                         useBetas = rawBetas,
                                         transformMethod = transform,
                                         numCores = numCores,
                                         verbose = verbose, 
-                                        writeBetas = writeBetas)
+                                        writeBetas = writeBetas,
+                                        regressionFamily = regressionFamily)
   diag(regainMatrix) <- mainEffects
   colnames(regainMatrix) <- colnames(labelledDataFrame)[1:(ncol(labelledDataFrame) - 1)]
   # replace NAs with zero
