@@ -81,7 +81,7 @@ predictRnaseq <- function(rnaseqCountsTrain =  NULL,
 #' @return \code{list} with preprocessed training and testing matrices.
 #' @examples
 #' data(simrnaseq)
-#' preprocessResult <- preprocessRnaseq(method = "none", 
+#' preprocessResult <- preprocessRnaseq(method = "svm", 
 #'                                      predictorsTrain, 
 #'                                      predictorsTest, 
 #'                                      verbose = FALSE)
@@ -129,7 +129,7 @@ preprocessRnaseq <- function(method = "none", countsTrain, countsTest, verbose =
 #' @return \code{list} with filtered training and testing data sets.
 #' @examples
 #' data(simrnaseq)
-#' filteredGenes <- filterRnaseq(method = "none", 
+#' filteredGenes <- filterRnaseq(method = "svm", 
 #'                               predictorsTrain, 
 #'                               responseTrain, 
 #'                               predictorsTest, 
@@ -195,7 +195,7 @@ filterRnaseq <- function(method = "none", dataTrain, labelsTrain, dataTest,
 #' @return \code{list} with classifier stats for method.
 #' @examples
 #' data(simrnaseq)
-#' classifyStats <- classifyRnaseq(method = "none", 
+#' classifyStats <- classifyRnaseq(method = "svm", 
 #'                                 predictorsTrain, 
 #'                                 responseTrain, 
 #'                                 predictorsTest, 

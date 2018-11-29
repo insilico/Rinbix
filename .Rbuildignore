@@ -1,4 +1,11 @@
 ^.*\.Rproj$
-^\.Rproj\.user$
+^\.Rproj\.user
 ^Rinbix-sublime-project.sublime-workspace$
 LICENSE.txt
+\.Rproj\.user*
+R\.Rcheck
+\.RData
+\.Rhistory
+\.gitignore
+vignettes/\.build\.timestamp
+\.git

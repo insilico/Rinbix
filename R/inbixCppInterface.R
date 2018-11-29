@@ -116,7 +116,9 @@ modularityInbix <- function(gainMatrix, outPrefix = "Rinbix") {
 #' @return \code{list} of gene thresholds.
 #' @examples 
 #' data(testdata100ME4)
-#' inbixRegainThresholds <- permuteGainInbix(testdata100ME4)
+#' inbixRegainThresholds <- permuteGainInbix(testdata100ME4, 
+#'                                           numPerms = 5, 
+#'                                           method = 'regain')
 #' @export
 permuteGainInbix <- function(regressionData, method = "regain", numPerms = 100, 
                              pThresh = 1, threshold = 0.05, outPrefix = "Rinbix") {
@@ -305,7 +307,7 @@ regainInbix <- function(regressionData, stdBetas = TRUE, absBetas = TRUE,
 #' @return \code{data.frame} with ReliefSeq results: variable, score.
 #' @examples
 #' data(testdata100ME4)
-#' rankReliefSeqResults <- rankReliefSeq(testdata100ME4)
+#' rankReliefSeqResults <- rankReliefSeqInbix(testdata100ME4)
 #' @export
 rankReliefSeqInbix <- function(labelledDataFrame, outPrefix="Rinbix", k=10) {
   inbixExists()

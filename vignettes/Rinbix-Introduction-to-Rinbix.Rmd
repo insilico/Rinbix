@@ -51,7 +51,7 @@ This simple example demonstrates a workflow from data simulation to ranked genes
 library(Rinbix)
 data("scaleFreeNetwork")
 datasetObj <- createDiffCoexpMatrixNoME(M = 10, N = 40, meanExpression = 7, 
-                                        A = scaleFreeNetwork,
+                                        A = Rinbix::scaleFreeNetwork,
                                         randSdNoise = 0.5, sdNoise = 0.05,
                                         sampleIndicesInteraction = seq(1:3))
 dataset <- as.data.frame(datasetObj$regressionData)

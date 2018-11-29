@@ -17,8 +17,10 @@ Suggests:
     knitr,
     rmarkdown
 Imports:
+    e1071,
     Biobase,
     Matrix,
+    expm,
     caret,
     edgeR,
     DESeq,

@@ -19,29 +19,29 @@ test_that("predictRnaseq", {
 
 test_that("preprocessRnaseq", {
 	preprocessResult <- preprocessRnaseq(method = "log2", 
-	                               predictorsTrain, 
-	                               predictorsTest, 
-	                               verbose = FALSE)
+	                                     predictorsTrain, 
+	                                     predictorsTest, 
+	                                     verbose = FALSE)
 	expect_equal(length(preprocessResult), 2)
 })
 
 test_that("filterRnaseq", {
-	filteredGenes <- filterRnaseq(method = "randomforests", 
-	                             predictorsTrain, 
-	                             responseTrain, 
-	                             predictorsTest, 
-	                             responseTest,
-	                             nTopGenes = 10, 
-	                             verbose = FALSE)
-	expect_equal(length(filteredGenes), 2)
+  filteredGenes <- filterRnaseq(method = "randomforests", 
+                                predictorsTrain, 
+                                responseTrain, 
+                                predictorsTest, 
+                                responseTest,
+                                nTopGenes = 10, 
+                                verbose = FALSE)
+  expect_equal(length(filteredGenes), 2)
 })
 
 test_that("classifyRnaseq", {
-	classifyStats <- classifyRnaseq(method = "svm", 
-	                          predictorsTrain, 
-	                          responseTrain, 
-	                          predictorsTest, 
-	                          responseTest,
-	                          verbose = FALSE)
-	expect_equal(length(classifyStats), 2)
+  classifyStats <- classifyRnaseq(method = "svm", 
+                                  predictorsTrain, 
+                                  responseTrain, 
+                                  predictorsTest, 
+                                  responseTest,
+                                  verbose = FALSE)
+  expect_equal(length(classifyStats), 2)
 })
