@@ -692,8 +692,8 @@ regain <- function(labelledDataFrame,
                    regressionFamily = "binomial") {
   numVars <- ncol(labelledDataFrame) - 1  
   regainMatrix <- NULL
-  # run C++ version if grater than 10,000 variables
-  if (numVars <= 10000) {
+  # run C++ version if grater than 15,000 variables
+  if (numVars <= 15000) {
     if (verbose) cat("[", numVars, "] Running parallel R reGAIN\n")
     regainMatrix <- regainParallel(labelledDataFrame, 
                                    stdBetas = stdBetas, 
@@ -703,7 +703,7 @@ regain <- function(labelledDataFrame,
                                    writeBetas = writeBetas,
                                    regressionFamily = regressionFamily)
   } else {
-    cat("WARNING: More than 10,000 variables, attempting to run reGAIN in C++\n")
+    cat("WARNING: More than 15,000 variables, attempting to run reGAIN in C++\n")
     inbixExists()
     if (verbose) cat("[", numVars, "] Running C++ inbix reGAIN\n")
     regainMatrix <- regainInbix(labelledDataFrame, 
